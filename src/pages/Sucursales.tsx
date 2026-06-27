@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import {
   getSucursales,
   getSucursalesByEmpresa,
@@ -6,14 +6,14 @@ import {
   createSucursal,
   updateSucursal,
   deleteSucursal,
-  activarSucursal,
-  desactivarSucursal,
 } from '../api/sucursales'
 import { getEmpresas, getEmpresa } from '../api/empresas'
 import { useAuth } from '../contexts/AuthContext'
 import { Modal } from '../components/Modal'
+import { DataTable } from '../components/DataTable'
 import toast from 'react-hot-toast'
 import type { Sucursal, SucursalRequest, Empresa } from '../types'
+import type { ColumnDef } from '../types/table'
 
 export function Sucursales() {
   const { user } = useAuth()
@@ -34,6 +34,62 @@ export function Sucursales() {
   const isAdminEmpresa = user?.roles?.includes('ADMIN_EMPRESA')
   const isAdminSucursal = user?.roles?.includes('ADMIN_SUCURSAL')
   const canManage = isSuperAdmin || isAdminEmpresa || isAdminSucursal
+
+  const empresaNombre = useMemo(
+    () => (id: number) => empresas.find((e) => e.id === id)?.nombre || '-',
+    [empresas]
+  )
+
+  const columns: ColumnDef<Sucursal>[] = [
+    {
+      key: 'nombre',
+      label: 'Nombre',
+      sortable: true,
+      filterable: true,
+      render: (v) => <span className="font-medium text-gray-900">{v}</span>,
+    },
+    {
+      key: 'direccion',
+      label: 'Dirección',
+      sortable: true,
+      filterable: true,
+      render: (v) => <span className="text-gray-500">{v || '-'}</span>,
+    },
+    {
+      key: 'telefono',
+      label: 'Teléfono',
+      sortable: true,
+      filterable: true,
+      render: (v) => <span className="text-gray-500">{v || '-'}</span>,
+    },
+    {
+      key: 'empresaId',
+      label: 'Empresa',
+      sortable: true,
+      filterable: true,
+      filterType: 'select',
+      filterOptions: empresas.map((e) => ({ label: e.nombre, value: String(e.id) })),
+      render: (v) => <span className="text-gray-500">{empresaNombre(v)}</span>,
+    },
+    {
+      key: 'activo',
+      label: 'Estado',
+      sortable: true,
+      filterable: true,
+      filterType: 'boolean',
+      render: (v) => (
+        <div className="flex justify-center">
+          <span
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+              v ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            }`}
+          >
+            {v ? 'Activo' : 'Inactivo'}
+          </span>
+        </div>
+      ),
+    },
+  ]
 
   const load = () => {
     setLoading(true)
@@ -126,24 +182,6 @@ export function Sucursales() {
     }
   }
 
-  const toggleActivo = async (suc: Sucursal) => {
-    if (!isSuperAdmin && !isAdminEmpresa) return
-    try {
-      if (suc.activo) {
-        await desactivarSucursal(suc.id)
-        toast.success('Sucursal desactivada')
-      } else {
-        await activarSucursal(suc.id)
-        toast.success('Sucursal activada')
-      }
-      load()
-    } catch {
-      toast.error('Error al cambiar estado')
-    }
-  }
-
-  const empresaNombre = (id: number) => empresas.find((e) => e.id === id)?.nombre || '-'
-
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -161,67 +199,31 @@ export function Sucursales() {
         )}
       </div>
 
-      {loading ? (
-        <div className="text-center py-12 text-gray-500">Cargando...</div>
-      ) : sucursales.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">No hay sucursales registradas</div>
-      ) : (
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-600">
-              <tr>
-                <th className="text-left px-6 py-3 font-medium">Nombre</th>
-                <th className="text-left px-6 py-3 font-medium">Dirección</th>
-                <th className="text-left px-6 py-3 font-medium">Teléfono</th>
-                <th className="text-left px-6 py-3 font-medium">Empresa</th>
-                <th className="text-center px-6 py-3 font-medium">Estado</th>
-                {canManage && <th className="text-right px-6 py-3 font-medium">Acciones</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {sucursales.map((suc) => (
-                <tr key={suc.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-gray-900">{suc.nombre}</td>
-                  <td className="px-6 py-4 text-gray-500">{suc.direccion || '-'}</td>
-                  <td className="px-6 py-4 text-gray-500">{suc.telefono || '-'}</td>
-                  <td className="px-6 py-4 text-gray-500">{empresaNombre(suc.empresaId)}</td>
-                  <td className="px-6 py-4 text-center">
-                    <button
-                      onClick={() => toggleActivo(suc)}
-                      disabled={!isSuperAdmin && !isAdminEmpresa}
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                        suc.activo
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
-                      }`}
-                    >
-                      {suc.activo ? 'Activo' : 'Inactivo'}
-                    </button>
-                  </td>
-                  {canManage && (
-                    <td className="px-6 py-4 text-right space-x-2">
-                      <button
-                        onClick={() => openEdit(suc)}
-                        className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-                      >
-                        Editar
-                      </button>
-                      {(isSuperAdmin || isAdminEmpresa) && (
-                        <button
-                          onClick={() => handleDelete(suc.id)}
-                          className="text-red-600 hover:text-red-800 text-sm font-medium"
-                        >
-                          Eliminar
-                        </button>
-                      )}
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        data={sucursales}
+        columns={columns}
+        loading={loading}
+        rowKey={(s) => s.id}
+        emptyMessage="No hay sucursales registradas"
+        actions={(suc) => (
+          <>
+            <button
+              onClick={() => openEdit(suc)}
+              className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+            >
+              Editar
+            </button>
+            {(isSuperAdmin || isAdminEmpresa) && (
+              <button
+                onClick={() => handleDelete(suc.id)}
+                className="text-red-600 hover:text-red-800 text-sm font-medium"
+              >
+                Eliminar
+              </button>
+            )}
+          </>
+        )}
+      />
 
       {showModal && (
         <Modal

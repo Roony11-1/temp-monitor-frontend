@@ -5,13 +5,13 @@ import {
   createEmpresa,
   updateEmpresa,
   deleteEmpresa,
-  activarEmpresa,
-  desactivarEmpresa,
 } from '../api/empresas'
 import { useAuth } from '../contexts/AuthContext'
 import { Modal } from '../components/Modal'
+import { DataTable } from '../components/DataTable'
 import toast from 'react-hot-toast'
 import type { Empresa, EmpresaRequest } from '../types'
+import type { ColumnDef } from '../types/table'
 
 export function Empresas() {
   const { user } = useAuth()
@@ -30,6 +30,55 @@ export function Empresas() {
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
   const canEdit = isSuperAdmin || user?.roles?.includes('ADMIN_EMPRESA')
   const canDelete = isSuperAdmin
+
+  const columns: ColumnDef<Empresa>[] = [
+    {
+      key: 'nombre',
+      label: 'Nombre',
+      sortable: true,
+      filterable: true,
+      render: (v) => <span className="font-medium text-gray-900">{v}</span>,
+    },
+    {
+      key: 'direccion',
+      label: 'Dirección',
+      sortable: true,
+      filterable: true,
+      render: (v) => <span className="text-gray-500">{v || '-'}</span>,
+    },
+    {
+      key: 'telefono',
+      label: 'Teléfono',
+      sortable: true,
+      filterable: true,
+      render: (v) => <span className="text-gray-500">{v || '-'}</span>,
+    },
+    {
+      key: 'email',
+      label: 'Email',
+      sortable: true,
+      filterable: true,
+      render: (v) => <span className="text-gray-500">{v || '-'}</span>,
+    },
+    {
+      key: 'activo',
+      label: 'Estado',
+      sortable: true,
+      filterable: true,
+      filterType: 'boolean',
+      render: (v) => (
+        <div className="flex justify-center">
+          <span
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+              v ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            }`}
+          >
+            {v ? 'Activo' : 'Inactivo'}
+          </span>
+        </div>
+      ),
+    },
+  ]
 
   const load = () => {
     setLoading(true)
@@ -97,22 +146,6 @@ export function Empresas() {
     }
   }
 
-  const toggleActivo = async (emp: Empresa) => {
-    if (!isSuperAdmin) return
-    try {
-      if (emp.activo) {
-        await desactivarEmpresa(emp.id)
-        toast.success('Empresa desactivada')
-      } else {
-        await activarEmpresa(emp.id)
-        toast.success('Empresa activada')
-      }
-      load()
-    } catch {
-      toast.error('Error al cambiar estado')
-    }
-  }
-
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -130,69 +163,35 @@ export function Empresas() {
         )}
       </div>
 
-      {loading ? (
-        <div className="text-center py-12 text-gray-500">Cargando...</div>
-      ) : empresas.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">No hay empresas registradas</div>
-      ) : (
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-600">
-              <tr>
-                <th className="text-left px-6 py-3 font-medium">Nombre</th>
-                <th className="text-left px-6 py-3 font-medium">Dirección</th>
-                <th className="text-left px-6 py-3 font-medium">Teléfono</th>
-                <th className="text-left px-6 py-3 font-medium">Email</th>
-                <th className="text-center px-6 py-3 font-medium">Estado</th>
-                {(canEdit || canDelete) && <th className="text-right px-6 py-3 font-medium">Acciones</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {empresas.map((emp) => (
-                <tr key={emp.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-gray-900">{emp.nombre}</td>
-                  <td className="px-6 py-4 text-gray-500">{emp.direccion || '-'}</td>
-                  <td className="px-6 py-4 text-gray-500">{emp.telefono || '-'}</td>
-                  <td className="px-6 py-4 text-gray-500">{emp.email || '-'}</td>
-                  <td className="px-6 py-4 text-center">
-                    <button
-                      onClick={() => toggleActivo(emp)}
-                      disabled={!isSuperAdmin}
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                        emp.activo
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
-                      }`}
-                    >
-                      {emp.activo ? 'Activo' : 'Inactivo'}
-                    </button>
-                  </td>
-                  {canEdit || canDelete ? (
-                    <td className="px-6 py-4 text-right space-x-2">
-                      {canEdit && (
-                        <button
-                          onClick={() => openEdit(emp)}
-                          className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-                        >
-                          Editar
-                        </button>
-                      )}
-                      {canDelete && (
-                        <button
-                          onClick={() => handleDelete(emp.id)}
-                          className="text-red-600 hover:text-red-800 text-sm font-medium"
-                        >
-                          Eliminar
-                        </button>
-                      )}
-                    </td>
-                  ) : null}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        data={empresas}
+        columns={columns}
+        loading={loading}
+        rowKey={(e) => e.id}
+        emptyMessage="No hay empresas registradas"
+        actions={(emp) =>
+          canEdit || canDelete ? (
+            <>
+              {canEdit && (
+                <button
+                  onClick={() => openEdit(emp)}
+                  className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                >
+                  Editar
+                </button>
+              )}
+              {canDelete && (
+                <button
+                  onClick={() => handleDelete(emp.id)}
+                  className="text-red-600 hover:text-red-800 text-sm font-medium"
+                >
+                  Eliminar
+                </button>
+              )}
+            </>
+          ) : undefined
+        }
+      />
 
       {showModal && (
         <Modal

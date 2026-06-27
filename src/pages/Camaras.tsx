@@ -1,18 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import {
   getCamaras,
   getCamarasBySucursal,
   createCamara,
   updateCamara,
   deleteCamara,
-  activarCamara,
-  desactivarCamara,
 } from '../api/camaras'
 import { getSucursales, getSucursalesByEmpresa, getSucursal } from '../api/sucursales'
 import { useAuth } from '../contexts/AuthContext'
 import { Modal } from '../components/Modal'
+import { DataTable } from '../components/DataTable'
 import toast from 'react-hot-toast'
 import type { Camara, CamaraRequest, Sucursal } from '../types'
+import type { ColumnDef } from '../types/table'
 
 export function Camaras() {
   const { user } = useAuth()
@@ -34,6 +34,79 @@ export function Camaras() {
   const isAdminEmpresa = user?.roles?.includes('ADMIN_EMPRESA')
   const isAdminSucursal = user?.roles?.includes('ADMIN_SUCURSAL')
   const canManage = isSuperAdmin || isAdminEmpresa || isAdminSucursal
+
+  const sucursalNombre = useMemo(
+    () => (id: number) => sucursales.find((s) => s.id === id)?.nombre || '-',
+    [sucursales]
+  )
+
+  const columns: ColumnDef<Camara>[] = [
+    {
+      key: 'nombre',
+      label: 'Nombre',
+      sortable: true,
+      filterable: true,
+      render: (v) => <span className="font-medium text-gray-900">{v}</span>,
+    },
+    {
+      key: 'descripcion',
+      label: 'Descripción',
+      sortable: true,
+      filterable: true,
+      render: (v) => <span className="text-gray-500">{v || '-'}</span>,
+    },
+    {
+      key: 'sucursalId',
+      label: 'Sucursal',
+      sortable: true,
+      filterable: true,
+      filterType: 'select',
+      filterOptions: sucursales.map((s) => ({ label: s.nombre, value: String(s.id) })),
+      render: (v) => <span className="text-gray-500">{sucursalNombre(v)}</span>,
+    },
+    {
+      key: 'temperaturaMinima',
+      label: 'Temp. Mín',
+      sortable: true,
+      filterable: true,
+      filterType: 'number',
+      render: (v) => (
+        <div className="text-center text-gray-500">
+          {v != null ? `${v}°C` : '-'}
+        </div>
+      ),
+    },
+    {
+      key: 'temperaturaMaxima',
+      label: 'Temp. Máx',
+      sortable: true,
+      filterable: true,
+      filterType: 'number',
+      render: (v) => (
+        <div className="text-center text-gray-500">
+          {v != null ? `${v}°C` : '-'}
+        </div>
+      ),
+    },
+    {
+      key: 'activo',
+      label: 'Estado',
+      sortable: true,
+      filterable: true,
+      filterType: 'boolean',
+      render: (v) => (
+        <div className="flex justify-center">
+          <span
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+              v ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            }`}
+          >
+            {v ? 'Activo' : 'Inactivo'}
+          </span>
+        </div>
+      ),
+    },
+  ]
 
   const loadSucursales = () => {
     if (isSuperAdmin) {
@@ -129,24 +202,6 @@ export function Camaras() {
     }
   }
 
-  const toggleActivo = async (cam: Camara) => {
-    if (!canManage) return
-    try {
-      if (cam.activo) {
-        await desactivarCamara(cam.id)
-        toast.success('Cámara desactivada')
-      } else {
-        await activarCamara(cam.id)
-        toast.success('Cámara activada')
-      }
-      load()
-    } catch {
-      toast.error('Error al cambiar estado')
-    }
-  }
-
-  const sucursalNombre = (id: number) => sucursales.find((s) => s.id === id)?.nombre || '-'
-
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -164,71 +219,29 @@ export function Camaras() {
         )}
       </div>
 
-      {loading ? (
-        <div className="text-center py-12 text-gray-500">Cargando...</div>
-      ) : camaras.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">No hay cámaras registradas</div>
-      ) : (
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-600">
-              <tr>
-                <th className="text-left px-6 py-3 font-medium">Nombre</th>
-                <th className="text-left px-6 py-3 font-medium">Descripción</th>
-                <th className="text-left px-6 py-3 font-medium">Sucursal</th>
-                <th className="text-center px-6 py-3 font-medium">Temp. Mín</th>
-                <th className="text-center px-6 py-3 font-medium">Temp. Máx</th>
-                <th className="text-center px-6 py-3 font-medium">Estado</th>
-                {canManage && <th className="text-right px-6 py-3 font-medium">Acciones</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {camaras.map((cam) => (
-                <tr key={cam.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-gray-900">{cam.nombre}</td>
-                  <td className="px-6 py-4 text-gray-500">{cam.descripcion || '-'}</td>
-                  <td className="px-6 py-4 text-gray-500">{sucursalNombre(cam.sucursalId)}</td>
-                  <td className="px-6 py-4 text-center text-gray-500">
-                    {cam.temperaturaMinima != null ? `${cam.temperaturaMinima}°C` : '-'}
-                  </td>
-                  <td className="px-6 py-4 text-center text-gray-500">
-                    {cam.temperaturaMaxima != null ? `${cam.temperaturaMaxima}°C` : '-'}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <button
-                      onClick={() => toggleActivo(cam)}
-                      disabled={!canManage}
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                        cam.activo
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
-                      }`}
-                    >
-                      {cam.activo ? 'Activo' : 'Inactivo'}
-                    </button>
-                  </td>
-                  {canManage && (
-                    <td className="px-6 py-4 text-right space-x-2">
-                      <button
-                        onClick={() => openEdit(cam)}
-                        className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => handleDelete(cam.id)}
-                        className="text-red-600 hover:text-red-800 text-sm font-medium"
-                      >
-                        Eliminar
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        data={camaras}
+        columns={columns}
+        loading={loading}
+        rowKey={(c) => c.id}
+        emptyMessage="No hay cámaras registradas"
+        actions={(cam) => (
+          <>
+            <button
+              onClick={() => openEdit(cam)}
+              className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+            >
+              Editar
+            </button>
+            <button
+              onClick={() => handleDelete(cam.id)}
+              className="text-red-600 hover:text-red-800 text-sm font-medium"
+            >
+              Eliminar
+            </button>
+          </>
+        )}
+      />
 
       {showModal && (
         <Modal

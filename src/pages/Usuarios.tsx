@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import {
   getUsuarios,
   getUsuariosByEmpresa,
@@ -6,15 +6,15 @@ import {
   createUsuario,
   updateUsuario,
   deleteUsuario,
-  activarUsuario,
-  desactivarUsuario,
   cambiarPassword,
 } from '../api/usuarios'
 import { getEmpresas, getEmpresa } from '../api/empresas'
 import { useAuth } from '../contexts/AuthContext'
 import { Modal } from '../components/Modal'
+import { DataTable } from '../components/DataTable'
 import toast from 'react-hot-toast'
 import type { Usuario, UsuarioRequest, Empresa, Rol } from '../types'
+import type { ColumnDef } from '../types/table'
 
 const rolesDisponibles: Rol[] = ['SUPER_ADMIN', 'ADMIN_EMPRESA', 'ADMIN_SUCURSAL', 'TECNICO', 'USUARIO']
 
@@ -43,6 +43,82 @@ export function Usuarios() {
   const isAdminEmpresa = currentUser?.roles?.includes('ADMIN_EMPRESA')
   const canManage = isSuperAdmin || isAdminEmpresa
   const isReadOnly = !isSuperAdmin && !isAdminEmpresa
+
+  const empresaNombre = useMemo(
+    () => (id: number | null) => (id ? empresas.find((e) => e.id === id)?.nombre || '-' : '-'),
+    [empresas]
+  )
+
+  const columns: ColumnDef<Usuario>[] = [
+    {
+      key: 'email',
+      label: 'Email',
+      sortable: true,
+      filterable: true,
+      render: (v) => <span className="font-medium text-gray-900">{v}</span>,
+    },
+    {
+      key: 'nombre',
+      label: 'Nombre',
+      sortable: true,
+      filterable: true,
+      render: (v) => <span className="text-gray-500">{v || '-'}</span>,
+    },
+    {
+      key: 'roles',
+      label: 'Roles',
+      sortable: false,
+      filterable: true,
+      filterType: 'select',
+      filterOptions: rolesDisponibles.map((r) => ({ label: r, value: r })),
+      render: (v: Rol[]) => (
+        <div className="flex gap-1 flex-wrap">
+          {v.map((rol) => (
+            <span
+              key={rol}
+              className="px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700"
+            >
+              {rol}
+            </span>
+          ))}
+        </div>
+      ),
+      getValue: (row) => row.roles.join(', '),
+    },
+    ...(!isReadOnly
+      ? [
+          {
+            key: 'empresaId' as const,
+            label: 'Empresa' as const,
+            sortable: true,
+            filterable: true,
+            filterType: 'select' as const,
+            filterOptions: empresas.map((e) => ({ label: e.nombre, value: String(e.id) })),
+            render: (v: number | null) => (
+              <span className="text-gray-500">{empresaNombre(v)}</span>
+            ),
+          },
+        ]
+      : []),
+    {
+      key: 'activo',
+      label: 'Estado',
+      sortable: true,
+      filterable: true,
+      filterType: 'boolean',
+      render: (v) => (
+        <div className="flex justify-center">
+          <span
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+              v ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            }`}
+          >
+            {v ? 'Activo' : 'Inactivo'}
+          </span>
+        </div>
+      ),
+    },
+  ]
 
   const load = () => {
     setLoading(true)
@@ -142,22 +218,6 @@ export function Usuarios() {
     }
   }
 
-  const toggleActivo = async (usr: Usuario) => {
-    if (!canManage) return
-    try {
-      if (usr.activo) {
-        await desactivarUsuario(usr.id)
-        toast.success('Usuario desactivado')
-      } else {
-        await activarUsuario(usr.id)
-        toast.success('Usuario activado')
-      }
-      load()
-    } catch {
-      toast.error('Error al cambiar estado')
-    }
-  }
-
   const handleChangePassword = async () => {
     if (!passwordUserId || !nuevaPassword) return
     setSaving(true)
@@ -173,9 +233,6 @@ export function Usuarios() {
       setSaving(false)
     }
   }
-
-  const empresaNombre = (id: number | null) =>
-    id ? empresas.find((e) => e.id === id)?.nombre || '-' : '-'
 
   const toggleRol = (rol: Rol) => {
     setForm((prev) => ({
@@ -203,96 +260,45 @@ export function Usuarios() {
         )}
       </div>
 
-      {loading ? (
-        <div className="text-center py-12 text-gray-500">Cargando...</div>
-      ) : usuarios.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">No hay usuarios registrados</div>
-      ) : (
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-600">
-              <tr>
-                <th className="text-left px-6 py-3 font-medium">Email</th>
-                <th className="text-left px-6 py-3 font-medium">Nombre</th>
-                <th className="text-left px-6 py-3 font-medium">Roles</th>
-                {!isReadOnly && <th className="text-left px-6 py-3 font-medium">Empresa</th>}
-                <th className="text-center px-6 py-3 font-medium">Estado</th>
-                <th className="text-right px-6 py-3 font-medium">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {usuarios.map((usr) => (
-                <tr key={usr.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-gray-900">{usr.email}</td>
-                  <td className="px-6 py-4 text-gray-500">{usr.nombre || '-'}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-1 flex-wrap">
-                      {usr.roles.map((rol) => (
-                        <span
-                          key={rol}
-                          className="px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700"
-                        >
-                          {rol}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                  {!isReadOnly && (
-                    <td className="px-6 py-4 text-gray-500">{empresaNombre(usr.empresaId)}</td>
-                  )}
-                  <td className="px-6 py-4 text-center">
-                    <button
-                      onClick={() => toggleActivo(usr)}
-                      disabled={!canManage}
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                        usr.activo
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
-                      }`}
-                    >
-                      {usr.activo ? 'Activo' : 'Inactivo'}
-                    </button>
-                  </td>
-                  <td className="px-6 py-4 text-right space-x-2">
-                    {(canManage || usr.id === currentUser?.id) && (
-                      <>
-                        {canManage && (
-                          <button
-                            onClick={() => openEdit(usr)}
-                            className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-                          >
-                            Editar
-                          </button>
-                        )}
-                        {(canManage || usr.id === currentUser?.id) && (
-                          <button
-                            onClick={() => {
-                              setPasswordUserId(usr.id)
-                              setNuevaPassword('')
-                              setShowPasswordModal(true)
-                            }}
-                            className="text-amber-600 hover:text-amber-800 text-sm font-medium"
-                          >
-                            Password
-                          </button>
-                        )}
-                        {canManage && (
-                          <button
-                            onClick={() => handleDelete(usr.id)}
-                            className="text-red-600 hover:text-red-800 text-sm font-medium"
-                          >
-                            Eliminar
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        data={usuarios}
+        columns={columns as ColumnDef<Usuario>[]}
+        loading={loading}
+        rowKey={(u) => u.id}
+        emptyMessage="No hay usuarios registrados"
+        actions={(usr) => (
+          <>
+            {canManage && (
+              <button
+                onClick={() => openEdit(usr)}
+                className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+              >
+                Editar
+              </button>
+            )}
+            {(canManage || usr.id === currentUser?.id) && (
+              <button
+                onClick={() => {
+                  setPasswordUserId(usr.id)
+                  setNuevaPassword('')
+                  setShowPasswordModal(true)
+                }}
+                className="text-amber-600 hover:text-amber-800 text-sm font-medium"
+              >
+                Password
+              </button>
+            )}
+            {canManage && (
+              <button
+                onClick={() => handleDelete(usr.id)}
+                className="text-red-600 hover:text-red-800 text-sm font-medium"
+              >
+                Eliminar
+              </button>
+            )}
+          </>
+        )}
+      />
 
       {showModal && (
         <Modal
