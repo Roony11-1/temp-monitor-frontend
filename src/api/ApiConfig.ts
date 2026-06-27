@@ -1,0 +1,27 @@
+export const ApiConfig = {
+  auth: {
+    login: '/auth/login',
+  },
+  empresas: {
+    list: '/api/empresas',
+    byId: (id: number) => `/api/empresas/${id}`,
+    activar: (id: number) => `/api/empresas/${id}/activar`,
+    desactivar: (id: number) => `/api/empresas/${id}/desactivar`,
+  },
+  sucursales: {
+    list: '/api/sucursales',
+    byId: (id: number) => `/api/sucursales/${id}`,
+    byEmpresa: (empresaId: number) => `/api/sucursales/empresa/${empresaId}`,
+    activar: (id: number) => `/api/sucursales/${id}/activar`,
+    desactivar: (id: number) => `/api/sucursales/${id}/desactivar`,
+  },
+  usuarios: {
+    list: '/api/usuarios',
+    byId: (id: number) => `/api/usuarios/${id}`,
+    byEmpresa: (empresaId: number) => `/api/usuarios/empresa/${empresaId}`,
+    bySucursal: (sucursalId: number) => `/api/usuarios/sucursal/${sucursalId}`,
+    password: (id: number) => `/api/usuarios/${id}/password`,
+    activar: (id: number) => `/api/usuarios/${id}/activar`,
+    desactivar: (id: number) => `/api/usuarios/${id}/desactivar`,
+  },
+}
