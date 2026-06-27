@@ -7,6 +7,7 @@ import { Login } from './pages/Login'
 import { Dashboard } from './pages/Dashboard'
 import { Empresas } from './pages/Empresas'
 import { Sucursales } from './pages/Sucursales'
+import { Camaras } from './pages/Camaras'
 import { Usuarios } from './pages/Usuarios'
 import { NotFound } from './pages/NotFound'
 
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="empresas" element={<Empresas />} />
             <Route path="sucursales" element={<Sucursales />} />
+            <Route path="camaras" element={<Camaras />} />
             <Route path="usuarios" element={<Usuarios />} />
           </Route>
           <Route path="*" element={<NotFound />} />

@@ -15,6 +15,13 @@ export const ApiConfig = {
     activar: (id: number) => `/api/sucursales/${id}/activar`,
     desactivar: (id: number) => `/api/sucursales/${id}/desactivar`,
   },
+  camaras: {
+    list: '/api/camaras',
+    byId: (id: number) => `/api/camaras/${id}`,
+    bySucursal: (sucursalId: number) => `/api/camaras/sucursal/${sucursalId}`,
+    activar: (id: number) => `/api/camaras/${id}/activar`,
+    desactivar: (id: number) => `/api/camaras/${id}/desactivar`,
+  },
   usuarios: {
     list: '/api/usuarios',
     byId: (id: number) => `/api/usuarios/${id}`,

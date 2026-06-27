@@ -16,6 +16,7 @@ export function Sidebar() {
     { to: '/dashboard', label: 'Dashboard', icon: '📊', show: true },
     { to: '/empresas', label: 'Empresas', icon: '🏢', show: isSuperAdmin || isAdminEmpresa },
     { to: '/sucursales', label: 'Sucursales', icon: '📍', show: canViewStructure },
+    { to: '/camaras', label: 'Cámaras', icon: '📷', show: canViewStructure || isAdminSucursal || isTecnico },
     { to: '/usuarios', label: 'Usuarios', icon: '👥', show: canManage || isAdminSucursal || isTecnico },
   ]
 

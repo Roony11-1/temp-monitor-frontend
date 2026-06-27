@@ -69,6 +69,26 @@ export interface UsuarioRequest {
   roles: Rol[]
 }
 
+export interface Camara {
+  id: number
+  nombre: string
+  descripcion: string | null
+  sucursalId: number
+  temperaturaMinima: number | null
+  temperaturaMaxima: number | null
+  activo: boolean
+  createdAt: string
+  updatedAt: string | null
+}
+
+export interface CamaraRequest {
+  nombre: string
+  descripcion: string
+  sucursalId: number
+  temperaturaMinima: number | null
+  temperaturaMaxima: number | null
+}
+
 export interface AuthUser {
   id: number
   email: string

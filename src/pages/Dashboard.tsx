@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getEmpresas, getEmpresa } from '../api/empresas'
 import { getSucursales, getSucursalesByEmpresa, getSucursal } from '../api/sucursales'
+import { getCamaras, getCamarasBySucursal } from '../api/camaras'
 import { getUsuarios, getUsuariosByEmpresa, getUsuariosBySucursal } from '../api/usuarios'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -8,6 +9,7 @@ export function Dashboard() {
   const { user } = useAuth()
   const [empresasCount, setEmpresasCount] = useState(0)
   const [sucursalesCount, setSucursalesCount] = useState(0)
+  const [camarasCount, setCamarasCount] = useState(0)
   const [usuariosCount, setUsuariosCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
@@ -16,10 +18,11 @@ export function Dashboard() {
 
   useEffect(() => {
     if (isSuperAdmin) {
-      Promise.all([getEmpresas(), getSucursales(), getUsuarios()])
-        .then(([empresas, sucursales, usuarios]) => {
+      Promise.all([getEmpresas(), getSucursales(), getCamaras(), getUsuarios()])
+        .then(([empresas, sucursales, camaras, usuarios]) => {
           setEmpresasCount(empresas.length)
           setSucursalesCount(sucursales.length)
+          setCamarasCount(camaras.length)
           setUsuariosCount(usuarios.length)
         })
         .catch(() => {})
@@ -34,6 +37,12 @@ export function Dashboard() {
           setEmpresasCount(1)
           setSucursalesCount(sucursales.length)
           setUsuariosCount(usuarios.length)
+          const sucIds = sucursales.map((s) => s.id)
+          return Promise.all(sucIds.map((id) => getCamarasBySucursal(id)))
+        })
+        .then((results) => {
+          const total = results.reduce((sum, arr) => sum + arr.length, 0)
+          setCamarasCount(total)
         })
         .catch(() => {})
         .finally(() => setLoading(false))
@@ -43,15 +52,18 @@ export function Dashboard() {
 
       if (user?.sucursalId) {
         promises.push(getSucursal(user.sucursalId))
+        promises.push(getCamarasBySucursal(user.sucursalId))
         promises.push(getUsuariosBySucursal(user.sucursalId))
       } else {
+        promises.push(Promise.resolve([]))
         promises.push(Promise.resolve([]))
         promises.push(Promise.resolve([]))
       }
 
       Promise.all(promises)
-        .then(([_, sucursales, usuarios]) => {
+        .then(([_, sucursales, camaras, usuarios]) => {
           setSucursalesCount(Array.isArray(sucursales) ? sucursales.length : 1)
+          setCamarasCount(camaras.length)
           setUsuariosCount(usuarios.length)
         })
         .catch(() => {})
@@ -64,6 +76,7 @@ export function Dashboard() {
   const cards = [
     { label: 'Empresas', value: empresasCount, color: 'bg-blue-500', icon: '🏢' },
     { label: 'Sucursales', value: sucursalesCount, color: 'bg-green-500', icon: '📍' },
+    { label: 'Cámaras', value: camarasCount, color: 'bg-amber-500', icon: '📷' },
     { label: 'Usuarios', value: usuariosCount, color: 'bg-purple-500', icon: '👥' },
   ]
 
@@ -76,7 +89,7 @@ export function Dashboard() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {cards.map((card) => (
           <div key={card.label} className="bg-white rounded-xl shadow-sm border p-6">
             <div className="flex items-center gap-4">
