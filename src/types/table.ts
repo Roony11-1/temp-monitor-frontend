@@ -21,3 +21,9 @@ export interface SortState {
 export interface FilterValues {
   [key: string]: any
 }
+
+export interface PaginationState {
+  page: number
+  pageSize: number
+  total: number
+}

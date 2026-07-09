@@ -5,14 +5,17 @@ import {
   createCamara,
   updateCamara,
   deleteCamara,
-} from '../api/camaras'
-import { getSucursales, getSucursalesByEmpresa, getSucursal } from '../api/sucursales'
-import { useAuth } from '../contexts/AuthContext'
-import { Modal } from '../components/Modal'
-import { DataTable } from '../components/DataTable'
+} from '../../../api/camaras'
+import { getSucursales, getSucursalesByEmpresa, getSucursal } from '../../../api/sucursales'
+import { useAuth } from '../../../contexts/AuthContext'
+import { Modal } from '../../../components/Modal'
+import { DataTable } from '../../../components/DataTable'
 import toast from 'react-hot-toast'
-import type { Camara, CamaraRequest, Sucursal } from '../types'
-import type { ColumnDef } from '../types/table'
+import { getApiErrorMessage } from '../../../shared/utils/error'
+import { Badge } from '../../../shared/components/ui/Badge'
+import { PageHeader } from '../../../shared/components/ui/PageHeader'
+import type { Camara, CamaraRequest, Sucursal } from '../../../types'
+import type { ColumnDef } from '../../../types/table'
 
 export function Camaras() {
   const { user } = useAuth()
@@ -72,13 +75,9 @@ export function Camaras() {
       filterType: 'boolean',
       render: (v) => (
         <div className="flex justify-center">
-          <span
-            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-              v ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-            }`}
-          >
+          <Badge variant={v ? 'success' : 'danger'}>
             {v ? 'Activo' : 'Inactivo'}
-          </span>
+          </Badge>
         </div>
       ),
     },
@@ -161,8 +160,8 @@ export function Camaras() {
       }
       setShowModal(false)
       load()
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Error al guardar')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Error al guardar'))
     } finally {
       setSaving(false)
     }
@@ -174,18 +173,14 @@ export function Camaras() {
       await deleteCamara(id)
       toast.success('Cámara eliminada')
       load()
-    } catch {
-      toast.error('Error al eliminar')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Error al eliminar'))
     }
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Cámaras</h1>
-          <p className="text-gray-500 text-sm mt-1">Gestión de cámaras de temperatura</p>
-        </div>
+      <PageHeader title="Cámaras" description="Gestión de cámaras de temperatura">
         {canManage && (
           <button
             onClick={openCreate}
@@ -194,7 +189,7 @@ export function Camaras() {
             + Nueva cámara
           </button>
         )}
-      </div>
+      </PageHeader>
 
       <DataTable
         data={camaras}

@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../../../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { getApiErrorMessage } from '../../../shared/utils/error'
 
 export function Login() {
   const [email, setEmail] = useState('')
@@ -17,8 +18,8 @@ export function Login() {
       await login({ email, password })
       toast.success('Inicio de sesión exitoso')
       navigate('/dashboard')
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Credenciales inválidas')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Credenciales inválidas'))
     } finally {
       setLoading(false)
     }

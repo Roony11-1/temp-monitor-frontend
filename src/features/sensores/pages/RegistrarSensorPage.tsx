@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import toast from 'react-hot-toast'
-import { registrarSensor } from '../api/sensores'
-import type { Sensor } from '../types'
+import { registrarSensor } from '../../../api/sensores'
+import { getApiErrorMessage } from '../../../shared/utils/error'
+import type { Sensor } from '../../../types'
 
 export function RegistrarSensor() {
   const [macAddress, setMacAddress] = useState('')
@@ -17,8 +18,8 @@ export function RegistrarSensor() {
       const result = await registrarSensor({ macAddress })
       setSensor(result)
       toast.success('Sensor registrado correctamente')
-    } catch {
-      toast.error('Error al registrar el sensor')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Error al registrar el sensor'))
     } finally {
       setLoading(false)
     }

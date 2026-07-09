@@ -7,14 +7,17 @@ import {
   updateUsuario,
   deleteUsuario,
   cambiarPassword,
-} from '../api/usuarios'
-import { getEmpresas, getEmpresa } from '../api/empresas'
-import { useAuth } from '../contexts/AuthContext'
-import { Modal } from '../components/Modal'
-import { DataTable } from '../components/DataTable'
+} from '../../../api/usuarios'
+import { getEmpresas, getEmpresa } from '../../../api/empresas'
+import { useAuth } from '../../../contexts/AuthContext'
+import { Modal } from '../../../components/Modal'
+import { DataTable } from '../../../components/DataTable'
 import toast from 'react-hot-toast'
-import type { Usuario, UsuarioRequest, Empresa, Rol } from '../types'
-import type { ColumnDef } from '../types/table'
+import { getApiErrorMessage } from '../../../shared/utils/error'
+import { Badge } from '../../../shared/components/ui/Badge'
+import { PageHeader } from '../../../shared/components/ui/PageHeader'
+import type { Usuario, UsuarioRequest, Empresa, Rol } from '../../../types'
+import type { ColumnDef } from '../../../types/table'
 
 const rolesDisponibles: Rol[] = ['SUPER_ADMIN', 'ADMIN_EMPRESA', 'ADMIN_SUCURSAL', 'TECNICO', 'USUARIO']
 
@@ -74,12 +77,9 @@ export function Usuarios() {
       render: (v: Rol[]) => (
         <div className="flex gap-1 flex-wrap">
           {v.map((rol) => (
-            <span
-              key={rol}
-              className="px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700"
-            >
+            <Badge key={rol} variant="info" size="sm">
               {rol}
-            </span>
+            </Badge>
           ))}
         </div>
       ),
@@ -108,13 +108,9 @@ export function Usuarios() {
       filterType: 'boolean',
       render: (v) => (
         <div className="flex justify-center">
-          <span
-            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-              v ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-            }`}
-          >
+          <Badge variant={v ? 'success' : 'danger'}>
             {v ? 'Activo' : 'Inactivo'}
-          </span>
+          </Badge>
         </div>
       ),
     },
@@ -200,8 +196,8 @@ export function Usuarios() {
       }
       setShowModal(false)
       load()
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Error al guardar')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Error al guardar'))
     } finally {
       setSaving(false)
     }
@@ -213,8 +209,8 @@ export function Usuarios() {
       await deleteUsuario(id)
       toast.success('Usuario eliminado')
       load()
-    } catch {
-      toast.error('Error al eliminar')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Error al eliminar'))
     }
   }
 
@@ -227,8 +223,8 @@ export function Usuarios() {
       setShowPasswordModal(false)
       setNuevaPassword('')
       setPasswordUserId(null)
-    } catch {
-      toast.error('Error al cambiar contraseña')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Error al cambiar contraseña'))
     } finally {
       setSaving(false)
     }
@@ -245,11 +241,7 @@ export function Usuarios() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Usuarios</h1>
-          <p className="text-gray-500 text-sm mt-1">Gestión de usuarios</p>
-        </div>
+      <PageHeader title="Usuarios" description="Gestión de usuarios">
         {canManage && (
           <button
             onClick={openCreate}
@@ -258,7 +250,7 @@ export function Usuarios() {
             + Nuevo usuario
           </button>
         )}
-      </div>
+      </PageHeader>
 
       <DataTable
         data={usuarios}

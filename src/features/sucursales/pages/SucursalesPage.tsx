@@ -6,14 +6,17 @@ import {
   createSucursal,
   updateSucursal,
   deleteSucursal,
-} from '../api/sucursales'
-import { getEmpresas, getEmpresa } from '../api/empresas'
-import { useAuth } from '../contexts/AuthContext'
-import { Modal } from '../components/Modal'
-import { DataTable } from '../components/DataTable'
+} from '../../../api/sucursales'
+import { getEmpresas, getEmpresa } from '../../../api/empresas'
+import { useAuth } from '../../../contexts/AuthContext'
+import { Modal } from '../../../components/Modal'
+import { DataTable } from '../../../components/DataTable'
 import toast from 'react-hot-toast'
-import type { Sucursal, SucursalRequest, Empresa } from '../types'
-import type { ColumnDef } from '../types/table'
+import { getApiErrorMessage } from '../../../shared/utils/error'
+import { Badge } from '../../../shared/components/ui/Badge'
+import { PageHeader } from '../../../shared/components/ui/PageHeader'
+import type { Sucursal, SucursalRequest, Empresa } from '../../../types'
+import type { ColumnDef } from '../../../types/table'
 
 export function Sucursales() {
   const { user } = useAuth()
@@ -79,13 +82,9 @@ export function Sucursales() {
       filterType: 'boolean',
       render: (v) => (
         <div className="flex justify-center">
-          <span
-            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-              v ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-            }`}
-          >
+          <Badge variant={v ? 'success' : 'danger'}>
             {v ? 'Activo' : 'Inactivo'}
-          </span>
+          </Badge>
         </div>
       ),
     },
@@ -164,8 +163,8 @@ export function Sucursales() {
       }
       setShowModal(false)
       load()
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Error al guardar')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Error al guardar'))
     } finally {
       setSaving(false)
     }
@@ -177,18 +176,14 @@ export function Sucursales() {
       await deleteSucursal(id)
       toast.success('Sucursal eliminada')
       load()
-    } catch {
-      toast.error('Error al eliminar')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Error al eliminar'))
     }
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Sucursales</h1>
-          <p className="text-gray-500 text-sm mt-1">Gestión de sucursales</p>
-        </div>
+      <PageHeader title="Sucursales" description="Gestión de sucursales">
         {canManage && (
           <button
             onClick={openCreate}
@@ -197,7 +192,7 @@ export function Sucursales() {
             + Nueva sucursal
           </button>
         )}
-      </div>
+      </PageHeader>
 
       <DataTable
         data={sucursales}

@@ -5,13 +5,16 @@ import {
   createEmpresa,
   updateEmpresa,
   deleteEmpresa,
-} from '../api/empresas'
-import { useAuth } from '../contexts/AuthContext'
-import { Modal } from '../components/Modal'
-import { DataTable } from '../components/DataTable'
+} from '../../../api/empresas'
+import { useAuth } from '../../../contexts/AuthContext'
+import { Modal } from '../../../components/Modal'
+import { DataTable } from '../../../components/DataTable'
 import toast from 'react-hot-toast'
-import type { Empresa, EmpresaRequest } from '../types'
-import type { ColumnDef } from '../types/table'
+import { getApiErrorMessage } from '../../../shared/utils/error'
+import { Badge } from '../../../shared/components/ui/Badge'
+import { PageHeader } from '../../../shared/components/ui/PageHeader'
+import type { Empresa, EmpresaRequest } from '../../../types'
+import type { ColumnDef } from '../../../types/table'
 
 export function Empresas() {
   const { user } = useAuth()
@@ -68,13 +71,9 @@ export function Empresas() {
       filterType: 'boolean',
       render: (v) => (
         <div className="flex justify-center">
-          <span
-            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-              v ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-            }`}
-          >
+          <Badge variant={v ? 'success' : 'danger'}>
             {v ? 'Activo' : 'Inactivo'}
-          </span>
+          </Badge>
         </div>
       ),
     },
@@ -128,8 +127,8 @@ export function Empresas() {
       }
       setShowModal(false)
       load()
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Error al guardar')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Error al guardar'))
     } finally {
       setSaving(false)
     }
@@ -141,18 +140,14 @@ export function Empresas() {
       await deleteEmpresa(id)
       toast.success('Empresa eliminada')
       load()
-    } catch {
-      toast.error('Error al eliminar')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Error al eliminar'))
     }
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Empresas</h1>
-          <p className="text-gray-500 text-sm mt-1">Gestión de empresas</p>
-        </div>
+      <PageHeader title="Empresas" description="Gestión de empresas">
         {isSuperAdmin && (
           <button
             onClick={openCreate}
@@ -161,7 +156,7 @@ export function Empresas() {
             + Nueva empresa
           </button>
         )}
-      </div>
+      </PageHeader>
 
       <DataTable
         data={empresas}
