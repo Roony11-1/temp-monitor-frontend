@@ -89,6 +89,22 @@ export interface CamaraRequest {
   temperaturaMaxima: number | null
 }
 
+export interface RegistroSensorRequest {
+  macAddress: string
+}
+
+export interface Sensor {
+  id: number
+  uuid: string
+  apiKeyHash: string
+  macAddress: string
+  camara: Camara | null
+  ultimoContacto: string | null
+  estado: string
+  createdAt: string
+  updatedAt: string | null
+}
+
 export interface AuthUser {
   id: number
   email: string

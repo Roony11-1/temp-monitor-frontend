@@ -65,30 +65,6 @@ export function Camaras() {
       render: (v) => <span className="text-gray-500">{sucursalNombre(v)}</span>,
     },
     {
-      key: 'temperaturaMinima',
-      label: 'Temp. Mín',
-      sortable: true,
-      filterable: true,
-      filterType: 'number',
-      render: (v) => (
-        <div className="text-center text-gray-500">
-          {v != null ? `${v}°C` : '-'}
-        </div>
-      ),
-    },
-    {
-      key: 'temperaturaMaxima',
-      label: 'Temp. Máx',
-      sortable: true,
-      filterable: true,
-      filterType: 'number',
-      render: (v) => (
-        <div className="text-center text-gray-500">
-          {v != null ? `${v}°C` : '-'}
-        </div>
-      ),
-    },
-    {
       key: 'activo',
       label: 'Estado',
       sortable: true,
@@ -108,13 +84,14 @@ export function Camaras() {
     },
   ]
 
-  const loadSucursales = () => {
+  const loadSucursales = async () => {
     if (isSuperAdmin) {
       return getSucursales()
     } else if (isAdminEmpresa && user?.empresaId) {
       return getSucursalesByEmpresa(user.empresaId)
     } else if (user?.sucursalId) {
-      return getSucursal(user.sucursalId).then((s) => [s])
+      const s = await getSucursal(user.sucursalId)
+      return [s]
     }
     return Promise.resolve([])
   }

@@ -22,6 +22,9 @@ export const ApiConfig = {
     activar: (id: number) => `/api/camaras/${id}/activar`,
     desactivar: (id: number) => `/api/camaras/${id}/desactivar`,
   },
+  sensores: {
+    registrar: '/api/sensores/registrar',
+  },
   usuarios: {
     list: '/api/usuarios',
     byId: (id: number) => `/api/usuarios/${id}`,

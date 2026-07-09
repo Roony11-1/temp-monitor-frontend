@@ -10,6 +10,7 @@ import { Sucursales } from './pages/Sucursales'
 import { Camaras } from './pages/Camaras'
 import { Usuarios } from './pages/Usuarios'
 import { NotFound } from './pages/NotFound'
+import { RegistrarSensor } from './pages/RegistrarSensor'
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="empresas" element={<Empresas />} />
             <Route path="sucursales" element={<Sucursales />} />
             <Route path="camaras" element={<Camaras />} />
+            <Route path="sensores/registrar" element={<RegistrarSensor />} />
             <Route path="usuarios" element={<Usuarios />} />
           </Route>
           <Route path="*" element={<NotFound />} />
