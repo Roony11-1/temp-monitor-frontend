@@ -1,17 +1,18 @@
 import type { BadgeVariant, BadgeSize, BaseComponentProps } from '../../types/common'
 import { cn } from '../../utils/cn'
+import styles from './Badge.module.css'
 
 const variantStyles: Record<BadgeVariant, string> = {
-  success: 'bg-green-100 text-green-700',
-  danger: 'bg-red-100 text-red-700',
-  warning: 'bg-yellow-100 text-yellow-700',
-  info: 'bg-blue-100 text-blue-700',
-  neutral: 'bg-gray-100 text-gray-700',
+  success: styles.success,
+  danger: styles.danger,
+  warning: styles.warning,
+  info: styles.info,
+  neutral: styles.neutral,
 }
 
 const sizeStyles: Record<BadgeSize, string> = {
-  sm: 'px-1.5 py-0.5 text-[10px]',
-  md: 'px-2.5 py-1 text-xs',
+  sm: styles.sm,
+  md: styles.md,
 }
 
 interface BadgeProps extends BaseComponentProps {
@@ -28,7 +29,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full font-medium',
+        styles.badge,
         variantStyles[variant],
         sizeStyles[size],
         className,

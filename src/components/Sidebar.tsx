@@ -1,183 +1,76 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { Badge } from '../shared/components/ui/Badge'
 import { cn } from '../shared/utils/cn'
+import styles from './Sidebar.module.css'
 
-const stroke = 'stroke-current fill-none stroke-2'
-
-const Icons = {
-  Dashboard: () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" className={stroke}>
-      <rect x="2" y="2" width="7" height="7" rx="1" />
-      <rect x="11" y="2" width="7" height="7" rx="1" />
-      <rect x="2" y="11" width="7" height="7" rx="1" />
-      <rect x="11" y="11" width="7" height="7" rx="1" />
-    </svg>
-  ),
-  Building: () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" className={stroke}>
-      <rect x="4" y="2" width="12" height="16" rx="1" />
-      <line x1="7" y1="6" x2="9" y2="6" />
-      <line x1="11" y1="6" x2="13" y2="6" />
-      <line x1="7" y1="9" x2="9" y2="9" />
-      <line x1="11" y1="9" x2="13" y2="9" />
-      <line x1="7" y1="12" x2="9" y2="12" />
-      <line x1="11" y1="12" x2="13" y2="12" />
-    </svg>
-  ),
-  Location: () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" className={stroke}>
-      <path d="M10 2a6 6 0 00-6 6c0 4 6 10 6 10s6-6 6-10a6 6 0 00-6-6z" />
-      <circle cx="10" cy="8" r="2.5" />
-    </svg>
-  ),
-  Camera: () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" className={stroke}>
-      <rect x="2" y="5" width="16" height="11" rx="2" />
-      <circle cx="10" cy="10.5" r="3" />
-      <path d="M7 5l1.5-2h3L13 5" />
-    </svg>
-  ),
-  Chip: () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" className={stroke}>
-      <rect x="5" y="3" width="10" height="14" rx="1.5" />
-      <rect x="7" y="6" width="6" height="4" rx="0.5" />
-      <line x1="5" y1="9" x2="3" y2="9" />
-      <line x1="17" y1="9" x2="15" y2="9" />
-      <line x1="5" y1="12" x2="3" y2="12" />
-      <line x1="17" y1="12" x2="15" y2="12" />
-    </svg>
-  ),
-  Users: () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" className={stroke}>
-      <circle cx="10" cy="5" r="3" />
-      <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" />
-    </svg>
-  ),
-  Logout: () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" className={stroke}>
-      <path d="M14 4h3a1 1 0 011 1v10a1 1 0 01-1 1h-3" />
-      <polyline points="10 13 14 10 10 7" />
-      <line x1="14" y1="10" x2="3" y2="10" />
-    </svg>
-  ),
-}
-
-type NavItem = {
-  to: string
-  label: string
-  icon: keyof typeof Icons
-  show: boolean
-}
-
-type NavSection = {
-  title?: string
-  items: NavItem[]
-}
+const navItems = [
+  {
+    section: 'General',
+    items: [
+      { to: '/dashboard', label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+    ],
+  },
+  {
+    section: 'Gestión',
+    items: [
+      { to: '/empresas', label: 'Empresas', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
+      { to: '/sucursales', label: 'Sucursales', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z' },
+      { to: '/camaras', label: 'Cámaras', icon: 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z' },
+      { to: '/usuarios', label: 'Usuarios', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z' },
+    ],
+  },
+  {
+    section: 'Configuración',
+    items: [
+      { to: '/sensores/registrar', label: 'Registrar Sensor', icon: 'M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z' },
+    ],
+  },
+]
 
 export function Sidebar() {
-  const { user, logout } = useAuth()
-
-  const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN') ?? false
-  const isAdminEmpresa = user?.roles?.includes('ADMIN_EMPRESA') ?? false
-  const isAdminSucursal = user?.roles?.includes('ADMIN_SUCURSAL') ?? false
-  const isTecnico = user?.roles?.includes('TECNICO') ?? false
-
-  const canManage = isSuperAdmin || isAdminEmpresa
-  const canViewStructure = isSuperAdmin || isAdminEmpresa || isAdminSucursal
-
-  const sections: NavSection[] = [
-    {
-      items: [
-        { to: '/dashboard', label: 'Dashboard', icon: 'Dashboard', show: true },
-      ],
-    },
-    {
-      title: 'OPERACIÓN',
-      items: [
-        { to: '/empresas', label: 'Empresas', icon: 'Building', show: isSuperAdmin || isAdminEmpresa },
-        { to: '/sucursales', label: 'Sucursales', icon: 'Location', show: canViewStructure },
-        { to: '/camaras', label: 'Cámaras', icon: 'Camera', show: canViewStructure || isAdminSucursal || isTecnico },
-        { to: '/sensores/registrar', label: 'Registrar Sensor', icon: 'Chip', show: true },
-      ],
-    },
-    {
-      title: 'ADMINISTRACIÓN',
-      items: [
-        { to: '/usuarios', label: 'Usuarios', icon: 'Users', show: canManage || isAdminSucursal || isTecnico },
-      ],
-    },
-  ]
-
-  const hasVisibleItems = (section: NavSection) =>
-    section.items.some((item) => item.show)
+  const { user } = useAuth()
 
   return (
-    <aside className="w-64 bg-[#0f172a] text-white flex flex-col min-h-screen select-none">
-      {/* Logo / User card */}
-      <div className="px-5 pt-5 pb-4 border-b border-white/10">
-        <div className="flex items-center gap-2.5 mb-2.5">
-          <div className="size-8 rounded-lg bg-indigo-500 flex items-center justify-center text-sm font-bold">
-            TM
-          </div>
-          <div>
-            <h1 className="text-sm font-semibold tracking-tight">Temp Monitor</h1>
-            <p className="text-[11px] text-gray-500 leading-tight">{user?.email}</p>
-          </div>
-        </div>
-        {user?.roles && (
-          <Badge variant="info" size="sm" className="ml-10">
-            {user.roles.join(', ')}
-          </Badge>
-        )}
+    <aside className={styles.sidebar}>
+      <div className={styles.logo}>
+        <h1 className={styles.logoTitle}>Temp Monitor</h1>
+        <p className={styles.logoSubtitle}>Control de temperatura</p>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto" aria-label="Sidebar navigation">
-        {sections.filter(hasVisibleItems).map((section) => (
-          <div key={section.title ?? '__top'}>
-            {section.title && (
-              <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-gray-500">
-                {section.title}
-              </p>
-            )}
-            <ul className="space-y-0.5">
-              {section.items.filter((item) => item.show).map((item) => {
-                const Icon = Icons[item.icon]
-                return (
-                  <li key={item.to}>
-                    <NavLink
-                      to={item.to}
-                      className={({ isActive }) =>
-                        cn(
-                          'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                          'border-l-3',
-                          isActive
-                            ? 'bg-indigo-500/10 text-indigo-300 border-l-indigo-400'
-                            : 'text-gray-400 hover:text-gray-200 hover:bg-white/5 border-l-transparent',
-                        )
-                      }
-                    >
-                      <Icon />
-                      {item.label}
-                    </NavLink>
-                  </li>
-                )
-              })}
-            </ul>
+      <nav className={styles.nav}>
+        {navItems.map((section) => (
+          <div key={section.section} className={styles.section}>
+            <p className={styles.sectionTitle}>{section.section}</p>
+            {section.items.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  cn(styles.link, isActive ? styles.linkActive : styles.linkInactive)
+                }
+              >
+                <svg width="18" height="18" viewBox="0 0 20 20" className={styles.linkIcon}>
+                  <path d={item.icon} />
+                </svg>
+                {item.label}
+              </NavLink>
+            ))}
           </div>
         ))}
       </nav>
 
-      {/* Logout */}
-      <div className="px-3 py-3 border-t border-white/10">
-        <button
-          onClick={logout}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-white/5 w-full transition-colors"
-        >
-          <Icons.Logout />
-          Cerrar sesión
-        </button>
+      <div className={styles.footer}>
+        <div className={styles.userInfo}>
+          <div className={styles.avatar}>
+            {user?.email?.charAt(0).toUpperCase() || '?'}
+          </div>
+          <div className={styles.userDetails}>
+            <p className={styles.userEmail}>{user?.email}</p>
+            <p className={styles.userRole}>
+              {user?.roles?.join(', ') || 'Sin rol'}
+            </p>
+          </div>
+        </div>
       </div>
     </aside>
   )

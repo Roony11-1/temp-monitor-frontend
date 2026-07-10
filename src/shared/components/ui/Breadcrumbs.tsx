@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { getBreadcrumbs, type BreadcrumbItem } from '../../utils/breadcrumbs'
-import { cn } from '../../utils/cn'
+import styles from './Breadcrumbs.module.css'
 
 interface BreadcrumbsProps {
   items?: BreadcrumbItem[]
@@ -8,12 +8,7 @@ interface BreadcrumbsProps {
 
 function ChevronRight() {
   return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 20 20"
-      className="stroke-current fill-none stroke-2 text-gray-400 shrink-0"
-    >
+    <svg width="14" height="14" viewBox="0 0 20 20" className={styles.chevron}>
       <polyline points="8 5 13 10 8 15" />
     </svg>
   )
@@ -25,22 +20,16 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
 
   return (
     <nav aria-label="Breadcrumb">
-      <ol className="flex items-center gap-1.5 text-sm">
+      <ol className={styles.list}>
         {crumbs.map((crumb, index) => (
-          <li key={index} className="flex items-center gap-1.5">
+          <li key={index} className={styles.item}>
             {index > 0 && <ChevronRight />}
             {crumb.href ? (
-              <Link
-                to={crumb.href}
-                className={cn(
-                  'text-gray-500 hover:text-gray-700 transition-colors',
-                  'hover:underline underline-offset-2',
-                )}
-              >
+              <Link to={crumb.href} className={styles.link}>
                 {crumb.label}
               </Link>
             ) : (
-              <span className="text-gray-900 font-medium">{crumb.label}</span>
+              <span className={styles.active}>{crumb.label}</span>
             )}
           </li>
         ))}

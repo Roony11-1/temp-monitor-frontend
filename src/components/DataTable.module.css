@@ -48,8 +48,16 @@
   @apply text-left;
 }
 
+.sortLabel {
+  @apply inline-flex items-center gap-1;
+}
+
 .sortIcon {
   @apply text-indigo-600;
+}
+
+.tableBody {
+  @apply divide-y;
 }
 
 .tableRow {
@@ -66,6 +74,10 @@
 
 .actionsCell {
   @apply px-6 py-4 text-right space-x-2;
+}
+
+.emptyWrapper {
+  @apply bg-white rounded-xl shadow-sm border;
 }
 
 .pagination {

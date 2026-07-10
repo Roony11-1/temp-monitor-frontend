@@ -8,6 +8,7 @@ import { DataTable } from '../../../components/DataTable'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import type { Sucursal, Camara } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
+import styles from './SucursalDetailPage.module.css'
 
 export function SucursalDetail() {
   const { id } = useParams<{ id: string }>()
@@ -22,14 +23,14 @@ export function SucursalDetail() {
       label: 'Nombre',
       sortable: true,
       filterable: true,
-      render: (v) => <span className="font-medium text-gray-900">{v}</span>,
+      render: (v) => <span className={styles.cellName}>{v}</span>,
     },
     {
       key: 'descripcion',
       label: 'Descripción',
       sortable: true,
       filterable: true,
-      render: (v) => <span className="text-gray-500">{v || '-'}</span>,
+      render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
     },
     {
       key: 'activo',
@@ -38,7 +39,7 @@ export function SucursalDetail() {
       filterable: true,
       filterType: 'boolean',
       render: (v) => (
-        <div className="flex justify-center">
+        <div className={styles.badgeCenter}>
           <Badge variant={v ? 'success' : 'danger'}>{v ? 'Activo' : 'Inactivo'}</Badge>
         </div>
       ),
@@ -62,7 +63,7 @@ export function SucursalDetail() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className={styles.skeletonSpace}>
         <LoadingSkeleton width="200px" height="28px" />
         <Card><LoadingSkeleton width="100%" height="120px" /></Card>
         <Card><LoadingSkeleton width="100%" height="200px" /></Card>
@@ -73,41 +74,41 @@ export function SucursalDetail() {
   if (!sucursal) return null
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <div className={styles.headerLeft}>
           <button
             onClick={() => navigate('/sucursales')}
-            className="text-gray-400 hover:text-gray-600 text-lg"
+            className={styles.backBtn}
           >
             &larr;
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{sucursal.nombre}</h1>
-            <p className="text-sm text-gray-500">Detalle de sucursal</p>
+            <h1 className={styles.pageTitle}>{sucursal.nombre}</h1>
+            <p className={styles.pageSubtitle}>Detalle de sucursal</p>
           </div>
         </div>
         <button
           onClick={() => navigate(`/sucursales/${id}/editar`)}
-          className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+          className={styles.editBtn}
         >
           Editar
         </button>
       </div>
 
       <Card>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className={styles.grid}>
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Dirección</p>
-            <p className="text-sm text-gray-900 mt-1">{sucursal.direccion || '-'}</p>
+            <p className={styles.fieldLabel}>Dirección</p>
+            <p className={styles.fieldValue}>{sucursal.direccion || '-'}</p>
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Teléfono</p>
-            <p className="text-sm text-gray-900 mt-1">{sucursal.telefono || '-'}</p>
+            <p className={styles.fieldLabel}>Teléfono</p>
+            <p className={styles.fieldValue}>{sucursal.telefono || '-'}</p>
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Estado</p>
-            <div className="mt-1">
+            <p className={styles.fieldLabel}>Estado</p>
+            <div className={styles.badgeWrapper}>
               <Badge variant={sucursal.activo ? 'success' : 'danger'}>
                 {sucursal.activo ? 'Activo' : 'Inactivo'}
               </Badge>
@@ -117,7 +118,7 @@ export function SucursalDetail() {
       </Card>
 
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">
+        <h2 className={styles.sectionTitle}>
           Cámaras ({camaras.length})
         </h2>
         <DataTable

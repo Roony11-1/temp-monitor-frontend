@@ -18,6 +18,7 @@ import { UsuarioForm, type UsuarioFormHandle } from '../components/UsuarioForm'
 import { PasswordForm, type PasswordFormHandle } from '../components/PasswordForm'
 import type { Usuario, Empresa, Rol } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
+import styles from './UsuariosPage.module.css'
 
 const rolesDisponibles: Rol[] = ['SUPER_ADMIN', 'ADMIN_EMPRESA', 'ADMIN_SUCURSAL', 'TECNICO', 'USUARIO']
 
@@ -51,14 +52,14 @@ export function Usuarios() {
       label: 'Email',
       sortable: true,
       filterable: true,
-      render: (v) => <span className="font-medium text-gray-900">{v}</span>,
+      render: (v) => <span className={styles.cellName}>{v}</span>,
     },
     {
       key: 'nombre',
       label: 'Nombre',
       sortable: true,
       filterable: true,
-      render: (v) => <span className="text-gray-500">{v || '-'}</span>,
+      render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
     },
     {
       key: 'roles',
@@ -68,7 +69,7 @@ export function Usuarios() {
       filterType: 'select',
       filterOptions: rolesDisponibles.map((r) => ({ label: r, value: r })),
       render: (v: Rol[]) => (
-        <div className="flex gap-1 flex-wrap">
+        <div className={styles.roleList}>
           {v.map((rol) => (
             <Badge key={rol} variant="info" size="sm">
               {rol}
@@ -88,7 +89,7 @@ export function Usuarios() {
             filterType: 'select' as const,
             filterOptions: empresas.map((e) => ({ label: e.nombre, value: String(e.id) })),
             render: (v: number | null) => (
-              <span className="text-gray-500">{empresaNombre(v)}</span>
+              <span className={styles.cellMuted}>{empresaNombre(v)}</span>
             ),
           },
         ]
@@ -100,7 +101,7 @@ export function Usuarios() {
       filterable: true,
       filterType: 'boolean',
       render: (v) => (
-        <div className="flex justify-center">
+        <div className={styles.badgeCenter}>
           <Badge variant={v ? 'success' : 'danger'}>
             {v ? 'Activo' : 'Inactivo'}
           </Badge>
@@ -208,7 +209,7 @@ export function Usuarios() {
         {canManage && (
           <button
             onClick={openCreate}
-            className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+            className={styles.createBtn}
           >
             + Nuevo usuario
           </button>
@@ -227,7 +228,7 @@ export function Usuarios() {
             {canManage && (
               <button
                 onClick={() => openEdit(usr)}
-                className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                className={styles.editBtn}
               >
                 Editar
               </button>
@@ -238,7 +239,7 @@ export function Usuarios() {
                   setPasswordUserId(usr.id)
                   setShowPasswordModal(true)
                 }}
-                className="text-amber-600 hover:text-amber-800 text-sm font-medium"
+                className={styles.passwordBtn}
               >
                 Password
               </button>
@@ -246,7 +247,7 @@ export function Usuarios() {
             {canManage && (
               <button
                 onClick={() => handleDelete(usr.id)}
-                className="text-red-600 hover:text-red-800 text-sm font-medium"
+                className={styles.deleteBtn}
               >
                 Eliminar
               </button>

@@ -1,0 +1,44 @@
+@reference "tailwindcss";
+
+.table {
+  @apply w-full;
+}
+
+.header {
+  @apply bg-gray-50;
+}
+
+.headerCell {
+  @apply px-6 py-3;
+}
+
+.headerContent {
+  @apply h-3 bg-gray-200 rounded animate-pulse;
+}
+
+.row {
+}
+
+.cell {
+  @apply px-6 py-4;
+}
+
+.cellContent {
+  @apply h-3 bg-gray-200 rounded animate-pulse;
+}
+
+.cellContentShort {
+  @apply h-3 bg-gray-200 rounded animate-pulse w-16;
+}
+
+.actions {
+  @apply px-6 py-4 text-right;
+}
+
+.actionsContent {
+  @apply h-3 bg-gray-200 rounded animate-pulse w-12 ml-auto;
+}
+
+.shimmer {
+  @apply animate-pulse;
+}

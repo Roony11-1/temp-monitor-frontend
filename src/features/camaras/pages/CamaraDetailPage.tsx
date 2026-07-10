@@ -5,6 +5,7 @@ import { Card } from '../../../shared/components/ui/Card'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import type { Camara } from '../../../types'
+import styles from './CamaraDetailPage.module.css'
 
 export function CamaraDetail() {
   const { id } = useParams<{ id: string }>()
@@ -23,7 +24,7 @@ export function CamaraDetail() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className={styles.skeletonSpace}>
         <LoadingSkeleton width="200px" height="28px" />
         <Card><LoadingSkeleton width="100%" height="160px" /></Card>
       </div>
@@ -33,37 +34,37 @@ export function CamaraDetail() {
   if (!camara) return null
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <div className={styles.headerLeft}>
           <button
             onClick={() => navigate('/camaras')}
-            className="text-gray-400 hover:text-gray-600 text-lg"
+            className={styles.backBtn}
           >
             &larr;
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{camara.nombre}</h1>
-            <p className="text-sm text-gray-500">Detalle de cámara</p>
+            <h1 className={styles.pageTitle}>{camara.nombre}</h1>
+            <p className={styles.pageSubtitle}>Detalle de cámara</p>
           </div>
         </div>
         <button
           onClick={() => navigate(`/camaras/${id}/editar`)}
-          className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+          className={styles.editBtn}
         >
           Editar
         </button>
       </div>
 
       <Card>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className={styles.grid}>
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Descripción</p>
-            <p className="text-sm text-gray-900 mt-1">{camara.descripcion || '-'}</p>
+            <p className={styles.fieldLabel}>Descripción</p>
+            <p className={styles.fieldValue}>{camara.descripcion || '-'}</p>
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Estado</p>
-            <div className="mt-1">
+            <p className={styles.fieldLabel}>Estado</p>
+            <div className={styles.badgeWrapper}>
               <Badge variant={camara.activo ? 'success' : 'danger'}>
                 {camara.activo ? 'Activo' : 'Inactivo'}
               </Badge>

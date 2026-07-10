@@ -17,6 +17,7 @@ import { PageHeader } from '../../../shared/components/ui/PageHeader'
 import { SucursalForm, type SucursalFormHandle } from '../components/SucursalForm'
 import type { Sucursal, Empresa } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
+import styles from './SucursalesPage.module.css'
 
 export function Sucursales() {
   const { user } = useAuth()
@@ -45,21 +46,21 @@ export function Sucursales() {
       label: 'Nombre',
       sortable: true,
       filterable: true,
-      render: (v) => <span className="font-medium text-gray-900">{v}</span>,
+      render: (v) => <span className={styles.cellName}>{v}</span>,
     },
     {
       key: 'direccion',
       label: 'Dirección',
       sortable: true,
       filterable: true,
-      render: (v) => <span className="text-gray-500">{v || '-'}</span>,
+      render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
     },
     {
       key: 'telefono',
       label: 'Teléfono',
       sortable: true,
       filterable: true,
-      render: (v) => <span className="text-gray-500">{v || '-'}</span>,
+      render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
     },
     {
       key: 'empresaId',
@@ -68,7 +69,7 @@ export function Sucursales() {
       filterable: true,
       filterType: 'select',
       filterOptions: empresas.map((e) => ({ label: e.nombre, value: String(e.id) })),
-      render: (v) => <span className="text-gray-500">{empresaNombre(v)}</span>,
+      render: (v) => <span className={styles.cellMuted}>{empresaNombre(v)}</span>,
     },
     {
       key: 'activo',
@@ -77,7 +78,7 @@ export function Sucursales() {
       filterable: true,
       filterType: 'boolean',
       render: (v) => (
-        <div className="flex justify-center">
+        <div className={styles.badgeCenter}>
           <Badge variant={v ? 'success' : 'danger'}>
             {v ? 'Activo' : 'Inactivo'}
           </Badge>
@@ -175,7 +176,7 @@ export function Sucursales() {
         {canManage && (
           <button
             onClick={openCreate}
-            className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+            className={styles.createBtn}
           >
             + Nueva sucursal
           </button>
@@ -193,14 +194,14 @@ export function Sucursales() {
           <>
             <button
               onClick={() => openEdit(suc)}
-              className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+              className={styles.editBtn}
             >
               Editar
             </button>
             {(isSuperAdmin || isAdminEmpresa) && (
               <button
                 onClick={() => handleDelete(suc.id)}
-                className="text-red-600 hover:text-red-800 text-sm font-medium"
+                className={styles.deleteBtn}
               >
                 Eliminar
               </button>

@@ -1,0 +1,17 @@
+@reference "tailwindcss";
+
+.header {
+  @apply flex items-center justify-between mb-6;
+}
+
+.title {
+  @apply text-2xl font-bold text-gray-900;
+}
+
+.description {
+  @apply text-gray-500 text-sm mt-1;
+}
+
+.actions {
+  @apply flex items-center gap-3;
+}

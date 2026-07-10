@@ -146,7 +146,7 @@ export function DataTable<T>({
       )}
 
       {loading ? (
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+        <div className={styles.tableWrapper}>
           <SkeletonTable
             columns={visibleColumns.length}
             rows={5}
@@ -154,49 +154,51 @@ export function DataTable<T>({
           />
         </div>
       ) : processed.length > 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-gray-600">
+        <div className={styles.tableWrapper}>
+          <div className={styles.tableContainer}>
+            <table className={styles.table}>
+              <thead className={styles.tableHead}>
                 <tr>
                   {visibleColumns.map((col) => (
                     <th
                       key={col.key}
-                      className={`px-6 py-3 font-medium ${
-                        col.sortable ? 'cursor-pointer select-none hover:bg-gray-100' : ''
-                      } ${col.key === 'acciones' ? 'text-right' : 'text-left'}`}
+                      className={cn(
+                        styles.headerCell,
+                        col.sortable && styles.headerCellSortable,
+                        col.key === 'acciones' ? styles.headerCellRight : styles.headerCellLeft,
+                      )}
                       onClick={() => col.sortable && handleSort(col.key)}
                     >
-                      <span className="inline-flex items-center gap-1">
+                      <span className={styles.sortLabel}>
                         {col.label}
                         {sort?.key === col.key && (
-                          <span className="text-indigo-600">
+                          <span className={styles.sortIcon}>
                             {sort.direction === 'asc' ? '\u25B2' : '\u25BC'}
                           </span>
                         )}
                       </span>
                     </th>
                   ))}
-                  {actions && <th className="text-right px-6 py-3 font-medium">Acciones</th>}
+                  {actions && <th className={cn(styles.headerCell, styles.headerCellRight)}>Acciones</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className={styles.tableBody}>
                 {processed.map((row) => (
                   <tr
                     key={rowKey(row)}
-                    className={cn('hover:bg-gray-50', onRowClick && 'cursor-pointer')}
+                    className={cn(styles.tableRow, onRowClick && styles.tableRowClickable)}
                     onClick={() => onRowClick?.(row)}
                   >
                     {visibleColumns.map((col) => {
                       const raw = (row as any)[col.key]
                       return (
-                        <td key={col.key} className="px-6 py-4">
+                        <td key={col.key} className={styles.tableCell}>
                           {col.render ? col.render(raw, row) : String(raw ?? '-')}
                         </td>
                       )
                     })}
                     {actions && (
-                      <td className="px-6 py-4 text-right space-x-2">{actions(row)}</td>
+                      <td className={styles.actionsCell}>{actions(row)}</td>
                     )}
                   </tr>
                 ))}
@@ -205,7 +207,7 @@ export function DataTable<T>({
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border">
+        <div className={styles.emptyWrapper}>
           <EmptyState
             title={emptyMessage}
             description={emptyDescription}
@@ -215,19 +217,19 @@ export function DataTable<T>({
       )}
 
       {pagination && !loading && pagination.total > 0 && (
-        <div className="flex items-center justify-between mt-3 px-1">
-          <span className="text-xs text-gray-500">
+        <div className={styles.pagination}>
+          <span className={styles.paginationInfo}>
             Mostrando {((pagination.page - 1) * pagination.pageSize) + 1}–
             {Math.min(pagination.page * pagination.pageSize, pagination.total)} de {pagination.total}
           </span>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-gray-500">Filas:</span>
+          <div className={styles.paginationControls}>
+            <div className={styles.pageSizeSelector}>
+              <span className={styles.pageSizeLabel}>Filas:</span>
               <select
                 value={pagination.pageSize}
                 onChange={(e) => onPageSizeChange?.(Number(e.target.value))}
-                className="text-xs border border-gray-300 rounded px-1.5 py-1 bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                className={styles.pageSizeSelect}
               >
                 {pageSizeOptions.map((size) => (
                   <option key={size} value={size}>{size}</option>
@@ -235,15 +237,13 @@ export function DataTable<T>({
               </select>
             </div>
 
-            <nav className="flex items-center gap-0.5" aria-label="Paginación">
+            <nav className={styles.pageNav} aria-label="Paginación">
               <button
                 onClick={() => onPageChange?.(pagination.page - 1)}
                 disabled={pagination.page <= 1}
                 className={cn(
-                  'px-2 py-1 text-xs rounded border transition-colors',
-                  pagination.page <= 1
-                    ? 'text-gray-300 border-gray-200 cursor-not-allowed'
-                    : 'text-gray-600 border-gray-300 hover:bg-gray-50',
+                  styles.pageBtn,
+                  pagination.page <= 1 ? styles.pageBtnDisabled : styles.pageBtnInactive,
                 )}
                 aria-label="Página anterior"
               >
@@ -252,7 +252,7 @@ export function DataTable<T>({
 
               {getPageNumbers(pagination.page, Math.ceil(pagination.total / pagination.pageSize)).map((p, i) =>
                 p === 'dots' ? (
-                  <span key={`dots-${i}`} className="px-1.5 text-xs text-gray-400">…</span>
+                  <span key={`dots-${i}`} className={styles.dots}>…</span>
                 ) : (
                   <button
                     key={p}
@@ -260,7 +260,7 @@ export function DataTable<T>({
                     className={cn(
                       'px-2.5 py-1 text-xs rounded transition-colors',
                       p === pagination.page
-                        ? 'bg-indigo-600 text-white font-medium'
+                        ? styles.pageBtnActive
                         : 'text-gray-600 hover:bg-gray-100',
                     )}
                     aria-label={`Ir a página ${p}`}
@@ -275,10 +275,10 @@ export function DataTable<T>({
                 onClick={() => onPageChange?.(pagination.page + 1)}
                 disabled={pagination.page >= Math.ceil(pagination.total / pagination.pageSize)}
                 className={cn(
-                  'px-2 py-1 text-xs rounded border transition-colors',
+                  styles.pageBtn,
                   pagination.page >= Math.ceil(pagination.total / pagination.pageSize)
-                    ? 'text-gray-300 border-gray-200 cursor-not-allowed'
-                    : 'text-gray-600 border-gray-300 hover:bg-gray-50',
+                    ? styles.pageBtnDisabled
+                    : styles.pageBtnInactive,
                 )}
                 aria-label="Página siguiente"
               >
@@ -290,7 +290,7 @@ export function DataTable<T>({
       )}
 
       {!pagination && !loading && processed.length > 0 && (
-        <div className="text-xs text-gray-400 mt-2 text-right">
+        <div className={styles.recordCount}>
           {processed.length} de {data.length} registros
         </div>
       )}

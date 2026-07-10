@@ -28,7 +28,7 @@ export function RegistrarSensorForm({ onSuccess }: RegistrarSensorFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="max-w-md space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
       <div>
         <label className={styles.label}>
           MAC Address

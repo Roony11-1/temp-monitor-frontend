@@ -16,6 +16,7 @@ import { PageHeader } from '../../../shared/components/ui/PageHeader'
 import { CamaraForm, type CamaraFormHandle } from '../components/CamaraForm'
 import type { Camara, Sucursal } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
+import styles from './CamarasPage.module.css'
 
 export function Camaras() {
   const { user } = useAuth()
@@ -44,14 +45,14 @@ export function Camaras() {
       label: 'Nombre',
       sortable: true,
       filterable: true,
-      render: (v) => <span className="font-medium text-gray-900">{v}</span>,
+      render: (v) => <span className={styles.cellName}>{v}</span>,
     },
     {
       key: 'descripcion',
       label: 'Descripción',
       sortable: true,
       filterable: true,
-      render: (v) => <span className="text-gray-500">{v || '-'}</span>,
+      render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
     },
     {
       key: 'sucursalId',
@@ -60,7 +61,7 @@ export function Camaras() {
       filterable: true,
       filterType: 'select',
       filterOptions: sucursales.map((s) => ({ label: s.nombre, value: String(s.id) })),
-      render: (v) => <span className="text-gray-500">{sucursalNombre(v)}</span>,
+      render: (v) => <span className={styles.cellMuted}>{sucursalNombre(v)}</span>,
     },
     {
       key: 'activo',
@@ -69,7 +70,7 @@ export function Camaras() {
       filterable: true,
       filterType: 'boolean',
       render: (v) => (
-        <div className="flex justify-center">
+        <div className={styles.badgeCenter}>
           <Badge variant={v ? 'success' : 'danger'}>
             {v ? 'Activo' : 'Inactivo'}
           </Badge>
@@ -171,7 +172,7 @@ export function Camaras() {
         {canManage && (
           <button
             onClick={openCreate}
-            className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+            className={styles.createBtn}
           >
             + Nueva cámara
           </button>
@@ -189,13 +190,13 @@ export function Camaras() {
           <>
             <button
               onClick={() => openEdit(cam)}
-              className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+              className={styles.editBtn}
             >
               Editar
             </button>
             <button
               onClick={() => handleDelete(cam.id)}
-              className="text-red-600 hover:text-red-800 text-sm font-medium"
+              className={styles.deleteBtn}
             >
               Eliminar
             </button>

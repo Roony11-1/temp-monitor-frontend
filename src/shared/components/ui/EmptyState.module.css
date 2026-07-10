@@ -1,0 +1,21 @@
+@reference "tailwindcss";
+
+.container {
+  @apply flex flex-col items-center justify-center py-16 px-6;
+}
+
+.icon {
+  @apply stroke-current fill-none stroke-1 text-gray-300;
+}
+
+.title {
+  @apply mt-4 text-sm font-semibold text-gray-900;
+}
+
+.description {
+  @apply mt-1 text-sm text-gray-500 text-center max-w-xs;
+}
+
+.action {
+  @apply mt-4 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors;
+}

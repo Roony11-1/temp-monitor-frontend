@@ -1,0 +1,41 @@
+@reference "tailwindcss";
+
+.card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-200 p-5;
+}
+
+.title {
+  @apply text-sm font-semibold text-gray-900 mb-3;
+}
+
+.list {
+  @apply space-y-2;
+}
+
+.event {
+  @apply flex items-start gap-3 py-2 border-b border-gray-50;
+}
+
+.dot {
+  @apply size-2 rounded-full mt-1.5 shrink-0;
+}
+
+.eventContent {
+  @apply flex-1 min-w-0;
+}
+
+.message {
+  @apply text-sm text-gray-700 truncate;
+}
+
+.origin {
+  @apply text-xs text-gray-400 mt-0.5;
+}
+
+.eventMeta {
+  @apply flex items-center gap-2 shrink-0;
+}
+
+.time {
+  @apply text-xs text-gray-400;
+}

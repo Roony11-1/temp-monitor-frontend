@@ -7,6 +7,7 @@ import { Card } from '../../../shared/components/ui/Card'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import { CamaraForm, type CamaraFormHandle } from '../components/CamaraForm'
 import type { Camara, Sucursal } from '../../../types'
+import styles from './CamaraEditPage.module.css'
 
 export function CamaraEdit() {
   const { id } = useParams<{ id: string }>()
@@ -33,7 +34,7 @@ export function CamaraEdit() {
   }, [id])
 
   if (loading) return (
-    <div className="space-y-6">
+    <div className={styles.skeletonSpace}>
       <LoadingSkeleton width="200px" height="28px" />
       <Card><LoadingSkeleton width="100%" height="200px" /></Card>
     </div>
@@ -59,15 +60,15 @@ export function CamaraEdit() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
+    <div className={styles.page}>
+      <div className={styles.header}>
         <button
           onClick={() => navigate(`/camaras/${id}`)}
-          className="text-gray-400 hover:text-gray-600 text-lg"
+          className={styles.backBtn}
         >
           &larr;
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">Editar {camara.nombre}</h1>
+        <h1 className={styles.title}>Editar {camara.nombre}</h1>
       </div>
 
       <Card>
@@ -81,18 +82,18 @@ export function CamaraEdit() {
         />
       </Card>
 
-      <div className="flex justify-end gap-3">
+      <div className={styles.actions}>
         <button
           onClick={() => navigate(`/camaras/${id}`)}
           disabled={saving}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border rounded-md hover:bg-gray-50 disabled:opacity-50"
+          className={styles.cancelBtn}
         >
           Cancelar
         </button>
         <button
           onClick={handleSave}
           disabled={saving}
-          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+          className={styles.saveBtn}
         >
           {saving ? 'Guardando...' : 'Guardar'}
         </button>

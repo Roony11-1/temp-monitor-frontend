@@ -1,0 +1,17 @@
+@reference "tailwindcss";
+
+.page {
+  @apply min-h-screen flex items-center justify-center bg-gray-100;
+}
+
+.content {
+  @apply text-center;
+}
+
+.code {
+  @apply text-6xl font-bold text-gray-300;
+}
+
+.message {
+  @apply text-gray-500 mt-2;
+}

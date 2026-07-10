@@ -1,0 +1,33 @@
+@reference "tailwindcss";
+
+.page {
+  @apply space-y-6;
+}
+
+.header {
+  @apply flex items-center gap-4;
+}
+
+.backBtn {
+  @apply text-gray-400 hover:text-gray-600 text-lg;
+}
+
+.title {
+  @apply text-2xl font-bold text-gray-900;
+}
+
+.actions {
+  @apply flex justify-end gap-3;
+}
+
+.cancelBtn {
+  @apply px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50;
+}
+
+.saveBtn {
+  @apply px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50;
+}
+
+.skeletonSpace {
+  @apply space-y-6;
+}

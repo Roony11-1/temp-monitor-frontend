@@ -1,0 +1,21 @@
+@reference "tailwindcss";
+
+.skeleton {
+  @apply animate-pulse bg-gray-200;
+}
+
+.sm {
+  @apply rounded-sm;
+}
+
+.md {
+  @apply rounded-md;
+}
+
+.lg {
+  @apply rounded-lg;
+}
+
+.full {
+  @apply rounded-full;
+}

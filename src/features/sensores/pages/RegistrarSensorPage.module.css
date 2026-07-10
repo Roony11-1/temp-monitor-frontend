@@ -1,0 +1,21 @@
+@reference "tailwindcss";
+
+.page {
+  @apply space-y-6 p-6;
+}
+
+.title {
+  @apply text-2xl font-bold text-gray-900;
+}
+
+.result {
+  @apply max-w-2xl;
+}
+
+.resultTitle {
+  @apply text-lg font-semibold text-gray-900 mb-2;
+}
+
+.pre {
+  @apply bg-gray-900 text-green-400 rounded-lg p-4 overflow-x-auto text-sm;
+}

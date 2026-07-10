@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { LoadingSkeleton } from './LoadingSkeleton'
+import styles from './MetricCard.module.css'
 
 interface MetricCardProps {
   title: string
@@ -14,10 +15,10 @@ interface MetricCardProps {
 }
 
 const variantDot = {
-  default: 'bg-gray-400',
-  success: 'bg-green-500',
-  warning: 'bg-yellow-500',
-  danger: 'bg-red-500',
+  default: styles.dotDefault,
+  success: styles.dotSuccess,
+  warning: styles.dotWarning,
+  danger: styles.dotDanger,
 }
 
 export function MetricCard({
@@ -31,43 +32,35 @@ export function MetricCard({
   className,
 }: MetricCardProps) {
   return (
-    <div
-      className={cn(
-        'bg-white rounded-xl shadow-sm border border-gray-200 p-5',
-        className,
-      )}
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className={cn('size-2 rounded-full shrink-0', variantDot[variant])} />
-            <p className="text-sm text-gray-500 truncate">{title}</p>
+    <div className={cn(styles.card, className)}>
+      <div className={styles.header}>
+        <div className={styles.content}>
+          <div className={styles.titleRow}>
+            <span className={cn(styles.dot, variantDot[variant])} />
+            <p className={styles.title}>{title}</p>
           </div>
           {loading ? (
             <LoadingSkeleton width="80px" height="28px" className="mt-0.5" />
           ) : (
-            <p className="text-2xl font-bold text-gray-900 tracking-tight">{value}</p>
+            <p className={styles.value}>{value}</p>
           )}
           {subtitle && !loading && (
-            <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>
+            <p className={styles.subtitle}>{subtitle}</p>
           )}
         </div>
         {icon && !loading && (
-          <div className="size-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-400 shrink-0 ml-3">
-            {icon}
-          </div>
+          <div className={styles.iconWrapper}>{icon}</div>
         )}
       </div>
       {trend && !loading && (
-        <div className="mt-3 flex items-center gap-1">
+        <div className={styles.trend}>
           <span
             className={cn(
-              'text-xs font-medium',
               trend.direction === 'up'
-                ? 'text-green-600'
+                ? styles.trendUp
                 : trend.direction === 'down'
-                  ? 'text-red-600'
-                  : 'text-gray-500',
+                  ? styles.trendDown
+                  : styles.trendNeutral,
             )}
           >
             {trend.direction === 'up' ? '↑' : trend.direction === 'down' ? '↓' : '→'} {trend.value}%

@@ -1,0 +1,33 @@
+@reference "tailwindcss";
+
+.page {
+  @apply space-y-6;
+}
+
+.title {
+  @apply text-2xl font-bold text-gray-900;
+}
+
+.subtitle {
+  @apply text-gray-500 text-sm mt-1;
+}
+
+.metrics {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4;
+}
+
+.charts {
+  @apply grid grid-cols-1 lg:grid-cols-3 gap-6;
+}
+
+.chartMain {
+  @apply lg:col-span-2;
+}
+
+.skeletonCard {
+  @apply bg-white rounded-xl shadow-sm border border-gray-200 p-5;
+}
+
+.skeletonRow {
+  @apply flex gap-3 py-2 border-b border-gray-50;
+}

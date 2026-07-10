@@ -1,0 +1,28 @@
+@reference "tailwindcss";
+
+.page {
+}
+
+.cellName {
+  @apply font-medium text-gray-900;
+}
+
+.cellMuted {
+  @apply text-gray-500;
+}
+
+.createBtn {
+  @apply px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors;
+}
+
+.editBtn {
+  @apply text-indigo-600 hover:text-indigo-800 text-sm font-medium;
+}
+
+.deleteBtn {
+  @apply text-red-600 hover:text-red-800 text-sm font-medium;
+}
+
+.badgeCenter {
+  @apply flex justify-center;
+}

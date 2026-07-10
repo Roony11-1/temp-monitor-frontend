@@ -1,0 +1,52 @@
+@reference "tailwindcss";
+
+.page {
+  @apply space-y-6;
+}
+
+.header {
+  @apply flex items-center justify-between;
+}
+
+.headerLeft {
+  @apply flex items-center gap-4;
+}
+
+.backBtn {
+  @apply text-gray-400 hover:text-gray-600 text-lg;
+}
+
+.pageTitle {
+  @apply text-2xl font-bold text-gray-900;
+}
+
+.pageSubtitle {
+  @apply text-sm text-gray-500;
+}
+
+.editBtn {
+  @apply px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors;
+}
+
+.grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+.fieldLabel {
+  @apply text-xs font-medium text-gray-400 uppercase tracking-wider;
+}
+
+.fieldValue {
+  @apply text-sm text-gray-900 mt-1;
+}
+
+.section {
+}
+
+.badgeWrapper {
+  @apply mt-1;
+}
+
+.skeletonSpace {
+  @apply space-y-6;
+}

@@ -1,4 +1,5 @@
 import { ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
+import styles from './SensorDonutChart.module.css'
 
 interface SensorDonutChartProps {
   online: number
@@ -19,14 +20,14 @@ export function SensorDonutChart({
   ]
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-      <h3 className="text-sm font-semibold text-gray-900 mb-1">
+    <div className={styles.card}>
+      <h3 className={styles.title}>
         Estado de sensores
       </h3>
-      <p className="text-xs text-gray-500 mb-3">
+      <p className={styles.subtitle}>
         {online} online · {offline} offline
       </p>
-      <div className="h-48">
+      <div className={styles.chart}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -54,10 +55,10 @@ export function SensorDonutChart({
           </PieChart>
         </ResponsiveContainer>
       </div>
-      <div className="mt-2 pt-3 border-t border-gray-100">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-500">Temperatura promedio</span>
-          <span className="font-semibold text-gray-900">{promedio}°C</span>
+      <div className={styles.footer}>
+        <div className={styles.footerRow}>
+          <span className={styles.footerLabel}>Temperatura promedio</span>
+          <span className={styles.footerValue}>{promedio}°C</span>
         </div>
       </div>
     </div>

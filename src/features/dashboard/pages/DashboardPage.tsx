@@ -4,6 +4,8 @@ import { TemperatureChart } from '../components/TemperatureChart'
 import { SensorDonutChart } from '../components/SensorDonutChart'
 import { RecentEventsCard } from '../components/RecentEventsCard'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
+import { cn } from '../../../shared/utils/cn'
+import styles from './DashboardPage.module.css'
 
 const iconBuilding = (
   <svg width="20" height="20" viewBox="0 0 20 20" className="stroke-current fill-none stroke-2">
@@ -49,14 +51,13 @@ export function Dashboard() {
   const metrics = data?.metrics
 
   return (
-    <div className="space-y-6">
+    <div className={styles.page}>
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 text-sm mt-1">Resumen del sistema de monitoreo</p>
+        <h1 className={styles.title}>Dashboard</h1>
+        <p className={styles.subtitle}>Resumen del sistema de monitoreo</p>
       </div>
 
-      {/* Metrics grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className={styles.metrics}>
         <MetricCard
           title="Empresas"
           value={metrics?.empresas ?? '-'}
@@ -99,11 +100,10 @@ export function Dashboard() {
         />
       </div>
 
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className={styles.charts}>
+        <div className={styles.chartMain}>
           {loading ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className={styles.skeletonCard}>
               <LoadingSkeleton width="180px" height="16px" className="mb-4" />
               <LoadingSkeleton width="100%" height="240px" />
             </div>
@@ -113,7 +113,7 @@ export function Dashboard() {
         </div>
         <div>
           {loading ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className={styles.skeletonCard}>
               <LoadingSkeleton width="140px" height="16px" className="mb-1" />
               <LoadingSkeleton width="100px" height="12px" className="mb-3" />
               <LoadingSkeleton width="100%" height="180px" className="mb-3" />
@@ -130,12 +130,11 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Recent events */}
       {loading ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+        <div className={styles.skeletonCard}>
           <LoadingSkeleton width="120px" height="16px" className="mb-3" />
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex gap-3 py-2 border-b border-gray-50 last:border-0">
+            <div key={i} className={cn(styles.skeletonRow, i < 3 && 'border-b')}>
               <LoadingSkeleton width="8px" height="8px" rounded="full" className="mt-1.5" />
               <div className="flex-1">
                 <LoadingSkeleton width="70%" height="14px" className="mb-1" />

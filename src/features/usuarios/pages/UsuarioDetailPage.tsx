@@ -6,6 +6,7 @@ import { Card } from '../../../shared/components/ui/Card'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import type { Usuario, Rol } from '../../../types'
+import styles from './UsuarioDetailPage.module.css'
 
 export function UsuarioDetail() {
   const { id } = useParams<{ id: string }>()
@@ -29,7 +30,7 @@ export function UsuarioDetail() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className={styles.skeletonSpace}>
         <LoadingSkeleton width="200px" height="28px" />
         <Card><LoadingSkeleton width="100%" height="160px" /></Card>
       </div>
@@ -39,24 +40,24 @@ export function UsuarioDetail() {
   if (!usuario) return null
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <div className={styles.headerLeft}>
           <button
             onClick={() => navigate('/usuarios')}
-            className="text-gray-400 hover:text-gray-600 text-lg"
+            className={styles.backBtn}
           >
             &larr;
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{usuario.email}</h1>
-            <p className="text-sm text-gray-500">Detalle de usuario</p>
+            <h1 className={styles.pageTitle}>{usuario.email}</h1>
+            <p className={styles.pageSubtitle}>Detalle de usuario</p>
           </div>
         </div>
         {canEdit && (
           <button
             onClick={() => navigate(`/usuarios/${id}/editar`)}
-            className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+            className={styles.editBtn}
           >
             Editar
           </button>
@@ -64,22 +65,22 @@ export function UsuarioDetail() {
       </div>
 
       <Card>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className={styles.grid}>
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Email</p>
-            <p className="text-sm text-gray-900 mt-1">{usuario.email}</p>
+            <p className={styles.fieldLabel}>Email</p>
+            <p className={styles.fieldValue}>{usuario.email}</p>
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Nombre</p>
-            <p className="text-sm text-gray-900 mt-1">{usuario.nombre || '-'}</p>
+            <p className={styles.fieldLabel}>Nombre</p>
+            <p className={styles.fieldValue}>{usuario.nombre || '-'}</p>
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Teléfono</p>
-            <p className="text-sm text-gray-900 mt-1">{usuario.telefono || '-'}</p>
+            <p className={styles.fieldLabel}>Teléfono</p>
+            <p className={styles.fieldValue}>{usuario.telefono || '-'}</p>
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Roles</p>
-            <div className="flex gap-1 flex-wrap mt-1">
+            <p className={styles.fieldLabel}>Roles</p>
+            <div className={styles.roleList}>
               {usuario.roles.map((rol: Rol) => (
                 <Badge key={rol} variant="info" size="sm">
                   {rol}
@@ -88,8 +89,8 @@ export function UsuarioDetail() {
             </div>
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Estado</p>
-            <div className="mt-1">
+            <p className={styles.fieldLabel}>Estado</p>
+            <div className={styles.badgeWrapper}>
               <Badge variant={usuario.activo ? 'success' : 'danger'}>
                 {usuario.activo ? 'Activo' : 'Inactivo'}
               </Badge>
@@ -97,10 +98,10 @@ export function UsuarioDetail() {
           </div>
           {usuario.lastLogin && (
             <div>
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+              <p className={styles.fieldLabel}>
                 Último acceso
               </p>
-              <p className="text-sm text-gray-900 mt-1">
+              <p className={styles.fieldValue}>
                 {new Date(usuario.lastLogin).toLocaleString('es-CL')}
               </p>
             </div>

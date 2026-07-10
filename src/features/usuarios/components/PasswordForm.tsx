@@ -2,6 +2,7 @@ import { forwardRef, useImperativeHandle } from 'react'
 import { useForm } from 'react-hook-form'
 import { cambiarPassword } from '../../../api/usuarios'
 import toast from 'react-hot-toast'
+import styles from './PasswordForm.module.css'
 
 export interface PasswordFormHandle {
   submit: () => Promise<void>
@@ -36,11 +37,11 @@ export const PasswordForm = forwardRef<PasswordFormHandle, Props>(({ userId, onS
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">Nueva contraseña</label>
+      <label className={styles.label}>Nueva contraseña</label>
       <input
         type="password"
         {...register('nuevaPassword', { required: 'La contraseña es obligatoria' })}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+        className={styles.input}
       />
     </div>
   )

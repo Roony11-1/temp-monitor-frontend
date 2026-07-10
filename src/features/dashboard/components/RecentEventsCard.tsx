@@ -1,6 +1,7 @@
 import { Badge } from '../../../shared/components/ui/Badge'
 import { cn } from '../../../shared/utils/cn'
 import type { DashboardEvent } from '../api/dashboard'
+import styles from './RecentEventsCard.module.css'
 
 interface RecentEventsCardProps {
   events: DashboardEvent[]
@@ -20,28 +21,28 @@ function formatTimestamp(iso: string): string {
 
 export function RecentEventsCard({ events }: RecentEventsCardProps) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">
+    <div className={styles.card}>
+      <h3 className={styles.title}>
         Últimos eventos
       </h3>
-      <div className="space-y-2">
+      <div className={styles.list}>
         {events.map((event) => {
           const style = tipoStyles[event.tipo]
           return (
             <div
               key={event.id}
-              className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0"
+              className={styles.event}
             >
-              <span className={cn('size-2 rounded-full mt-1.5 shrink-0', style.dot)} />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-700 truncate">{event.mensaje}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{event.origen}</p>
+              <span className={cn(styles.dot, style.dot)} />
+              <div className={styles.eventContent}>
+                <p className={styles.message}>{event.mensaje}</p>
+                <p className={styles.origin}>{event.origen}</p>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className={styles.eventMeta}>
                 <Badge variant={style.variant} size="sm">
                   {event.tipo}
                 </Badge>
-                <span className="text-xs text-gray-400">{formatTimestamp(event.timestamp)}</span>
+                <span className={styles.time}>{formatTimestamp(event.timestamp)}</span>
               </div>
             </div>
           )

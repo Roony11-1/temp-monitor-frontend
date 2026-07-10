@@ -8,6 +8,7 @@ import {
   Tooltip,
 } from 'recharts'
 import type { TemperaturePoint } from '../api/dashboard'
+import styles from './TemperatureChart.module.css'
 
 interface TemperatureChartProps {
   data: TemperaturePoint[]
@@ -15,11 +16,11 @@ interface TemperatureChartProps {
 
 export function TemperatureChart({ data }: TemperatureChartProps) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-      <h3 className="text-sm font-semibold text-gray-900 mb-4">
+    <div className={styles.card}>
+      <h3 className={styles.title}>
         Temperatura últimas 24 horas
       </h3>
-      <div className="h-64">
+      <div className={styles.chart}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
             <defs>

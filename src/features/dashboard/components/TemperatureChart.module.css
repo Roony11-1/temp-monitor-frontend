@@ -1,0 +1,13 @@
+@reference "tailwindcss";
+
+.card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-200 p-5;
+}
+
+.title {
+  @apply text-sm font-semibold text-gray-900 mb-4;
+}
+
+.chart {
+  @apply h-64;
+}

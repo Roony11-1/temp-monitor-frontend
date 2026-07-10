@@ -1,5 +1,6 @@
 import type { BaseComponentProps } from '../../types/common'
 import { cn } from '../../utils/cn'
+import styles from './Card.module.css'
 
 interface CardProps extends BaseComponentProps {
   padding?: 'none' | 'sm' | 'md' | 'lg'
@@ -7,10 +8,10 @@ interface CardProps extends BaseComponentProps {
 }
 
 const paddingStyles = {
-  none: '',
-  sm: 'p-4',
-  md: 'p-6',
-  lg: 'p-8',
+  none: styles.p0,
+  sm: styles.p4,
+  md: styles.p6,
+  lg: styles.p8,
 }
 
 export function Card({
@@ -22,9 +23,9 @@ export function Card({
   return (
     <div
       className={cn(
-        'bg-white rounded-xl shadow-sm border border-gray-200',
+        styles.card,
         paddingStyles[padding],
-        hover && 'hover:shadow-md transition-shadow',
+        hover && styles.hover,
         className,
       )}
     >

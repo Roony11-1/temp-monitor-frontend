@@ -100,7 +100,7 @@ export const UsuarioForm = forwardRef<UsuarioFormHandle, Props>(
         {!isReadOnly && (
           <div>
             <label className={styles.label}>Empresa</label>
-            <select {...register('empresaId', { setValueAs: (v) => (v === '' ? null : Number(v)) })} className={styles.input}>
+            <select {...register('empresaId', { setValueAs: (v) => (v === '' ? null : Number(v)) })} className={styles.select}>
               <option value="">Sin empresa</option>
               {empresas.map((emp) => (
                 <option key={emp.id} value={emp.id}>
@@ -113,9 +113,9 @@ export const UsuarioForm = forwardRef<UsuarioFormHandle, Props>(
         {canManage && (
           <div>
             <label className={styles.label}>Roles</label>
-            <div className="flex flex-wrap gap-3">
+            <div className={styles.checkboxGrid}>
               {ROLES.map((rol) => (
-                <label key={rol} className="flex items-center gap-2 cursor-pointer">
+                <label key={rol} className={styles.checkboxLabel}>
                   <input
                     type="checkbox"
                     checked={watchedRoles.includes(rol)}
@@ -127,9 +127,9 @@ export const UsuarioForm = forwardRef<UsuarioFormHandle, Props>(
                         setValue('roles', [...current, rol])
                       }
                     }}
-                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    className={styles.checkbox}
                   />
-                  <span className="text-sm text-gray-700">{rol}</span>
+                  <span className={styles.checkboxText}>{rol}</span>
                 </label>
               ))}
             </div>

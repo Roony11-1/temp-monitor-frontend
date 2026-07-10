@@ -1,4 +1,5 @@
 import { cn } from '../../utils/cn'
+import styles from './LoadingSkeleton.module.css'
 
 interface SkeletonProps {
   width?: string | number
@@ -8,10 +9,10 @@ interface SkeletonProps {
 }
 
 const roundedStyles = {
-  sm: 'rounded-sm',
-  md: 'rounded-md',
-  lg: 'rounded-lg',
-  full: 'rounded-full',
+  sm: styles.sm,
+  md: styles.md,
+  lg: styles.lg,
+  full: styles.full,
 }
 
 export function LoadingSkeleton({
@@ -22,11 +23,7 @@ export function LoadingSkeleton({
 }: SkeletonProps) {
   return (
     <div
-      className={cn(
-        'animate-pulse bg-gray-200',
-        roundedStyles[rounded],
-        className,
-      )}
+      className={cn(styles.skeleton, roundedStyles[rounded], className)}
       style={{ width, height }}
     />
   )

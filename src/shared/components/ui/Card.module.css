@@ -1,0 +1,24 @@
+@reference "tailwindcss";
+
+.card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-200;
+}
+
+.hover {
+  @apply hover:shadow-md transition-shadow;
+}
+
+.p0 {
+}
+
+.p4 {
+  @apply p-4;
+}
+
+.p6 {
+  @apply p-6;
+}
+
+.p8 {
+  @apply p-8;
+}

@@ -5,11 +5,11 @@ import { getSucursalesByEmpresa } from '../../../api/sucursales'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Card } from '../../../shared/components/ui/Card'
 import { Badge } from '../../../shared/components/ui/Badge'
-import { Badge as Badge2 } from '../../../shared/components/ui/Badge'
 import { DataTable } from '../../../components/DataTable'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import type { Empresa, Sucursal } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
+import styles from './EmpresaDetailPage.module.css'
 
 export function EmpresaDetail() {
   const { id } = useParams<{ id: string }>()
@@ -28,14 +28,14 @@ export function EmpresaDetail() {
       label: 'Nombre',
       sortable: true,
       filterable: true,
-      render: (v) => <span className="font-medium text-gray-900">{v}</span>,
+      render: (v) => <span className={styles.cellName}>{v}</span>,
     },
     {
       key: 'direccion',
       label: 'Dirección',
       sortable: true,
       filterable: true,
-      render: (v) => <span className="text-gray-500">{v || '-'}</span>,
+      render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
     },
     {
       key: 'activo',
@@ -44,8 +44,8 @@ export function EmpresaDetail() {
       filterable: true,
       filterType: 'boolean',
       render: (v) => (
-        <div className="flex justify-center">
-          <Badge2 variant={v ? 'success' : 'danger'}>{v ? 'Activo' : 'Inactivo'}</Badge2>
+        <div className={styles.badgeCenter}>
+          <Badge variant={v ? 'success' : 'danger'}>{v ? 'Activo' : 'Inactivo'}</Badge>
         </div>
       ),
     },
@@ -68,7 +68,7 @@ export function EmpresaDetail() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className={styles.skeletonSpace}>
         <LoadingSkeleton width="200px" height="28px" />
         <Card><LoadingSkeleton width="100%" height="120px" /></Card>
         <Card><LoadingSkeleton width="100%" height="200px" /></Card>
@@ -79,24 +79,24 @@ export function EmpresaDetail() {
   if (!empresa) return null
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <div className={styles.headerLeft}>
           <button
             onClick={() => navigate('/empresas')}
-            className="text-gray-400 hover:text-gray-600 text-lg"
+            className={styles.backBtn}
           >
             &larr;
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{empresa.nombre}</h1>
-            <p className="text-sm text-gray-500">Detalle de empresa</p>
+            <h1 className={styles.pageTitle}>{empresa.nombre}</h1>
+            <p className={styles.pageSubtitle}>Detalle de empresa</p>
           </div>
         </div>
         {canEdit && (
           <button
             onClick={() => navigate(`/empresas/${id}/editar`)}
-            className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+            className={styles.editBtn}
           >
             Editar
           </button>
@@ -104,22 +104,22 @@ export function EmpresaDetail() {
       </div>
 
       <Card>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className={styles.grid}>
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Dirección</p>
-            <p className="text-sm text-gray-900 mt-1">{empresa.direccion || '-'}</p>
+            <p className={styles.fieldLabel}>Dirección</p>
+            <p className={styles.fieldValue}>{empresa.direccion || '-'}</p>
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Teléfono</p>
-            <p className="text-sm text-gray-900 mt-1">{empresa.telefono || '-'}</p>
+            <p className={styles.fieldLabel}>Teléfono</p>
+            <p className={styles.fieldValue}>{empresa.telefono || '-'}</p>
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Email</p>
-            <p className="text-sm text-gray-900 mt-1">{empresa.email || '-'}</p>
+            <p className={styles.fieldLabel}>Email</p>
+            <p className={styles.fieldValue}>{empresa.email || '-'}</p>
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Estado</p>
-            <div className="mt-1">
+            <p className={styles.fieldLabel}>Estado</p>
+            <div className={styles.badgeWrapper}>
               <Badge variant={empresa.activo ? 'success' : 'danger'}>
                 {empresa.activo ? 'Activo' : 'Inactivo'}
               </Badge>
@@ -128,8 +128,8 @@ export function EmpresaDetail() {
         </div>
       </Card>
 
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>
           Sucursales ({sucursales.length})
         </h2>
         <DataTable

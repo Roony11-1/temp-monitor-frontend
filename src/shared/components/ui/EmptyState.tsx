@@ -1,5 +1,6 @@
 import type { BaseComponentProps } from '../../types/common'
 import { cn } from '../../utils/cn'
+import styles from './EmptyState.module.css'
 
 interface EmptyStateProps extends BaseComponentProps {
   title: string
@@ -12,12 +13,7 @@ interface EmptyStateProps extends BaseComponentProps {
 
 function EmptyIcon() {
   return (
-    <svg
-      width="48"
-      height="48"
-      viewBox="0 0 48 48"
-      className="stroke-current fill-none stroke-1 text-gray-300"
-    >
+    <svg width="48" height="48" viewBox="0 0 48 48" className={styles.icon}>
       <rect x="6" y="10" width="36" height="28" rx="3" />
       <line x1="16" y1="20" x2="32" y2="20" />
       <line x1="16" y1="26" x2="28" y2="26" />
@@ -33,24 +29,12 @@ export function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <div
-      className={cn(
-        'flex flex-col items-center justify-center py-16 px-6',
-        className,
-      )}
-    >
+    <div className={cn(styles.container, className)}>
       <EmptyIcon />
-      <h3 className="mt-4 text-sm font-semibold text-gray-900">{title}</h3>
-      {description && (
-        <p className="mt-1 text-sm text-gray-500 text-center max-w-xs">
-          {description}
-        </p>
-      )}
+      <h3 className={styles.title}>{title}</h3>
+      {description && <p className={styles.description}>{description}</p>}
       {action && (
-        <button
-          onClick={action.onClick}
-          className="mt-4 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-        >
+        <button onClick={action.onClick} className={styles.action}>
           {action.label}
         </button>
       )}
