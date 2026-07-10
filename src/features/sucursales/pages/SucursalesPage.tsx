@@ -1,10 +1,9 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   getSucursales,
   getSucursalesByEmpresa,
   getSucursal,
-  createSucursal,
-  updateSucursal,
   deleteSucursal,
 } from '../../../api/sucursales'
 import { getEmpresas, getEmpresa } from '../../../api/empresas'
@@ -15,23 +14,20 @@ import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
-import type { Sucursal, SucursalRequest, Empresa } from '../../../types'
+import { SucursalForm, type SucursalFormHandle } from '../components/SucursalForm'
+import type { Sucursal, Empresa } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 
 export function Sucursales() {
   const { user } = useAuth()
+  const navigate = useNavigate()
+  const formRef = useRef<SucursalFormHandle>(null)
   const [sucursales, setSucursales] = useState<Sucursal[]>([])
   const [empresas, setEmpresas] = useState<Empresa[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Sucursal | null>(null)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState<SucursalRequest>({
-    nombre: '',
-    direccion: '',
-    telefono: '',
-    empresaId: 0,
-  })
 
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
   const isAdminEmpresa = user?.roles?.includes('ADMIN_EMPRESA')
@@ -40,7 +36,7 @@ export function Sucursales() {
 
   const empresaNombre = useMemo(
     () => (id: number) => empresas.find((e) => e.id === id)?.nombre || '-',
-    [empresas]
+    [empresas],
   )
 
   const columns: ColumnDef<Sucursal>[] = [
@@ -131,36 +127,18 @@ export function Sucursales() {
 
   const openCreate = () => {
     setEditing(null)
-    setForm({
-      nombre: '',
-      direccion: '',
-      telefono: '',
-      empresaId: user?.empresaId || 0,
-    })
     setShowModal(true)
   }
 
   const openEdit = (suc: Sucursal) => {
     setEditing(suc)
-    setForm({
-      nombre: suc.nombre,
-      direccion: suc.direccion || '',
-      telefono: suc.telefono || '',
-      empresaId: suc.empresaId,
-    })
     setShowModal(true)
   }
 
   const handleSave = async () => {
     setSaving(true)
     try {
-      if (editing) {
-        await updateSucursal(editing.id, form)
-        toast.success('Sucursal actualizada')
-      } else {
-        await createSucursal(form)
-        toast.success('Sucursal creada')
-      }
+      await formRef.current?.submit()
       setShowModal(false)
       load()
     } catch (err) {
@@ -181,6 +159,16 @@ export function Sucursales() {
     }
   }
 
+  const sucursalData = editing
+    ? {
+        id: editing.id,
+        nombre: editing.nombre,
+        direccion: editing.direccion || '',
+        telefono: editing.telefono || '',
+        empresaId: editing.empresaId,
+      }
+    : undefined
+
   return (
     <div>
       <PageHeader title="Sucursales" description="Gestión de sucursales">
@@ -199,6 +187,7 @@ export function Sucursales() {
         columns={columns}
         loading={loading}
         rowKey={(s) => s.id}
+        onRowClick={(s) => navigate(`/sucursales/${s.id}`)}
         emptyMessage="No hay sucursales registradas"
         actions={(suc) => (
           <>
@@ -227,53 +216,14 @@ export function Sucursales() {
           onSave={handleSave}
           isSaving={saving}
         >
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-              <input
-                type="text"
-                value={form.nombre}
-                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
-              <input
-                type="text"
-                value={form.direccion}
-                onChange={(e) => setForm({ ...form, direccion: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-              <input
-                type="text"
-                value={form.telefono}
-                onChange={(e) => setForm({ ...form, telefono: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
-              <select
-                value={form.empresaId}
-                onChange={(e) => setForm({ ...form, empresaId: Number(e.target.value) })}
-                required
-                disabled={!isSuperAdmin}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              >
-                <option value={0}>Seleccione una empresa</option>
-                {empresas.map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <SucursalForm
+            ref={formRef}
+            sucursal={sucursalData}
+            empresas={empresas}
+            isSuperAdmin={isSuperAdmin ?? false}
+            defaultEmpresaId={user?.empresaId || 0}
+            onSaved={() => {}}
+          />
         </Modal>
       )}
     </div>

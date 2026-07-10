@@ -13,6 +13,7 @@ interface DataTableProps<T> {
   emptyDescription?: string
   emptyAction?: { label: string; onClick: () => void }
   rowKey: (row: T) => string | number
+  onRowClick?: (row: T) => void
   actions?: (row: T) => React.ReactNode
   pagination?: PaginationState
   onPageChange?: (page: number) => void
@@ -56,6 +57,7 @@ export function DataTable<T>({
   emptyDescription,
   emptyAction,
   rowKey,
+  onRowClick,
   actions,
   pagination,
   onPageChange,
@@ -181,7 +183,11 @@ export function DataTable<T>({
               </thead>
               <tbody className="divide-y">
                 {processed.map((row) => (
-                  <tr key={rowKey(row)} className="hover:bg-gray-50">
+                  <tr
+                    key={rowKey(row)}
+                    className={cn('hover:bg-gray-50', onRowClick && 'cursor-pointer')}
+                    onClick={() => onRowClick?.(row)}
+                  >
                     {visibleColumns.map((col) => {
                       const raw = (row as any)[col.key]
                       return (

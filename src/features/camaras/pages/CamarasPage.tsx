@@ -1,9 +1,8 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   getCamaras,
   getCamarasBySucursal,
-  createCamara,
-  updateCamara,
   deleteCamara,
 } from '../../../api/camaras'
 import { getSucursales, getSucursalesByEmpresa, getSucursal } from '../../../api/sucursales'
@@ -14,24 +13,20 @@ import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
-import type { Camara, CamaraRequest, Sucursal } from '../../../types'
+import { CamaraForm, type CamaraFormHandle } from '../components/CamaraForm'
+import type { Camara, Sucursal } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 
 export function Camaras() {
   const { user } = useAuth()
+  const navigate = useNavigate()
+  const formRef = useRef<CamaraFormHandle>(null)
   const [camaras, setCamaras] = useState<Camara[]>([])
   const [sucursales, setSucursales] = useState<Sucursal[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Camara | null>(null)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState<CamaraRequest>({
-    nombre: '',
-    descripcion: '',
-    sucursalId: 0,
-    temperaturaMinima: null,
-    temperaturaMaxima: null,
-  })
 
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
   const isAdminEmpresa = user?.roles?.includes('ADMIN_EMPRESA')
@@ -40,7 +35,7 @@ export function Camaras() {
 
   const sucursalNombre = useMemo(
     () => (id: number) => sucursales.find((s) => s.id === id)?.nombre || '-',
-    [sucursales]
+    [sucursales],
   )
 
   const columns: ColumnDef<Camara>[] = [
@@ -126,38 +121,18 @@ export function Camaras() {
 
   const openCreate = () => {
     setEditing(null)
-    setForm({
-      nombre: '',
-      descripcion: '',
-      sucursalId: user?.sucursalId || (sucursales.length === 1 ? sucursales[0].id : 0),
-      temperaturaMinima: null,
-      temperaturaMaxima: null,
-    })
     setShowModal(true)
   }
 
   const openEdit = (cam: Camara) => {
     setEditing(cam)
-    setForm({
-      nombre: cam.nombre,
-      descripcion: cam.descripcion || '',
-      sucursalId: cam.sucursalId,
-      temperaturaMinima: cam.temperaturaMinima,
-      temperaturaMaxima: cam.temperaturaMaxima,
-    })
     setShowModal(true)
   }
 
   const handleSave = async () => {
     setSaving(true)
     try {
-      if (editing) {
-        await updateCamara(editing.id, form)
-        toast.success('Cámara actualizada')
-      } else {
-        await createCamara(form)
-        toast.success('Cámara creada')
-      }
+      await formRef.current?.submit()
       setShowModal(false)
       load()
     } catch (err) {
@@ -178,6 +153,18 @@ export function Camaras() {
     }
   }
 
+  const camaraData = editing
+    ? {
+        id: editing.id,
+        nombre: editing.nombre,
+        descripcion: editing.descripcion || '',
+        sucursalId: editing.sucursalId,
+      }
+    : undefined
+
+  const defaultSucursalId = user?.sucursalId || (sucursales.length === 1 ? sucursales[0].id : 0)
+  const canSelectSucursal = isSuperAdmin || isAdminEmpresa
+
   return (
     <div>
       <PageHeader title="Cámaras" description="Gestión de cámaras de temperatura">
@@ -196,6 +183,7 @@ export function Camaras() {
         columns={columns}
         loading={loading}
         rowKey={(c) => c.id}
+        onRowClick={(c) => navigate(`/camaras/${c.id}`)}
         emptyMessage="No hay cámaras registradas"
         actions={(cam) => (
           <>
@@ -222,74 +210,14 @@ export function Camaras() {
           onSave={handleSave}
           isSaving={saving}
         >
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-              <input
-                type="text"
-                value={form.nombre}
-                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-              <input
-                type="text"
-                value={form.descripcion}
-                onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Sucursal</label>
-              <select
-                value={form.sucursalId}
-                onChange={(e) => setForm({ ...form, sucursalId: Number(e.target.value) })}
-                required
-                disabled={!isSuperAdmin && !isAdminEmpresa}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              >
-                <option value={0}>Seleccione una sucursal</option>
-                {sucursales.map((suc) => (
-                  <option key={suc.id} value={suc.id}>
-                    {suc.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Temperatura mínima (°C)
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={form.temperaturaMinima ?? ''}
-                  onChange={(e) =>
-                    setForm({ ...form, temperaturaMinima: e.target.value ? Number(e.target.value) : null })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Temperatura máxima (°C)
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={form.temperaturaMaxima ?? ''}
-                  onChange={(e) =>
-                    setForm({ ...form, temperaturaMaxima: e.target.value ? Number(e.target.value) : null })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                />
-              </div>
-            </div>
-          </div>
+          <CamaraForm
+            ref={formRef}
+            camara={camaraData}
+            sucursales={sucursales}
+            canSelectSucursal={canSelectSucursal ?? false}
+            defaultSucursalId={defaultSucursalId}
+            onSaved={() => {}}
+          />
         </Modal>
       )}
     </div>

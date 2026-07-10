@@ -1,12 +1,10 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   getUsuarios,
   getUsuariosByEmpresa,
   getUsuariosBySucursal,
-  createUsuario,
-  updateUsuario,
   deleteUsuario,
-  cambiarPassword,
 } from '../../../api/usuarios'
 import { getEmpresas, getEmpresa } from '../../../api/empresas'
 import { useAuth } from '../../../contexts/AuthContext'
@@ -16,31 +14,26 @@ import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
-import type { Usuario, UsuarioRequest, Empresa, Rol } from '../../../types'
+import { UsuarioForm, type UsuarioFormHandle } from '../components/UsuarioForm'
+import { PasswordForm, type PasswordFormHandle } from '../components/PasswordForm'
+import type { Usuario, Empresa, Rol } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 
 const rolesDisponibles: Rol[] = ['SUPER_ADMIN', 'ADMIN_EMPRESA', 'ADMIN_SUCURSAL', 'TECNICO', 'USUARIO']
 
 export function Usuarios() {
   const { user: currentUser } = useAuth()
+  const navigate = useNavigate()
+  const formRef = useRef<UsuarioFormHandle>(null)
+  const passwordRef = useRef<PasswordFormHandle>(null)
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [empresas, setEmpresas] = useState<Empresa[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [passwordUserId, setPasswordUserId] = useState<number | null>(null)
-  const [nuevaPassword, setNuevaPassword] = useState('')
   const [editing, setEditing] = useState<Usuario | null>(null)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState<UsuarioRequest>({
-    email: '',
-    password: '',
-    nombre: '',
-    telefono: '',
-    empresaId: null,
-    sucursalId: null,
-    roles: ['USUARIO'],
-  })
 
   const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN')
   const isAdminEmpresa = currentUser?.roles?.includes('ADMIN_EMPRESA')
@@ -49,7 +42,7 @@ export function Usuarios() {
 
   const empresaNombre = useMemo(
     () => (id: number | null) => (id ? empresas.find((e) => e.id === id)?.nombre || '-' : '-'),
-    [empresas]
+    [empresas],
   )
 
   const columns: ColumnDef<Usuario>[] = [
@@ -151,49 +144,18 @@ export function Usuarios() {
 
   const openCreate = () => {
     setEditing(null)
-    setForm({
-      email: '',
-      password: '',
-      nombre: '',
-      telefono: '',
-      empresaId: currentUser?.empresaId || null,
-      sucursalId: null,
-      roles: ['USUARIO'],
-    })
     setShowModal(true)
   }
 
   const openEdit = (usr: Usuario) => {
     setEditing(usr)
-    setForm({
-      email: usr.email,
-      password: '',
-      nombre: usr.nombre || '',
-      telefono: usr.telefono || '',
-      empresaId: usr.empresaId,
-      sucursalId: usr.sucursalId,
-      roles: usr.roles,
-    })
     setShowModal(true)
   }
 
   const handleSave = async () => {
     setSaving(true)
     try {
-      if (editing) {
-        await updateUsuario(editing.id, {
-          email: form.email,
-          nombre: form.nombre,
-          telefono: form.telefono,
-          empresaId: form.empresaId,
-          sucursalId: form.sucursalId,
-          roles: form.roles,
-        })
-        toast.success('Usuario actualizado')
-      } else {
-        await createUsuario(form)
-        toast.success('Usuario creado')
-      }
+      await formRef.current?.submit()
       setShowModal(false)
       load()
     } catch (err) {
@@ -215,13 +177,11 @@ export function Usuarios() {
   }
 
   const handleChangePassword = async () => {
-    if (!passwordUserId || !nuevaPassword) return
+    if (!passwordUserId) return
     setSaving(true)
     try {
-      await cambiarPassword(passwordUserId, nuevaPassword)
-      toast.success('Contraseña actualizada')
+      await passwordRef.current?.submit()
       setShowPasswordModal(false)
-      setNuevaPassword('')
       setPasswordUserId(null)
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Error al cambiar contraseña'))
@@ -230,14 +190,17 @@ export function Usuarios() {
     }
   }
 
-  const toggleRol = (rol: Rol) => {
-    setForm((prev) => ({
-      ...prev,
-      roles: prev.roles.includes(rol)
-        ? prev.roles.filter((r) => r !== rol)
-        : [...prev.roles, rol],
-    }))
-  }
+  const usuarioData = editing
+    ? {
+        id: editing.id,
+        email: editing.email,
+        nombre: editing.nombre || '',
+        telefono: editing.telefono || '',
+        empresaId: editing.empresaId,
+        sucursalId: editing.sucursalId,
+        roles: editing.roles,
+      }
+    : undefined
 
   return (
     <div>
@@ -257,6 +220,7 @@ export function Usuarios() {
         columns={columns as ColumnDef<Usuario>[]}
         loading={loading}
         rowKey={(u) => u.id}
+        onRowClick={(u) => navigate(`/usuarios/${u.id}`)}
         emptyMessage="No hay usuarios registrados"
         actions={(usr) => (
           <>
@@ -272,7 +236,6 @@ export function Usuarios() {
               <button
                 onClick={() => {
                   setPasswordUserId(usr.id)
-                  setNuevaPassword('')
                   setShowPasswordModal(true)
                 }}
                 className="text-amber-600 hover:text-amber-800 text-sm font-medium"
@@ -299,85 +262,15 @@ export function Usuarios() {
           onSave={handleSave}
           isSaving={saving}
         >
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              />
-            </div>
-            {!editing && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-                <input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                />
-              </div>
-            )}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-              <input
-                type="text"
-                value={form.nombre}
-                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-              <input
-                type="text"
-                value={form.telefono}
-                onChange={(e) => setForm({ ...form, telefono: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              />
-            </div>
-            {!isReadOnly && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
-                <select
-                  value={form.empresaId ?? ''}
-                  onChange={(e) =>
-                    setForm({ ...form, empresaId: e.target.value ? Number(e.target.value) : null })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                >
-                  <option value="">Sin empresa</option>
-                  {empresas.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-            {canManage && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Roles</label>
-                <div className="flex flex-wrap gap-3">
-                  {rolesDisponibles.map((rol) => (
-                    <label key={rol} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={form.roles.includes(rol)}
-                        onChange={() => toggleRol(rol)}
-                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                      />
-                      <span className="text-sm text-gray-700">{rol}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          <UsuarioForm
+            ref={formRef}
+            usuario={usuarioData}
+            empresas={empresas}
+            canManage={canManage ?? false}
+            isReadOnly={isReadOnly ?? false}
+            defaultEmpresaId={currentUser?.empresaId || null}
+            onSaved={() => {}}
+          />
         </Modal>
       )}
 
@@ -387,23 +280,13 @@ export function Usuarios() {
           onClose={() => {
             setShowPasswordModal(false)
             setPasswordUserId(null)
-            setNuevaPassword('')
           }}
           onSave={handleChangePassword}
           isSaving={saving}
         >
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nueva contraseña
-            </label>
-            <input
-              type="password"
-              value={nuevaPassword}
-              onChange={(e) => setNuevaPassword(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-            />
-          </div>
+          {passwordUserId && (
+            <PasswordForm ref={passwordRef} userId={passwordUserId} onSaved={() => {}} />
+          )}
         </Modal>
       )}
     </div>

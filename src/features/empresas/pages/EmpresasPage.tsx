@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   getEmpresas,
   getEmpresa,
-  createEmpresa,
-  updateEmpresa,
   deleteEmpresa,
 } from '../../../api/empresas'
 import { useAuth } from '../../../contexts/AuthContext'
@@ -13,22 +12,19 @@ import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
-import type { Empresa, EmpresaRequest } from '../../../types'
+import { EmpresaForm, type EmpresaFormHandle } from '../components/EmpresaForm'
+import type { Empresa } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 
 export function Empresas() {
   const { user } = useAuth()
+  const navigate = useNavigate()
+  const formRef = useRef<EmpresaFormHandle>(null)
   const [empresas, setEmpresas] = useState<Empresa[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Empresa | null>(null)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState<EmpresaRequest>({
-    nombre: '',
-    direccion: '',
-    telefono: '',
-    email: '',
-  })
 
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
   const canEdit = isSuperAdmin || user?.roles?.includes('ADMIN_EMPRESA')
@@ -100,31 +96,18 @@ export function Empresas() {
 
   const openCreate = () => {
     setEditing(null)
-    setForm({ nombre: '', direccion: '', telefono: '', email: '' })
     setShowModal(true)
   }
 
   const openEdit = (emp: Empresa) => {
     setEditing(emp)
-    setForm({
-      nombre: emp.nombre,
-      direccion: emp.direccion || '',
-      telefono: emp.telefono || '',
-      email: emp.email || '',
-    })
     setShowModal(true)
   }
 
   const handleSave = async () => {
     setSaving(true)
     try {
-      if (editing) {
-        await updateEmpresa(editing.id, form)
-        toast.success('Empresa actualizada')
-      } else {
-        await createEmpresa(form)
-        toast.success('Empresa creada')
-      }
+      await formRef.current?.submit()
       setShowModal(false)
       load()
     } catch (err) {
@@ -145,6 +128,10 @@ export function Empresas() {
     }
   }
 
+  const empresaData = editing
+    ? { id: editing.id, nombre: editing.nombre, direccion: editing.direccion || '', telefono: editing.telefono || '', email: editing.email || '' }
+    : undefined
+
   return (
     <div>
       <PageHeader title="Empresas" description="Gestión de empresas">
@@ -163,6 +150,7 @@ export function Empresas() {
         columns={columns}
         loading={loading}
         rowKey={(e) => e.id}
+        onRowClick={(e) => navigate(`/empresas/${e.id}`)}
         emptyMessage="No hay empresas registradas"
         actions={(emp) =>
           canEdit || canDelete ? (
@@ -195,45 +183,11 @@ export function Empresas() {
           onSave={handleSave}
           isSaving={saving}
         >
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-              <input
-                type="text"
-                value={form.nombre}
-                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
-              <input
-                type="text"
-                value={form.direccion}
-                onChange={(e) => setForm({ ...form, direccion: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-              <input
-                type="text"
-                value={form.telefono}
-                onChange={(e) => setForm({ ...form, telefono: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              />
-            </div>
-          </div>
+          <EmpresaForm
+            ref={formRef}
+            empresa={empresaData}
+            onSaved={() => {}}
+          />
         </Modal>
       )}
     </div>
