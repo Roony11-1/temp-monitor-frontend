@@ -4,6 +4,7 @@ import { applyFilters, applySorting } from '../utils/tableFilters'
 import { EmptyState } from '../shared/components/ui/EmptyState'
 import { SkeletonTable } from '../shared/components/ui/SkeletonTable'
 import { cn } from '../shared/utils/cn'
+import styles from './DataTable.module.css'
 
 interface DataTableProps<T> {
   data: T[]
@@ -91,20 +92,18 @@ export function DataTable<T>({
   return (
     <div>
       {hasAnyFilters && (
-        <div className="bg-white rounded-xl shadow-sm border p-4 mb-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className={styles.filterBar}>
+          <div className={styles.filterGrid}>
             {columns
               .filter((c) => c.filterable)
               .map((col) => (
                 <div key={col.key}>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
-                    {col.label}
-                  </label>
+                  <label className={styles.filterLabel}>{col.label}</label>
                   {col.filterType === 'boolean' ? (
                     <select
                       value={filters[col.key] ?? ''}
                       onChange={(e) => updateFilter(col.key, e.target.value)}
-                      className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      className={styles.filterInput}
                     >
                       <option value="">Todos</option>
                       <option value="true">Activo</option>
@@ -114,7 +113,7 @@ export function DataTable<T>({
                     <select
                       value={filters[col.key] ?? ''}
                       onChange={(e) => updateFilter(col.key, e.target.value)}
-                      className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      className={styles.filterInput}
                     >
                       <option value="">Todos</option>
                       {col.filterOptions.map((opt) => (
@@ -129,7 +128,7 @@ export function DataTable<T>({
                       placeholder="ej: >25, <10, =5"
                       value={filters[col.key] ?? ''}
                       onChange={(e) => updateFilter(col.key, e.target.value)}
-                      className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      className={styles.filterInput}
                     />
                   ) : (
                     <input
@@ -137,7 +136,7 @@ export function DataTable<T>({
                       placeholder="Filtrar..."
                       value={filters[col.key] ?? ''}
                       onChange={(e) => updateFilter(col.key, e.target.value)}
-                      className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      className={styles.filterInput}
                     />
                   )}
                 </div>

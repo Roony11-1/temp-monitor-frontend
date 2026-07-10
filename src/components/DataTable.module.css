@@ -1,0 +1,121 @@
+@reference "tailwindcss";
+
+.filterBar {
+  @apply bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-4;
+}
+
+.filterGrid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4;
+}
+
+.filterLabel {
+  @apply block text-sm font-medium text-gray-700 mb-1.5;
+}
+
+.filterInput {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none;
+}
+
+.tableWrapper {
+  @apply bg-white rounded-xl shadow-sm border overflow-hidden;
+}
+
+.tableContainer {
+  @apply overflow-x-auto;
+}
+
+.table {
+  @apply w-full text-sm;
+}
+
+.tableHead {
+  @apply bg-gray-50 text-gray-600;
+}
+
+.headerCell {
+  @apply px-6 py-3 font-medium;
+}
+
+.headerCellSortable {
+  @apply cursor-pointer select-none hover:bg-gray-100;
+}
+
+.headerCellRight {
+  @apply text-right;
+}
+
+.headerCellLeft {
+  @apply text-left;
+}
+
+.sortIcon {
+  @apply text-indigo-600;
+}
+
+.tableRow {
+  @apply hover:bg-gray-50;
+}
+
+.tableRowClickable {
+  @apply cursor-pointer;
+}
+
+.tableCell {
+  @apply px-6 py-4;
+}
+
+.actionsCell {
+  @apply px-6 py-4 text-right space-x-2;
+}
+
+.pagination {
+  @apply flex items-center justify-between mt-3 px-1;
+}
+
+.paginationInfo {
+  @apply text-xs text-gray-500;
+}
+
+.paginationControls {
+  @apply flex items-center gap-3;
+}
+
+.pageSizeSelector {
+  @apply flex items-center gap-1.5;
+}
+
+.pageSizeLabel {
+  @apply text-xs text-gray-500;
+}
+
+.pageSizeSelect {
+  @apply text-xs border border-gray-300 rounded px-1.5 py-1 bg-white focus:ring-2 focus:ring-indigo-500 outline-none;
+}
+
+.pageNav {
+  @apply flex items-center gap-0.5;
+}
+
+.pageBtn {
+  @apply px-2 py-1 text-xs rounded border transition-colors;
+}
+
+.pageBtnInactive {
+  @apply text-gray-600 border-gray-300 hover:bg-gray-50;
+}
+
+.pageBtnDisabled {
+  @apply text-gray-300 border-gray-200 cursor-not-allowed;
+}
+
+.pageBtnActive {
+  @apply bg-indigo-600 text-white font-medium;
+}
+
+.dots {
+  @apply px-1.5 text-xs text-gray-400;
+}
+
+.recordCount {
+  @apply text-xs text-gray-400 mt-2 text-right;
+}

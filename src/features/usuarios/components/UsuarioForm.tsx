@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { createUsuario, updateUsuario } from '../../../api/usuarios'
 import toast from 'react-hot-toast'
 import type { UsuarioRequest, Empresa, Rol } from '../../../types'
+import styles from './UsuarioForm.module.css'
 
 export interface UsuarioFormHandle {
   submit: () => Promise<void>
@@ -77,48 +78,29 @@ export const UsuarioForm = forwardRef<UsuarioFormHandle, Props>(
     }), [handleSubmit, isEditing, usuario, onSaved])
 
     return (
-      <div className="space-y-4">
+      <div className={styles.container}>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input
-            type="email"
-            {...register('email', { required: 'El email es obligatorio' })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-          />
+          <label className={styles.label}>Email</label>
+          <input type="email" {...register('email', { required: 'El email es obligatorio' })} className={styles.input} />
         </div>
         {!isEditing && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-            <input
-              type="password"
-              {...register('password', { required: !isEditing && 'La contraseña es obligatoria' })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-            />
+            <label className={styles.label}>Contraseña</label>
+            <input type="password" {...register('password', { required: !isEditing && 'La contraseña es obligatoria' })} className={styles.input} />
           </div>
         )}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-          <input
-            type="text"
-            {...register('nombre')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-          />
+          <label className={styles.label}>Nombre</label>
+          <input type="text" {...register('nombre')} className={styles.input} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-          <input
-            type="text"
-            {...register('telefono')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-          />
+          <label className={styles.label}>Teléfono</label>
+          <input type="text" {...register('telefono')} className={styles.input} />
         </div>
         {!isReadOnly && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
-            <select
-              {...register('empresaId', { setValueAs: (v) => (v === '' ? null : Number(v)) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-            >
+            <label className={styles.label}>Empresa</label>
+            <select {...register('empresaId', { setValueAs: (v) => (v === '' ? null : Number(v)) })} className={styles.input}>
               <option value="">Sin empresa</option>
               {empresas.map((emp) => (
                 <option key={emp.id} value={emp.id}>
@@ -130,7 +112,7 @@ export const UsuarioForm = forwardRef<UsuarioFormHandle, Props>(
         )}
         {canManage && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Roles</label>
+            <label className={styles.label}>Roles</label>
             <div className="flex flex-wrap gap-3">
               {ROLES.map((rol) => (
                 <label key={rol} className="flex items-center gap-2 cursor-pointer">

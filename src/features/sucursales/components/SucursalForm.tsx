@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { createSucursal, updateSucursal } from '../../../api/sucursales'
 import toast from 'react-hot-toast'
 import type { SucursalRequest, Empresa } from '../../../types'
+import styles from './SucursalForm.module.css'
 
 export interface SucursalFormHandle {
   submit: () => Promise<void>
@@ -60,38 +61,22 @@ export const SucursalForm = forwardRef<SucursalFormHandle, Props>(
     }), [handleSubmit, isEditing, sucursal, onSaved])
 
     return (
-      <div className="space-y-4">
+      <div className={styles.container}>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-          <input
-            type="text"
-            {...register('nombre', { required: 'El nombre es obligatorio' })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-          />
+          <label className={styles.label}>Nombre</label>
+          <input type="text" {...register('nombre', { required: 'El nombre es obligatorio' })} className={styles.input} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
-          <input
-            type="text"
-            {...register('direccion')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-          />
+          <label className={styles.label}>Dirección</label>
+          <input type="text" {...register('direccion')} className={styles.input} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-          <input
-            type="text"
-            {...register('telefono')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-          />
+          <label className={styles.label}>Teléfono</label>
+          <input type="text" {...register('telefono')} className={styles.input} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
-          <select
-            {...register('empresaId', { valueAsNumber: true })}
-            disabled={!isSuperAdmin}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-          >
+          <label className={styles.label}>Empresa</label>
+          <select {...register('empresaId', { valueAsNumber: true })} disabled={!isSuperAdmin} className={styles.input}>
             <option value={0}>Seleccione una empresa</option>
             {empresas.map((emp) => (
               <option key={emp.id} value={emp.id}>
