@@ -15,7 +15,6 @@ import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
 import { UsuarioForm, type UsuarioFormHandle } from '../components/UsuarioForm'
-import { PasswordForm, type PasswordFormHandle } from '../components/PasswordForm'
 import type { Usuario, Empresa, Rol } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './UsuariosPage.module.css'
@@ -26,13 +25,10 @@ export function Usuarios() {
   const { user: currentUser } = useAuth()
   const navigate = useNavigate()
   const formRef = useRef<UsuarioFormHandle>(null)
-  const passwordRef = useRef<PasswordFormHandle>(null)
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [empresas, setEmpresas] = useState<Empresa[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [showPasswordModal, setShowPasswordModal] = useState(false)
-  const [passwordUserId, setPasswordUserId] = useState<number | null>(null)
   const [editing, setEditing] = useState<Usuario | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -177,20 +173,6 @@ export function Usuarios() {
     }
   }
 
-  const handleChangePassword = async () => {
-    if (!passwordUserId) return
-    setSaving(true)
-    try {
-      await passwordRef.current?.submit()
-      setShowPasswordModal(false)
-      setPasswordUserId(null)
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, 'Error al cambiar contraseña'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
   const usuarioData = editing
     ? {
         id: editing.id,
@@ -233,17 +215,6 @@ export function Usuarios() {
                 Editar
               </button>
             )}
-            {(canManage || usr.id === currentUser?.id) && (
-              <button
-                onClick={() => {
-                  setPasswordUserId(usr.id)
-                  setShowPasswordModal(true)
-                }}
-                className={styles.passwordBtn}
-              >
-                Password
-              </button>
-            )}
             {canManage && (
               <button
                 onClick={() => handleDelete(usr.id)}
@@ -275,21 +246,6 @@ export function Usuarios() {
         </Modal>
       )}
 
-      {showPasswordModal && (
-        <Modal
-          title="Cambiar contraseña"
-          onClose={() => {
-            setShowPasswordModal(false)
-            setPasswordUserId(null)
-          }}
-          onSave={handleChangePassword}
-          isSaving={saving}
-        >
-          {passwordUserId && (
-            <PasswordForm ref={passwordRef} userId={passwordUserId} onSaved={() => {}} />
-          )}
-        </Modal>
-      )}
     </div>
   )
 }

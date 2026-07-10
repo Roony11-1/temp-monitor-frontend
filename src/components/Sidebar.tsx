@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { cn } from '../shared/utils/cn'
 import styles from './Sidebar.module.css'
@@ -28,7 +28,18 @@ const navItems = [
 ]
 
 export function Sidebar() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+  const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
+
+  const visibleSections = navItems.filter(
+    (s) => s.section !== 'Configuración' || isSuperAdmin,
+  )
 
   return (
     <aside className={styles.sidebar}>
@@ -38,7 +49,7 @@ export function Sidebar() {
       </div>
 
       <nav className={styles.nav}>
-        {navItems.map((section) => (
+        {visibleSections.map((section) => (
           <div key={section.section} className={styles.section}>
             <p className={styles.sectionTitle}>{section.section}</p>
             {section.items.map((item) => (
@@ -71,6 +82,16 @@ export function Sidebar() {
             </p>
           </div>
         </div>
+        <button
+          onClick={handleLogout}
+          className={styles.logoutBtn}
+        >
+          <svg width="16" height="16" viewBox="0 0 20 20" className={styles.logoutIcon}>
+            <path d="M8 17l-6-6 6-6" />
+            <line x1="2" y1="11" x2="16" y2="11" />
+          </svg>
+          Cerrar sesión
+        </button>
       </div>
     </aside>
   )
