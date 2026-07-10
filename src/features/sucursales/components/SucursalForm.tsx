@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle } from 'react'
+import { useEffect, forwardRef, useImperativeHandle } from 'react'
 import { useForm } from 'react-hook-form'
 import { createSucursal, updateSucursal } from '../../../api/sucursales'
 import toast from 'react-hot-toast'
@@ -18,16 +18,27 @@ interface Props {
 
 export const SucursalForm = forwardRef<SucursalFormHandle, Props>(
   ({ sucursal, empresas, isSuperAdmin, defaultEmpresaId, onSaved }, ref) => {
-    const { register, handleSubmit } = useForm<SucursalRequest>({
+    const { register, handleSubmit, reset } = useForm<SucursalRequest>({
       defaultValues: {
         nombre: '',
         direccion: '',
         telefono: '',
-        empresaId: 0,
+        empresaId: defaultEmpresaId,
       },
     })
 
     const isEditing = !!sucursal?.id
+
+    useEffect(() => {
+      if (sucursal) {
+        reset({
+          nombre: sucursal.nombre,
+          direccion: sucursal.direccion,
+          telefono: sucursal.telefono,
+          empresaId: sucursal.empresaId,
+        })
+      }
+    }, [sucursal, reset])
 
     useImperativeHandle(ref, () => ({
       submit: handleSubmit(
@@ -55,7 +66,6 @@ export const SucursalForm = forwardRef<SucursalFormHandle, Props>(
           <input
             type="text"
             {...register('nombre', { required: 'El nombre es obligatorio' })}
-            defaultValue={sucursal?.nombre}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
           />
         </div>
@@ -64,7 +74,6 @@ export const SucursalForm = forwardRef<SucursalFormHandle, Props>(
           <input
             type="text"
             {...register('direccion')}
-            defaultValue={sucursal?.direccion}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
           />
         </div>
@@ -73,7 +82,6 @@ export const SucursalForm = forwardRef<SucursalFormHandle, Props>(
           <input
             type="text"
             {...register('telefono')}
-            defaultValue={sucursal?.telefono}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
           />
         </div>
@@ -81,7 +89,6 @@ export const SucursalForm = forwardRef<SucursalFormHandle, Props>(
           <label className="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
           <select
             {...register('empresaId', { valueAsNumber: true })}
-            defaultValue={sucursal?.empresaId ?? defaultEmpresaId}
             disabled={!isSuperAdmin}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
           >

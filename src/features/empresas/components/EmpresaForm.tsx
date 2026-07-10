@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle } from 'react'
+import { useEffect, forwardRef, useImperativeHandle } from 'react'
 import { useForm } from 'react-hook-form'
 import { createEmpresa, updateEmpresa } from '../../../api/empresas'
 import toast from 'react-hot-toast'
@@ -14,11 +14,22 @@ interface Props {
 }
 
 export const EmpresaForm = forwardRef<EmpresaFormHandle, Props>(({ empresa, onSaved }, ref) => {
-  const { register, handleSubmit } = useForm<EmpresaRequest>({
+  const { register, handleSubmit, reset } = useForm<EmpresaRequest>({
     defaultValues: { nombre: '', direccion: '', telefono: '', email: '' },
   })
 
   const isEditing = !!empresa?.id
+
+  useEffect(() => {
+    if (empresa) {
+      reset({
+        nombre: empresa.nombre,
+        direccion: empresa.direccion,
+        telefono: empresa.telefono,
+        email: empresa.email,
+      })
+    }
+  }, [empresa, reset])
 
   useImperativeHandle(ref, () => ({
     submit: handleSubmit(
@@ -46,7 +57,6 @@ export const EmpresaForm = forwardRef<EmpresaFormHandle, Props>(({ empresa, onSa
         <input
           type="text"
           {...register('nombre', { required: 'El nombre es obligatorio' })}
-          defaultValue={empresa?.nombre}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
         />
       </div>
@@ -55,7 +65,6 @@ export const EmpresaForm = forwardRef<EmpresaFormHandle, Props>(({ empresa, onSa
         <input
           type="text"
           {...register('direccion')}
-          defaultValue={empresa?.direccion}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
         />
       </div>
@@ -64,7 +73,6 @@ export const EmpresaForm = forwardRef<EmpresaFormHandle, Props>(({ empresa, onSa
         <input
           type="text"
           {...register('telefono')}
-          defaultValue={empresa?.telefono}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
         />
       </div>
@@ -73,7 +81,6 @@ export const EmpresaForm = forwardRef<EmpresaFormHandle, Props>(({ empresa, onSa
         <input
           type="email"
           {...register('email')}
-          defaultValue={empresa?.email}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
         />
       </div>

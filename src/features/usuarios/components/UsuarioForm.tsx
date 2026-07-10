@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle } from 'react'
+import { useEffect, forwardRef, useImperativeHandle } from 'react'
 import { useForm } from 'react-hook-form'
 import { createUsuario, updateUsuario } from '../../../api/usuarios'
 import toast from 'react-hot-toast'
@@ -21,13 +21,13 @@ interface Props {
 
 export const UsuarioForm = forwardRef<UsuarioFormHandle, Props>(
   ({ usuario, empresas, canManage, isReadOnly, defaultEmpresaId, onSaved }, ref) => {
-    const { register, handleSubmit, watch, setValue, getValues } = useForm<UsuarioRequest>({
+    const { register, handleSubmit, watch, setValue, getValues, reset } = useForm<UsuarioRequest>({
       defaultValues: {
         email: '',
         password: '',
         nombre: '',
         telefono: '',
-        empresaId: null,
+        empresaId: defaultEmpresaId,
         sucursalId: null,
         roles: ['USUARIO'],
       },
@@ -35,6 +35,20 @@ export const UsuarioForm = forwardRef<UsuarioFormHandle, Props>(
 
     const watchedRoles = watch('roles')
     const isEditing = !!usuario?.id
+
+    useEffect(() => {
+      if (usuario) {
+        reset({
+          email: usuario.email,
+          password: '',
+          nombre: usuario.nombre,
+          telefono: usuario.telefono,
+          empresaId: usuario.empresaId,
+          sucursalId: usuario.sucursalId,
+          roles: usuario.roles,
+        })
+      }
+    }, [usuario, reset])
 
     useImperativeHandle(ref, () => ({
       submit: handleSubmit(
@@ -69,7 +83,6 @@ export const UsuarioForm = forwardRef<UsuarioFormHandle, Props>(
           <input
             type="email"
             {...register('email', { required: 'El email es obligatorio' })}
-            defaultValue={usuario?.email}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
           />
         </div>
@@ -88,7 +101,6 @@ export const UsuarioForm = forwardRef<UsuarioFormHandle, Props>(
           <input
             type="text"
             {...register('nombre')}
-            defaultValue={usuario?.nombre}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
           />
         </div>
@@ -97,7 +109,6 @@ export const UsuarioForm = forwardRef<UsuarioFormHandle, Props>(
           <input
             type="text"
             {...register('telefono')}
-            defaultValue={usuario?.telefono}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
           />
         </div>
@@ -106,7 +117,6 @@ export const UsuarioForm = forwardRef<UsuarioFormHandle, Props>(
             <label className="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
             <select
               {...register('empresaId', { setValueAs: (v) => (v === '' ? null : Number(v)) })}
-              defaultValue={usuario?.empresaId ?? defaultEmpresaId ?? ''}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
             >
               <option value="">Sin empresa</option>
