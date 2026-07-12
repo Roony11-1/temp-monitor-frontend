@@ -28,8 +28,10 @@ export const ApiConfig = {
     asignar: '/api/sensores/asignar',
     byCamara: (camaraId: number) => `/api/sensores/camara/${camaraId}`,
     byUuid: (uuid: string) => `/api/sensores/${uuid}`,
-    lecturas: (uuid: string) => `/api/sensores/${uuid}/lecturas`,
     estado: (uuid: string) => `/api/sensores/${uuid}/estado`,
+  },
+  lecturas: {
+    porSensor: (uuid: string) => `/api/lecturas/sensor/${uuid}`,
   },
   usuarios: {
     list: '/api/usuarios',

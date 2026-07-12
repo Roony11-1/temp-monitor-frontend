@@ -52,7 +52,9 @@ export interface Usuario {
   nombre: string | null
   telefono: string | null
   roles: Rol[]
+  empresa: string | null
   empresaId: number | null
+  sucursal: string | null
   sucursalId: number | null
   activo: boolean
   createdAt: string

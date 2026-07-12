@@ -89,6 +89,14 @@ export function UsuarioDetail() {
             </div>
           </div>
           <div>
+            <p className={styles.fieldLabel}>Empresa</p>
+            <p className={styles.fieldValue}>{usuario.empresa || '-'}</p>
+          </div>
+          <div>
+            <p className={styles.fieldLabel}>Sucursal</p>
+            <p className={styles.fieldValue}>{usuario.sucursal || '-'}</p>
+          </div>
+          <div>
             <p className={styles.fieldLabel}>Estado</p>
             <div className={styles.badgeWrapper}>
               <Badge variant={usuario.activo ? 'success' : 'danger'}>

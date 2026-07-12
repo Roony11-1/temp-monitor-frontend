@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   getUsuarios,
@@ -37,11 +37,6 @@ export function Usuarios() {
   const canManage = isSuperAdmin || isAdminEmpresa
   const isReadOnly = !isSuperAdmin && !isAdminEmpresa
 
-  const empresaNombre = useMemo(
-    () => (id: number | null) => (id ? empresas.find((e) => e.id === id)?.nombre || '-' : '-'),
-    [empresas],
-  )
-
   const columns: ColumnDef<Usuario>[] = [
     {
       key: 'email',
@@ -75,21 +70,20 @@ export function Usuarios() {
       ),
       getValue: (row) => row.roles.join(', '),
     },
-    ...(!isReadOnly
-      ? [
-          {
-            key: 'empresaId' as const,
-            label: 'Empresa' as const,
-            sortable: true,
-            filterable: true,
-            filterType: 'select' as const,
-            filterOptions: empresas.map((e) => ({ label: e.nombre, value: String(e.id) })),
-            render: (v: number | null) => (
-              <span className={styles.cellMuted}>{empresaNombre(v)}</span>
-            ),
-          },
-        ]
-      : []),
+    {
+      key: 'empresa',
+      label: 'Empresa',
+      sortable: true,
+      filterable: true,
+      render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
+    },
+    {
+      key: 'sucursal',
+      label: 'Sucursal',
+      sortable: true,
+      filterable: true,
+      render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
+    },
     {
       key: 'activo',
       label: 'Estado',

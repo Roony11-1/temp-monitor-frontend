@@ -1,6 +1,6 @@
 import { api } from './axios'
 import { ApiConfig } from './ApiConfig'
-import type { Sensor, RegistroSensorRequest, RegistroSensorResponse, AsignarSensorRequest, ActualizarSensorRequest, Lectura } from '../types'
+import type { Sensor, RegistroSensorRequest, RegistroSensorResponse, AsignarSensorRequest, ActualizarSensorRequest } from '../types'
 
 export async function getSensores() {
   const res = await api.get<Sensor[]>(ApiConfig.sensores.list)
@@ -27,16 +27,7 @@ export async function actualizarSensor(uuid: string, data: ActualizarSensorReque
   return res.data
 }
 
-export async function registrarLecturaSensor(uuid: string, temperatura: number) {
-  await api.post(ApiConfig.sensores.lecturas(uuid), { temperatura })
-}
-
 export async function consultarEstadoSensor(uuid: string) {
   const res = await api.get<string>(ApiConfig.sensores.estado(uuid))
-  return res.data
-}
-
-export async function getLecturasSensor(uuid: string) {
-  const res = await api.get<Lectura[]>(ApiConfig.sensores.lecturas(uuid))
   return res.data
 }

@@ -9,7 +9,8 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts'
-import { getLecturasSensor, getSensores } from '../../../api/sensores'
+import { getSensores } from '../../../api/sensores'
+import { getLecturasSensor } from '../../../api/lecturas'
 import { Card } from '../../../shared/components/ui/Card'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import type { Sensor, Lectura } from '../../../types'
