@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { fetchDashboardData, type DashboardData } from '../api/dashboard'
 
 interface UseDashboardResult {
@@ -13,18 +13,20 @@ export function useDashboard(): UseDashboardResult {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true)
     setError(null)
     fetchDashboardData()
       .then(setData)
       .catch((err) => setError(err?.message || 'Error al cargar dashboard'))
       .finally(() => setLoading(false))
-  }
+  }, [])
 
   useEffect(() => {
     load()
-  }, [])
+    const interval = setInterval(load, 30000)
+    return () => clearInterval(interval)
+  }, [load])
 
   return { data, loading, error, refetch: load }
 }

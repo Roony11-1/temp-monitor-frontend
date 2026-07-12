@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { getSensores, actualizarSensor } from '../../../api/sensores'
 import { getCamaras } from '../../../api/camaras'
 import { getEmpresas } from '../../../api/empresas'
@@ -100,6 +100,21 @@ export function Sensores() {
 
   const columns: ColumnDef<Sensor>[] = [
     {
+      key: 'lecturas',
+      label: '',
+      sortable: false,
+      filterable: false,
+      render: (_, row) => (
+        <Link
+          to={`/sensores/${row.uuid}/lecturas`}
+          className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+          onClick={(e) => e.stopPropagation()}
+        >
+          Ver lecturas
+        </Link>
+      ),
+    },
+    {
       key: 'macAddress',
       label: 'MAC Address',
       sortable: true,
@@ -198,6 +213,12 @@ export function Sensores() {
             + Registrar sensor
           </button>
         )}
+        <button
+          onClick={() => navigate('/sensores/simular')}
+          className={styles.createBtn}
+        >
+          Simular Lectura
+        </button>
       </PageHeader>
 
       <DataTable

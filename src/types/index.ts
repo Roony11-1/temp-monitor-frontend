@@ -122,6 +122,13 @@ export interface ActualizarSensorRequest {
   camaraId?: number
 }
 
+export interface Lectura {
+  id: number
+  sensorUuid: string
+  temperatura: number
+  timestamp: string
+}
+
 export interface AuthUser {
   id: number
   email: string
