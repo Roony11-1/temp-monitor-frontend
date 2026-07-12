@@ -89,16 +89,37 @@ export interface RegistroSensorRequest {
   macAddress: string
 }
 
+export interface RegistroSensorResponse {
+  estado: string
+  uuid: string
+  apiKey: string
+}
+
+export interface AsignarSensorRequest {
+  uuid: string
+  apiKey: string
+  camaraId: number
+}
+
 export interface Sensor {
   id: number
   uuid: string
   apiKeyHash: string
   macAddress: string
   camara: Camara | null
+  sucursalId: number | null
+  sucursalNombre: string | null
+  empresaId: number | null
+  empresaNombre: string | null
   ultimoContacto: string | null
   estado: string
   createdAt: string
   updatedAt: string | null
+}
+
+export interface ActualizarSensorRequest {
+  estado?: string
+  camaraId?: number
 }
 
 export interface AuthUser {

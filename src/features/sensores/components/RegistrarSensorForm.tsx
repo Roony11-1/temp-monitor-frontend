@@ -2,13 +2,13 @@ import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { registrarSensor } from '../../../api/sensores'
 import { getApiErrorMessage } from '../../../shared/utils/error'
-import type { Sensor } from '../../../types'
+import type { RegistroSensorResponse } from '../../../types'
 import styles from './RegistrarSensorForm.module.css'
 
 type FormValues = { macAddress: string }
 
 interface RegistrarSensorFormProps {
-  onSuccess: (sensor: Sensor) => void
+  onSuccess: (response: RegistroSensorResponse) => void
 }
 
 export function RegistrarSensorForm({ onSuccess }: RegistrarSensorFormProps) {
@@ -30,9 +30,7 @@ export function RegistrarSensorForm({ onSuccess }: RegistrarSensorFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
       <div>
-        <label className={styles.label}>
-          MAC Address
-        </label>
+        <label className={styles.label}>MAC Address</label>
         <input
           type="text"
           {...register('macAddress')}

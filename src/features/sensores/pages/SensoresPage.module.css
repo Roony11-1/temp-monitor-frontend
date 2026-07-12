@@ -1,0 +1,33 @@
+@reference "tailwindcss";
+
+.cellMuted {
+  @apply text-gray-500;
+}
+
+.mono {
+  @apply font-mono text-xs;
+}
+
+.badgeCenter {
+  @apply flex justify-center;
+}
+
+.createBtn {
+  @apply px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors;
+}
+
+.actions {
+  @apply flex gap-2;
+}
+
+.saveBtn {
+  @apply text-green-600 hover:text-green-800 text-sm font-medium;
+}
+
+.cancelBtn {
+  @apply text-gray-600 hover:text-gray-800 text-sm font-medium;
+}
+
+.inlineSelect {
+  @apply text-xs px-2 py-1 border border-gray-300 rounded bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none;
+}

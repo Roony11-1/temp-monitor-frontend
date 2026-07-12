@@ -12,7 +12,9 @@ import { SucursalEdit } from '../../features/sucursales/pages/SucursalEditPage'
 import { Camaras } from '../../features/camaras/pages/CamarasPage'
 import { CamaraDetail } from '../../features/camaras/pages/CamaraDetailPage'
 import { CamaraEdit } from '../../features/camaras/pages/CamaraEditPage'
+import { Sensores } from '../../features/sensores/pages/SensoresPage'
 import { RegistrarSensor } from '../../features/sensores/pages/RegistrarSensorPage'
+import { SimularLectura } from '../../features/sensores/pages/SimularLecturaPage'
 import { Usuarios } from '../../features/usuarios/pages/UsuariosPage'
 import { UsuarioDetail } from '../../features/usuarios/pages/UsuarioDetailPage'
 import { UsuarioEdit } from '../../features/usuarios/pages/UsuarioEditPage'
@@ -42,7 +44,9 @@ export function AppRouter() {
           <Route path="camaras" element={<Camaras />} />
           <Route path="camaras/:id" element={<CamaraDetail />} />
           <Route path="camaras/:id/editar" element={<CamaraEdit />} />
+          <Route path="sensores" element={<Sensores />} />
           <Route path="sensores/registrar" element={<RegistrarSensor />} />
+          <Route path="sensores/simular" element={<SimularLectura />} />
           <Route path="usuarios" element={<Usuarios />} />
           <Route path="usuarios/:id" element={<UsuarioDetail />} />
           <Route path="usuarios/:id/editar" element={<UsuarioEdit />} />

@@ -23,7 +23,13 @@ export const ApiConfig = {
     desactivar: (id: number) => `/api/camaras/${id}/desactivar`,
   },
   sensores: {
+    list: '/api/sensores',
     registrar: '/api/sensores/registrar',
+    asignar: '/api/sensores/asignar',
+    byCamara: (camaraId: number) => `/api/sensores/camara/${camaraId}`,
+    byUuid: (uuid: string) => `/api/sensores/${uuid}`,
+    lecturas: (uuid: string) => `/api/sensores/${uuid}/lecturas`,
+    estado: (uuid: string) => `/api/sensores/${uuid}/estado`,
   },
   usuarios: {
     list: '/api/usuarios',

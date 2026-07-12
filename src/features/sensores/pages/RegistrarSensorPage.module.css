@@ -8,6 +8,10 @@
   @apply text-2xl font-bold text-gray-900;
 }
 
+.subtitle {
+  @apply text-sm text-gray-500 mb-4;
+}
+
 .result {
   @apply max-w-2xl;
 }
@@ -18,4 +22,48 @@
 
 .pre {
   @apply bg-gray-900 text-green-400 rounded-lg p-4 overflow-x-auto text-sm;
+}
+
+.card {
+  @apply bg-white rounded-lg border border-gray-200 p-4 space-y-2;
+}
+
+.field {
+  @apply flex items-center gap-2 text-sm;
+}
+
+.fieldLabel {
+  @apply font-medium text-gray-500 min-w-24;
+}
+
+.mono {
+  @apply font-mono text-xs;
+}
+
+.badgeActivo {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800;
+}
+
+.badgePendiente {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800;
+}
+
+.actions {
+  @apply flex items-center gap-4 mt-4;
+}
+
+.button {
+  @apply px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors;
+}
+
+.estadoActual {
+  @apply text-sm text-gray-700;
+}
+
+.label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.input {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none;
 }
