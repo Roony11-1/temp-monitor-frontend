@@ -15,7 +15,7 @@ import type { ColumnDef } from '../../../types/table'
 import styles from './SensoresPage.module.css'
 
 export function Sensores() {
-  const { user } = useAuth()
+  const { isSuperAdmin } = useAuth()
   const navigate = useNavigate()
   const [sensores, setSensores] = useState<Sensor[]>([])
   const [camaras, setCamaras] = useState<Camara[]>([])
@@ -25,8 +25,6 @@ export function Sensores() {
   const [editandoUuid, setEditandoUuid] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<{ estado: string; camaraId: string }>({ estado: '', camaraId: '' })
   const [saving, setSaving] = useState(false)
-
-  const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
 
   const load = useCallback(() => {
     setLoading(true)

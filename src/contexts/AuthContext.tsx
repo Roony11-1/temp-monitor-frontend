@@ -3,20 +3,25 @@ import { login as loginApi } from '../api/auth'
 import { parseJwt } from '../utils/jwt'
 import type { LoginRequest, AuthUser } from '../types'
 
-interface AuthContextType {
+interface AuthContextType 
+{
   user: AuthUser | null
   token: string | null
   login: (data: LoginRequest) => Promise<void>
   logout: () => void
   isAuthenticated: boolean
+  isSuperAdmin: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) 
+{
   const [user, setUser] = useState<AuthUser | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN') ?? false
 
   useEffect(() => {
     const savedToken = localStorage.getItem('token')
@@ -64,13 +69,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated, isSuperAdmin }}>
       {children}
     </AuthContext.Provider>
   )
 }
 
-export function useAuth() {
+export function useAuth() 
+{
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth must be used within AuthProvider')
   return ctx
