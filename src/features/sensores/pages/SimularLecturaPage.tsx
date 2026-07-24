@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
-import { getSensores } from '../../../api/sensores'
-import { registrarLecturaSensor } from '../../../api/lecturas'
+import { useSensores, useRegistrarLecturaSensor } from '../hooks/useSensores'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import type { Sensor } from '../../../types'
 import styles from './RegistrarSensorPage.module.css'
@@ -10,15 +9,12 @@ import styles from './RegistrarSensorPage.module.css'
 type FormValues = { sensorUuid: string; temperatura: string }
 
 export function SimularLectura() {
-  const [sensores, setSensores] = useState<Sensor[]>([])
+  const { data: sensores = [] } = useSensores()
   const [ultimoEnvio, setUltimoEnvio] = useState<{ uuid: string; temp: number } | null>(null)
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<FormValues>({
     defaultValues: { sensorUuid: '', temperatura: '' },
   })
-
-  useEffect(() => {
-    getSensores().then(setSensores).catch(() => toast.error('Error al cargar sensores'))
-  }, [])
+  const enviarMutation = useRegistrarLecturaSensor()
 
   const onSubmit = async (data: FormValues) => {
     if (!data.sensorUuid) {
@@ -31,7 +27,7 @@ export function SimularLectura() {
       return
     }
     try {
-      await registrarLecturaSensor(data.sensorUuid, temp)
+      await enviarMutation.mutateAsync({ uuid: data.sensorUuid, temperatura: temp })
       toast.success(`Lectura enviada: ${temp}°C`)
       setUltimoEnvio({ uuid: data.sensorUuid, temp })
       reset({ sensorUuid: data.sensorUuid, temperatura: '' })
@@ -50,7 +46,7 @@ export function SimularLectura() {
           <label className={styles.label}>Sensor</label>
           <select {...register('sensorUuid')} className={styles.input}>
             <option value="">-- Seleccione un sensor --</option>
-            {sensores.map((s) => (
+            {sensores.map((s: Sensor) => (
               <option key={s.uuid} value={s.uuid}>
                 {s.macAddress} — {s.camara?.nombre ?? 'Sin cámara'} ({s.estado})
               </option>

@@ -1,6 +1,6 @@
 import { useEffect, forwardRef, useImperativeHandle } from 'react'
 import { useForm } from 'react-hook-form'
-import { createEmpresa, updateEmpresa } from '../../../api/empresas'
+import { createEmpresa, updateEmpresa } from '../../empresas/api/empresas'
 import toast from 'react-hot-toast'
 import type { EmpresaRequest } from '../../../types'
 import styles from './EmpresaForm.module.css'

@@ -1,6 +1,6 @@
-import { api } from './axios'
-import { ApiConfig } from './ApiConfig'
-import type { Camara, CamaraRequest } from '../types'
+import { api } from '../../../api/axios'
+import { ApiConfig } from '../../../api/ApiConfig'
+import type { Camara, CamaraRequest } from '../../../types'
 
 export async function getCamaras() {
   const res = await api.get<Camara[]>(ApiConfig.camaras.list)

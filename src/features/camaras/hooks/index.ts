@@ -1,0 +1,1 @@
+export { useCamaras, useCamarasBySucursal, useCamara, useCreateCamara, useUpdateCamara, useDeleteCamara } from './useCamaras'

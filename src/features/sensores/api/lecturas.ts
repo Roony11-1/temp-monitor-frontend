@@ -1,6 +1,6 @@
-import { api } from './axios'
-import { ApiConfig } from './ApiConfig'
-import type { Lectura } from '../types'
+import { api } from '../../../api/axios'
+import { ApiConfig } from '../../../api/ApiConfig'
+import type { Lectura } from '../../../types'
 
 export async function registrarLecturaSensor(uuid: string, temperatura: number) {
   await api.post(ApiConfig.lecturas.porSensor(uuid), { temperatura })

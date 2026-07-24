@@ -1,6 +1,6 @@
-import { api } from './axios'
-import { ApiConfig } from './ApiConfig'
-import type { Sucursal, SucursalRequest } from '../types'
+import { api } from '../../../api/axios'
+import { ApiConfig } from '../../../api/ApiConfig'
+import type { Sucursal, SucursalRequest } from '../../../types'
 
 export async function getSucursales() {
   const res = await api.get<Sucursal[]>(ApiConfig.sucursales.list)

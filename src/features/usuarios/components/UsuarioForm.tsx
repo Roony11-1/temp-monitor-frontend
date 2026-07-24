@@ -1,6 +1,6 @@
 import { useEffect, forwardRef, useImperativeHandle } from 'react'
 import { useForm } from 'react-hook-form'
-import { createUsuario, updateUsuario } from '../../../api/usuarios'
+import { createUsuario, updateUsuario } from '../../usuarios/api/usuarios'
 import toast from 'react-hot-toast'
 import type { UsuarioRequest, Empresa, Rol } from '../../../types'
 import styles from './UsuarioForm.module.css'

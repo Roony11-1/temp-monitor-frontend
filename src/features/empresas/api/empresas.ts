@@ -1,6 +1,6 @@
-import { api } from './axios'
-import { ApiConfig } from './ApiConfig'
-import type { Empresa, EmpresaRequest } from '../types'
+import { api } from '../../../api/axios'
+import { ApiConfig } from '../../../api/ApiConfig'
+import type { Empresa, EmpresaRequest } from '../../../types'
 
 export async function getEmpresas() {
   const res = await api.get<Empresa[]>(ApiConfig.empresas.list)

@@ -1,10 +1,6 @@
-import { useEffect, useState, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  getEmpresas,
-  getEmpresa,
-  deleteEmpresa,
-} from '../../../api/empresas'
+import { useEmpresas, useEmpresa, useDeleteEmpresa } from '../hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
 import { DataTable } from '../../../components/DataTable'
@@ -21,8 +17,6 @@ export function Empresas() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const formRef = useRef<EmpresaFormHandle>(null)
-  const [empresas, setEmpresas] = useState<Empresa[]>([])
-  const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Empresa | null>(null)
   const [saving, setSaving] = useState(false)
@@ -30,6 +24,13 @@ export function Empresas() {
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
   const canEdit = isSuperAdmin || user?.roles?.includes('ADMIN_EMPRESA')
   const canDelete = isSuperAdmin
+
+  const { data: allEmpresas = [], isLoading: loadingAll } = useEmpresas()
+  const { data: singleEmpresa, isLoading: loadingSingle } = useEmpresa(user?.empresaId ?? 0)
+  const deleteMutation = useDeleteEmpresa()
+
+  const empresas = isSuperAdmin ? allEmpresas : singleEmpresa ? [singleEmpresa] : []
+  const loading = isSuperAdmin ? loadingAll : loadingSingle
 
   const columns: ColumnDef<Empresa>[] = [
     {
@@ -76,25 +77,6 @@ export function Empresas() {
     },
   ]
 
-  const load = () => {
-    setLoading(true)
-    if (isSuperAdmin) {
-      getEmpresas()
-        .then(setEmpresas)
-        .catch(() => toast.error('Error al cargar empresas'))
-        .finally(() => setLoading(false))
-    } else if (user?.empresaId) {
-      getEmpresa(user.empresaId)
-        .then((emp) => setEmpresas([emp]))
-        .catch(() => toast.error('Error al cargar empresa'))
-        .finally(() => setLoading(false))
-    } else {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => { load() }, [])
-
   const openCreate = () => {
     setEditing(null)
     setShowModal(true)
@@ -110,7 +92,6 @@ export function Empresas() {
     try {
       await formRef.current?.submit()
       setShowModal(false)
-      load()
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Error al guardar'))
     } finally {
@@ -121,9 +102,8 @@ export function Empresas() {
   const handleDelete = async (id: number) => {
     if (!confirm('¿Eliminar esta empresa?')) return
     try {
-      await deleteEmpresa(id)
+      await deleteMutation.mutateAsync(id)
       toast.success('Empresa eliminada')
-      load()
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Error al eliminar'))
     }

@@ -1,6 +1,6 @@
 import { useEffect, forwardRef, useImperativeHandle } from 'react'
 import { useForm } from 'react-hook-form'
-import { createCamara, updateCamara } from '../../../api/camaras'
+import { createCamara, updateCamara } from '../../camaras/api/camaras'
 import toast from 'react-hot-toast'
 import type { CamaraRequest, Sucursal } from '../../../types'
 import styles from './CamaraForm.module.css'

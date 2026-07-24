@@ -1,29 +1,19 @@
-import { useEffect, useState, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getEmpresa } from '../../../api/empresas'
+import { useEmpresa } from '../hooks/useEmpresas'
 import { Card } from '../../../shared/components/ui/Card'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import { EmpresaForm, type EmpresaFormHandle } from '../components/EmpresaForm'
-import type { Empresa } from '../../../types'
 import styles from './EmpresaEditPage.module.css'
 
 export function EmpresaEdit() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const formRef = useRef<EmpresaFormHandle>(null)
-  const [empresa, setEmpresa] = useState<Empresa | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { data: empresa, isLoading } = useEmpresa(Number(id))
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    if (!id) return
-    getEmpresa(Number(id))
-      .then(setEmpresa)
-      .catch(() => navigate('/empresas'))
-      .finally(() => setLoading(false))
-  }, [id])
-
-  if (loading) return (
+  if (isLoading) return (
     <div className={styles.skeletonSpace}>
       <LoadingSkeleton width="200px" height="28px" />
       <Card><LoadingSkeleton width="100%" height="200px" /></Card>

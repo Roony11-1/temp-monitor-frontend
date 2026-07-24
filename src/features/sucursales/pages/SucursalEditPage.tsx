@@ -1,12 +1,11 @@
-import { useEffect, useState, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getSucursal } from '../../../api/sucursales'
-import { getEmpresas } from '../../../api/empresas'
+import { useSucursal } from '../hooks/useSucursales'
+import { useEmpresas } from '../../empresas/hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Card } from '../../../shared/components/ui/Card'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import { SucursalForm, type SucursalFormHandle } from '../components/SucursalForm'
-import type { Sucursal, Empresa } from '../../../types'
 import styles from './SucursalEditPage.module.css'
 
 export function SucursalEdit() {
@@ -14,25 +13,13 @@ export function SucursalEdit() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const formRef = useRef<SucursalFormHandle>(null)
-  const [sucursal, setSucursal] = useState<Sucursal | null>(null)
-  const [empresas, setEmpresas] = useState<Empresa[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: sucursal, isLoading } = useSucursal(Number(id))
+  const { data: empresas = [] } = useEmpresas()
   const [saving, setSaving] = useState(false)
 
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN') ?? false
 
-  useEffect(() => {
-    if (!id) return
-    Promise.all([getSucursal(Number(id)), getEmpresas()])
-      .then(([suc, emps]) => {
-        setSucursal(suc)
-        setEmpresas(emps)
-      })
-      .catch(() => navigate('/sucursales'))
-      .finally(() => setLoading(false))
-  }, [id])
-
-  if (loading) return (
+  if (isLoading) return (
     <div className={styles.skeletonSpace}>
       <LoadingSkeleton width="200px" height="28px" />
       <Card><LoadingSkeleton width="100%" height="200px" /></Card>

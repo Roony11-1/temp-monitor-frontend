@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ResponsiveContainer,
@@ -9,11 +8,9 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts'
-import { getSensores } from '../../../api/sensores'
-import { getLecturasSensor } from '../../../api/lecturas'
+import { useSensores, useLecturasSensor } from '../hooks/useSensores'
 import { Card } from '../../../shared/components/ui/Card'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
-import type { Sensor, Lectura } from '../../../types'
 import styles from './RegistrarSensorPage.module.css'
 
 interface ChartPoint {
@@ -24,26 +21,16 @@ interface ChartPoint {
 export function SensorLecturas() {
   const { uuid } = useParams<{ uuid: string }>()
   const navigate = useNavigate()
-  const [sensor, setSensor] = useState<Sensor | null>(null)
-  const [lecturas, setLecturas] = useState<Lectura[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: sensores = [], isLoading: loadingSens } = useSensores()
+  const { data: lecturas = [], isLoading: loadingLect } = useLecturasSensor(uuid ?? '')
 
-  useEffect(() => {
-    if (!uuid) return
-    setLoading(true)
-    Promise.all([
-      getSensores(),
-      getLecturasSensor(uuid),
-    ])
-      .then(([sensores, lecs]) => {
-        const s = sensores.find((x) => x.uuid === uuid)
-        if (!s) { navigate('/sensores'); return }
-        setSensor(s)
-        setLecturas(lecs)
-      })
-      .catch(() => navigate('/sensores'))
-      .finally(() => setLoading(false))
-  }, [uuid])
+  const loading = loadingSens || loadingLect
+  const sensor = sensores.find((x) => x.uuid === uuid)
+
+  if (!loading && !sensor) {
+    navigate('/sensores')
+    return null
+  }
 
   if (loading) {
     return (
@@ -53,8 +40,6 @@ export function SensorLecturas() {
       </div>
     )
   }
-
-  if (!sensor) return null
 
   const chartData: ChartPoint[] = [...lecturas]
     .reverse()
@@ -75,7 +60,7 @@ export function SensorLecturas() {
         <div>
           <h1 className={styles.title}>Lecturas del Sensor</h1>
           <p className={styles.subtitle}>
-            {sensor.macAddress} — {sensor.camara?.nombre ?? 'Sin cámara'}
+            {sensor!.macAddress} — {sensor!.camara?.nombre ?? 'Sin cámara'}
           </p>
         </div>
       </div>
@@ -83,11 +68,11 @@ export function SensorLecturas() {
       <div className={styles.card}>
         <div className={styles.field}>
           <span className={styles.fieldLabel}>UUID</span>
-          <span className={styles.mono}>{sensor.uuid}</span>
+          <span className={styles.mono}>{sensor!.uuid}</span>
         </div>
         <div className={styles.field}>
           <span className={styles.fieldLabel}>Estado</span>
-          <span>{sensor.estado}</span>
+          <span>{sensor!.estado}</span>
         </div>
         <div className={styles.field}>
           <span className={styles.fieldLabel}>Total lecturas</span>

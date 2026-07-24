@@ -1,11 +1,7 @@
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  getCamaras,
-  getCamarasBySucursal,
-  deleteCamara,
-} from '../../../api/camaras'
-import { getSucursales, getSucursalesByEmpresa, getSucursal } from '../../../api/sucursales'
+import { useCamaras, useCamarasBySucursal, useDeleteCamara } from '../hooks/useCamaras'
+import { useSucursales, useSucursalesByEmpresa, useSucursal } from '../../sucursales/hooks/useSucursales'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
 import { DataTable } from '../../../components/DataTable'
@@ -14,7 +10,7 @@ import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
 import { CamaraForm, type CamaraFormHandle } from '../components/CamaraForm'
-import type { Camara, Sucursal } from '../../../types'
+import type { Camara } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './CamarasPage.module.css'
 
@@ -22,9 +18,6 @@ export function Camaras() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const formRef = useRef<CamaraFormHandle>(null)
-  const [camaras, setCamaras] = useState<Camara[]>([])
-  const [sucursales, setSucursales] = useState<Sucursal[]>([])
-  const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Camara | null>(null)
   const [saving, setSaving] = useState(false)
@@ -34,10 +27,35 @@ export function Camaras() {
   const isAdminSucursal = user?.roles?.includes('ADMIN_SUCURSAL')
   const canManage = isSuperAdmin || isAdminEmpresa || isAdminSucursal
 
-  const sucursalNombre = useMemo(
-    () => (id: number) => sucursales.find((s) => s.id === id)?.nombre || '-',
-    [sucursales],
-  )
+  const { data: allCamaras = [], isLoading: loadingAllCam } = useCamaras()
+  const { data: camarasBySuc = [], isLoading: loadingBySuc } = useCamarasBySucursal(user?.sucursalId ?? 0)
+  const { data: allSucursales = [] } = useSucursales()
+  const { data: sucursalesByEmp = [] } = useSucursalesByEmpresa(isAdminEmpresa ? user!.empresaId! : 0)
+  const { data: singleSucursal } = useSucursal(isAdminSucursal ? user!.sucursalId! : 0)
+
+  let camaras: Camara[] = []
+  let loading = false
+  let sucursales: typeof allSucursales = []
+
+  if (isSuperAdmin) {
+    camaras = allCamaras
+    loading = loadingAllCam
+    sucursales = allSucursales
+  } else if (isAdminEmpresa) {
+    camaras = allCamaras
+    sucursales = sucursalesByEmp
+    loading = loadingBySuc
+    if (sucursales.length) {
+      const sucIds = sucursales.map((s) => s.id)
+      camaras = allCamaras.filter((c) => sucIds.includes(c.sucursalId))
+    }
+  } else if (isAdminSucursal) {
+    camaras = camarasBySuc
+    sucursales = singleSucursal ? [singleSucursal] : []
+    loading = loadingBySuc
+  }
+
+  const sucursalNombre = (id: number) => sucursales.find((s) => s.id === id)?.nombre || '-'
 
   const columns: ColumnDef<Camara>[] = [
     {
@@ -79,46 +97,7 @@ export function Camaras() {
     },
   ]
 
-  const loadSucursales = async () => {
-    if (isSuperAdmin) {
-      return getSucursales()
-    } else if (isAdminEmpresa && user?.empresaId) {
-      return getSucursalesByEmpresa(user.empresaId)
-    } else if (user?.sucursalId) {
-      const s = await getSucursal(user.sucursalId)
-      return [s]
-    }
-    return Promise.resolve([])
-  }
-
-  const loadCamaras = () => {
-    if (isSuperAdmin) {
-      return getCamaras()
-    } else if (user?.sucursalId) {
-      return getCamarasBySucursal(user.sucursalId)
-    } else if (isAdminEmpresa) {
-      return getCamaras()
-    }
-    return Promise.resolve([])
-  }
-
-  const load = () => {
-    setLoading(true)
-    Promise.all([loadCamaras(), loadSucursales()])
-      .then(([cams, sucs]) => {
-        if (!isSuperAdmin && isAdminEmpresa && user?.empresaId) {
-          const empresaSucIds = sucs.map((s) => s.id)
-          setCamaras(cams.filter((c) => empresaSucIds.includes(c.sucursalId)))
-        } else {
-          setCamaras(cams)
-        }
-        setSucursales(sucs)
-      })
-      .catch(() => toast.error('Error al cargar datos'))
-      .finally(() => setLoading(false))
-  }
-
-  useEffect(() => { load() }, [])
+  const deleteMutation = useDeleteCamara()
 
   const openCreate = () => {
     setEditing(null)
@@ -135,7 +114,6 @@ export function Camaras() {
     try {
       await formRef.current?.submit()
       setShowModal(false)
-      load()
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Error al guardar'))
     } finally {
@@ -146,9 +124,8 @@ export function Camaras() {
   const handleDelete = async (id: number) => {
     if (!confirm('¿Eliminar esta cámara?')) return
     try {
-      await deleteCamara(id)
+      await deleteMutation.mutateAsync(id)
       toast.success('Cámara eliminada')
-      load()
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Error al eliminar'))
     }

@@ -1,34 +1,23 @@
-import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getUsuario } from '../../../api/usuarios'
+import { useUsuario } from '../hooks/useUsuarios'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Card } from '../../../shared/components/ui/Card'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
-import type { Usuario, Rol } from '../../../types'
+import type { Rol } from '../../../types'
 import styles from './UsuarioDetailPage.module.css'
 
 export function UsuarioDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user: currentUser } = useAuth()
-  const [usuario, setUsuario] = useState<Usuario | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { data: usuario, isLoading } = useUsuario(Number(id))
 
   const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN')
   const isAdminEmpresa = currentUser?.roles?.includes('ADMIN_EMPRESA')
   const canEdit = isSuperAdmin || isAdminEmpresa || usuario?.id === currentUser?.id
 
-  useEffect(() => {
-    if (!id) return
-    setLoading(true)
-    getUsuario(Number(id))
-      .then(setUsuario)
-      .catch(() => navigate('/usuarios'))
-      .finally(() => setLoading(false))
-  }, [id])
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className={styles.skeletonSpace}>
         <LoadingSkeleton width="200px" height="28px" />

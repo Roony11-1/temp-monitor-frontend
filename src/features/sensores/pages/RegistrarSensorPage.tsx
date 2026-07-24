@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { RegistrarSensorForm } from '../components/RegistrarSensorForm'
 import { AsignarSensorForm } from '../components/AsignarSensorForm'
-import { consultarEstadoSensor } from '../../../api/sensores'
-import { getApiErrorMessage } from '../../../shared/utils/error'
+import { useConsultarEstadoSensor } from '../hooks/useSensores'
 import type { Sensor, RegistroSensorResponse } from '../../../types'
 import toast from 'react-hot-toast'
 import styles from './RegistrarSensorPage.module.css'
@@ -13,7 +12,6 @@ export function RegistrarSensor() {
   const [step, setStep] = useState<Step>('registrar')
   const [registro, setRegistro] = useState<RegistroSensorResponse | null>(null)
   const [sensor, setSensor] = useState<Sensor | null>(null)
-  const [consultando, setConsultando] = useState(false)
   const [estado, setEstado] = useState<string | null>(null)
 
   const handleRegistroExitoso = (response: RegistroSensorResponse) => {
@@ -26,18 +24,16 @@ export function RegistrarSensor() {
     setStep('completo')
   }
 
+  const { refetch: consultarEstado, isFetching: consultando } = useConsultarEstadoSensor(sensor?.uuid ?? '')
+
   const handleConsultarEstado = async () => {
     if (!sensor?.uuid) return
-    setConsultando(true)
-    setEstado(null)
-    try {
-      const estadoActual = await consultarEstadoSensor(sensor.uuid)
-      setEstado(estadoActual)
-      toast.success(`Estado del sensor: ${estadoActual}`)
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, 'Error al consultar estado'))
-    } finally {
-      setConsultando(false)
+    const result = await consultarEstado()
+    if (result.data) {
+      setEstado(result.data)
+      toast.success(`Estado del sensor: ${result.data}`)
+    } else {
+      toast.error('Error al consultar estado')
     }
   }
 

@@ -1,13 +1,9 @@
-import { useEffect, useState, useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  getUsuarios,
-  getUsuariosByEmpresa,
-  getUsuariosBySucursal,
-  deleteUsuario,
-} from '../../../api/usuarios'
-import { getEmpresas, getEmpresa } from '../../../api/empresas'
+import { useUsuarios, useUsuariosByEmpresa, useUsuariosBySucursal, useDeleteUsuario } from '../hooks/useUsuarios'
+import { useEmpresas, useEmpresa } from '../../empresas/hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
+import { useQueryClient } from '@tanstack/react-query'
 import { Modal } from '../../../components/Modal'
 import { DataTable } from '../../../components/DataTable'
 import toast from 'react-hot-toast'
@@ -15,19 +11,15 @@ import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
 import { UsuarioForm, type UsuarioFormHandle } from '../components/UsuarioForm'
-import type { Usuario, Empresa, Rol } from '../../../types'
+import type { Usuario } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './UsuariosPage.module.css'
-
-const rolesDisponibles: Rol[] = ['SUPER_ADMIN', 'ADMIN_EMPRESA', 'ADMIN_SUCURSAL', 'TECNICO', 'USUARIO']
 
 export function Usuarios() {
   const { user: currentUser } = useAuth()
   const navigate = useNavigate()
   const formRef = useRef<UsuarioFormHandle>(null)
-  const [usuarios, setUsuarios] = useState<Usuario[]>([])
-  const [empresas, setEmpresas] = useState<Empresa[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Usuario | null>(null)
   const [saving, setSaving] = useState(false)
@@ -37,101 +29,27 @@ export function Usuarios() {
   const canManage = isSuperAdmin || isAdminEmpresa
   const isReadOnly = !isSuperAdmin && !isAdminEmpresa
 
-  const columns: ColumnDef<Usuario>[] = [
-    {
-      key: 'email',
-      label: 'Email',
-      sortable: true,
-      filterable: true,
-      render: (v) => <span className={styles.cellName}>{v}</span>,
-    },
-    {
-      key: 'nombre',
-      label: 'Nombre',
-      sortable: true,
-      filterable: true,
-      render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
-    },
-    {
-      key: 'roles',
-      label: 'Roles',
-      sortable: false,
-      filterable: true,
-      filterType: 'select',
-      filterOptions: rolesDisponibles.map((r) => ({ label: r, value: r })),
-      render: (v: Rol[]) => (
-        <div className={styles.roleList}>
-          {v.map((rol) => (
-            <Badge key={rol} variant="info" size="sm">
-              {rol}
-            </Badge>
-          ))}
-        </div>
-      ),
-      getValue: (row) => row.roles.join(', '),
-    },
-    {
-      key: 'empresa',
-      label: 'Empresa',
-      sortable: true,
-      filterable: true,
-      render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
-    },
-    {
-      key: 'sucursal',
-      label: 'Sucursal',
-      sortable: true,
-      filterable: true,
-      render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
-    },
-    {
-      key: 'activo',
-      label: 'Estado',
-      sortable: true,
-      filterable: true,
-      filterType: 'boolean',
-      render: (v) => (
-        <div className={styles.badgeCenter}>
-          <Badge variant={v ? 'success' : 'danger'}>
-            {v ? 'Activo' : 'Inactivo'}
-          </Badge>
-        </div>
-      ),
-    },
-  ]
+  const empresaId = currentUser?.empresaId
+  const sucursalId = currentUser?.sucursalId
 
-  const load = () => {
-    setLoading(true)
-    if (isSuperAdmin) {
-      Promise.all([getUsuarios(), getEmpresas()])
-        .then(([usrs, emps]) => {
-          setUsuarios(usrs)
-          setEmpresas(emps)
-        })
-        .catch(() => toast.error('Error al cargar datos'))
-        .finally(() => setLoading(false))
-    } else if (isAdminEmpresa && currentUser?.empresaId) {
-      Promise.all([getUsuariosByEmpresa(currentUser.empresaId), getEmpresas()])
-        .then(([usrs, emps]) => {
-          setUsuarios(usrs)
-          setEmpresas(emps.filter((e) => e.id === currentUser.empresaId))
-        })
-        .catch(() => toast.error('Error al cargar datos'))
-        .finally(() => setLoading(false))
-    } else if (currentUser?.sucursalId) {
-      Promise.all([getUsuariosBySucursal(currentUser.sucursalId), getEmpresa(currentUser.empresaId!)])
-        .then(([usrs, emp]) => {
-          setUsuarios(usrs)
-          setEmpresas([emp])
-        })
-        .catch(() => toast.error('Error al cargar datos'))
-        .finally(() => setLoading(false))
-    } else {
-      setLoading(false)
-    }
-  }
+  const { data: empresas = [] } = useEmpresas()
+  const { data: empresaData } = useEmpresa(!isSuperAdmin && !isAdminEmpresa ? empresaId! : 0)
+  const { data: allUsuarios = [], isLoading: loadingAll } = useUsuarios()
+  const { data: usuariosEmpresa = [], isLoading: loadingEmpresa } = useUsuariosByEmpresa(isAdminEmpresa ? empresaId! : 0)
+  const { data: usuariosSucursal = [], isLoading: loadingSucursal } = useUsuariosBySucursal(!isSuperAdmin && !isAdminEmpresa ? sucursalId! : 0)
 
-  useEffect(() => { load() }, [])
+  const usuarios = isSuperAdmin ? allUsuarios : isAdminEmpresa ? usuariosEmpresa : usuariosSucursal
+  const loading = isSuperAdmin ? loadingAll : isAdminEmpresa ? loadingEmpresa : loadingSucursal
+
+  const filteredEmpresas = isSuperAdmin
+    ? empresas
+    : isAdminEmpresa
+      ? empresas.filter((e) => e.id === currentUser?.empresaId)
+      : empresaData
+        ? [empresaData]
+        : []
+
+  const deleteMutation = useDeleteUsuario()
 
   const openCreate = () => {
     setEditing(null)
@@ -148,7 +66,7 @@ export function Usuarios() {
     try {
       await formRef.current?.submit()
       setShowModal(false)
-      load()
+      queryClient.invalidateQueries({ queryKey: ['usuarios'] })
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Error al guardar'))
     } finally {
@@ -159,13 +77,27 @@ export function Usuarios() {
   const handleDelete = async (id: number) => {
     if (!confirm('¿Eliminar este usuario?')) return
     try {
-      await deleteUsuario(id)
+      await deleteMutation.mutateAsync(id)
       toast.success('Usuario eliminado')
-      load()
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Error al eliminar'))
     }
   }
+
+  const columns: ColumnDef<Usuario>[] = [
+    { key: 'email', label: 'Email', sortable: true, filterable: true },
+    { key: 'nombre', label: 'Nombre', sortable: true, filterable: true },
+    { key: 'empresa', label: 'Empresa', sortable: true, filterable: true, render: (v) => v || '-' },
+    { key: 'sucursal', label: 'Sucursal', sortable: true, filterable: true, render: (v) => v || '-' },
+    {
+      key: 'activo',
+      label: 'Estado',
+      sortable: true,
+      filterable: true,
+      filterType: 'boolean',
+      render: (v) => <Badge variant={v ? 'success' : 'danger'}>{v ? 'Activo' : 'Inactivo'}</Badge>,
+    },
+  ]
 
   const usuarioData = editing
     ? {
@@ -231,7 +163,7 @@ export function Usuarios() {
           <UsuarioForm
             ref={formRef}
             usuario={usuarioData}
-            empresas={empresas}
+            empresas={filteredEmpresas}
             canManage={canManage ?? false}
             isReadOnly={isReadOnly ?? false}
             defaultEmpresaId={currentUser?.empresaId || null}

@@ -1,0 +1,1 @@
+export { useSensores, useSensoresByCamara, useConsultarEstadoSensor, useRegistrarSensor, useAsignarSensor, useActualizarSensor, useLecturasSensor, useRegistrarLecturaSensor } from './useSensores'

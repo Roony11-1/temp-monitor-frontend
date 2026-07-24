@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle } from 'react'
 import { useForm } from 'react-hook-form'
-import { cambiarPassword } from '../../../api/usuarios'
+import { cambiarPassword } from '../../usuarios/api/usuarios'
 import toast from 'react-hot-toast'
 import styles from './PasswordForm.module.css'
 

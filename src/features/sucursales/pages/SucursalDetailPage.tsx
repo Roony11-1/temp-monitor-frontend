@@ -1,21 +1,20 @@
-import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getSucursal } from '../../../api/sucursales'
-import { getCamarasBySucursal } from '../../../api/camaras'
+import { useSucursal } from '../hooks/useSucursales'
+import { useCamarasBySucursal } from '../../camaras/hooks/useCamaras'
 import { Card } from '../../../shared/components/ui/Card'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { DataTable } from '../../../components/DataTable'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
-import type { Sucursal, Camara } from '../../../types'
+import type { Camara } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './SucursalDetailPage.module.css'
 
 export function SucursalDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [sucursal, setSucursal] = useState<Sucursal | null>(null)
-  const [camaras, setCamaras] = useState<Camara[]>([])
-  const [loading, setLoading] = useState(true)
+  const sucursalId = Number(id)
+  const { data: sucursal, isLoading: loadingSuc } = useSucursal(sucursalId)
+  const { data: camaras = [], isLoading: loadingCam } = useCamarasBySucursal(sucursalId)
 
   const columns: ColumnDef<Camara>[] = [
     {
@@ -46,22 +45,7 @@ export function SucursalDetail() {
     },
   ]
 
-  useEffect(() => {
-    if (!id) return
-    setLoading(true)
-    Promise.all([
-      getSucursal(Number(id)),
-      getCamarasBySucursal(Number(id)),
-    ])
-      .then(([suc, cams]) => {
-        setSucursal(suc)
-        setCamaras(cams)
-      })
-      .catch(() => navigate('/sucursales'))
-      .finally(() => setLoading(false))
-  }, [id])
-
-  if (loading) {
+  if (loadingSuc || loadingCam) {
     return (
       <div className={styles.skeletonSpace}>
         <LoadingSkeleton width="200px" height="28px" />

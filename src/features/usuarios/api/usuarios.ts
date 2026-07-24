@@ -1,6 +1,6 @@
-import { api } from './axios'
-import { ApiConfig } from './ApiConfig'
-import type { Usuario, UsuarioRequest } from '../types'
+import { api } from '../../../api/axios'
+import { ApiConfig } from '../../../api/ApiConfig'
+import type { Usuario, UsuarioRequest } from '../../../types'
 
 export async function getUsuarios() {
   const res = await api.get<Usuario[]>(ApiConfig.usuarios.list)

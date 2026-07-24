@@ -1,13 +1,12 @@
-import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getEmpresa } from '../../../api/empresas'
-import { getSucursalesByEmpresa } from '../../../api/sucursales'
+import { useEmpresa } from '../hooks/useEmpresas'
+import { useSucursalesByEmpresa } from '../../sucursales/hooks/useSucursales'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Card } from '../../../shared/components/ui/Card'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { DataTable } from '../../../components/DataTable'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
-import type { Empresa, Sucursal } from '../../../types'
+import type { Sucursal } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './EmpresaDetailPage.module.css'
 
@@ -15,9 +14,9 @@ export function EmpresaDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const [empresa, setEmpresa] = useState<Empresa | null>(null)
-  const [sucursales, setSucursales] = useState<Sucursal[]>([])
-  const [loading, setLoading] = useState(true)
+  const empresaId = Number(id)
+  const { data: empresa, isLoading: loadingEmpresa } = useEmpresa(empresaId)
+  const { data: sucursales = [], isLoading: loadingSucursales } = useSucursalesByEmpresa(empresaId)
 
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
   const canEdit = isSuperAdmin || user?.roles?.includes('ADMIN_EMPRESA')
@@ -51,22 +50,7 @@ export function EmpresaDetail() {
     },
   ]
 
-  useEffect(() => {
-    if (!id) return
-    setLoading(true)
-    Promise.all([
-      getEmpresa(Number(id)),
-      getSucursalesByEmpresa(Number(id)),
-    ])
-      .then(([emp, sucs]) => {
-        setEmpresa(emp)
-        setSucursales(sucs)
-      })
-      .catch(() => navigate('/empresas'))
-      .finally(() => setLoading(false))
-  }, [id])
-
-  if (loading) {
+  if (loadingEmpresa || loadingSucursales) {
     return (
       <div className={styles.skeletonSpace}>
         <LoadingSkeleton width="200px" height="28px" />

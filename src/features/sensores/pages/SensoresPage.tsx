@@ -1,50 +1,30 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { getSensores, actualizarSensor } from '../../../api/sensores'
-import { getCamaras } from '../../../api/camaras'
-import { getEmpresas } from '../../../api/empresas'
-import { getSucursales } from '../../../api/sucursales'
+import { useSensores, useActualizarSensor } from '../hooks/useSensores'
+import { useCamaras } from '../../camaras/hooks/useCamaras'
+import { useEmpresas } from '../../empresas/hooks/useEmpresas'
+import { useSucursales } from '../../sucursales/hooks/useSucursales'
 import { useAuth } from '../../../contexts/AuthContext'
 import { DataTable } from '../../../components/DataTable'
 import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
-import type { Sensor, Empresa, Sucursal, Camara } from '../../../types'
+import type { Sensor } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './SensoresPage.module.css'
 
 export function Sensores() {
   const { isSuperAdmin } = useAuth()
   const navigate = useNavigate()
-  const [sensores, setSensores] = useState<Sensor[]>([])
-  const [camaras, setCamaras] = useState<Camara[]>([])
-  const [empresas, setEmpresas] = useState<Empresa[]>([])
-  const [sucursales, setSucursales] = useState<Sucursal[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: sensores = [], isLoading } = useSensores()
+  const { data: camaras = [] } = useCamaras()
+  const { data: empresas = [] } = useEmpresas()
+  const { data: sucursales = [] } = useSucursales()
+  const actualizarMutation = useActualizarSensor()
   const [editandoUuid, setEditandoUuid] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<{ estado: string; camaraId: string }>({ estado: '', camaraId: '' })
   const [saving, setSaving] = useState(false)
-
-  const load = useCallback(() => {
-    setLoading(true)
-    Promise.all([
-      getSensores(),
-      getCamaras(),
-      isSuperAdmin ? getEmpresas() : Promise.resolve([] as Empresa[]),
-      isSuperAdmin ? getSucursales() : Promise.resolve([] as Sucursal[]),
-    ])
-      .then(([sens, cams, emps, sucs]) => {
-        setSensores(sens)
-        setCamaras(cams)
-        setEmpresas(emps)
-        setSucursales(sucs)
-      })
-      .catch(() => toast.error('Error al cargar sensores'))
-      .finally(() => setLoading(false))
-  }, [isSuperAdmin])
-
-  useEffect(() => { load() }, [load])
 
   const entrarEnEdicion = (sensor: Sensor) => {
     setEditandoUuid(sensor.uuid)
@@ -80,10 +60,9 @@ export function Sensores() {
 
     setSaving(true)
     try {
-      await actualizarSensor(editandoUuid, body)
+      await actualizarMutation.mutateAsync({ uuid: editandoUuid, data: body })
       toast.success('Sensor actualizado')
       cancelarEdicion()
-      load()
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Error al guardar cambios'))
     } finally {
@@ -222,7 +201,7 @@ export function Sensores() {
       <DataTable
         data={sensores}
         columns={columns}
-        loading={loading}
+        loading={isLoading}
         rowKey={(s) => s.id}
         onRowClick={(row) => {
           if (!editandoUuid) {

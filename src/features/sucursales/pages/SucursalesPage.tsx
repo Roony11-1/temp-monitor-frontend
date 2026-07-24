@@ -1,12 +1,7 @@
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  getSucursales,
-  getSucursalesByEmpresa,
-  getSucursal,
-  deleteSucursal,
-} from '../../../api/sucursales'
-import { getEmpresas, getEmpresa } from '../../../api/empresas'
+import { useSucursales, useSucursalesByEmpresa, useSucursal, useDeleteSucursal } from '../hooks/useSucursales'
+import { useEmpresas, useEmpresa } from '../../empresas/hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
 import { DataTable } from '../../../components/DataTable'
@@ -15,7 +10,7 @@ import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
 import { SucursalForm, type SucursalFormHandle } from '../components/SucursalForm'
-import type { Sucursal, Empresa } from '../../../types'
+import type { Sucursal } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './SucursalesPage.module.css'
 
@@ -23,9 +18,6 @@ export function Sucursales() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const formRef = useRef<SucursalFormHandle>(null)
-  const [sucursales, setSucursales] = useState<Sucursal[]>([])
-  const [empresas, setEmpresas] = useState<Empresa[]>([])
-  const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Sucursal | null>(null)
   const [saving, setSaving] = useState(false)
@@ -35,10 +27,34 @@ export function Sucursales() {
   const isAdminSucursal = user?.roles?.includes('ADMIN_SUCURSAL')
   const canManage = isSuperAdmin || isAdminEmpresa || isAdminSucursal
 
-  const empresaNombre = useMemo(
-    () => (id: number) => empresas.find((e) => e.id === id)?.nombre || '-',
-    [empresas],
-  )
+  const { data: allSucursales = [], isLoading: loadingAll } = useSucursales()
+  const { data: sucursalesByEmpresa = [], isLoading: loadingByEmp } = useSucursalesByEmpresa(isAdminEmpresa ? user!.empresaId! : 0)
+  const { data: singleSucursal, isLoading: loadingSingle } = useSucursal(isAdminSucursal ? user!.sucursalId! : 0)
+  const { data: empresas = [] } = useEmpresas()
+  const { data: singleEmpresa } = useEmpresa(!isSuperAdmin && !isAdminEmpresa && user?.empresaId ? user.empresaId : 0)
+
+  let sucursales: Sucursal[] = []
+  let loading = false
+  if (isSuperAdmin) {
+    sucursales = allSucursales
+    loading = loadingAll
+  } else if (isAdminEmpresa) {
+    sucursales = sucursalesByEmpresa
+    loading = loadingByEmp
+  } else if (isAdminSucursal && singleSucursal) {
+    sucursales = [singleSucursal]
+    loading = loadingSingle
+  }
+
+  const filteredEmpresas = isSuperAdmin
+    ? empresas
+    : isAdminEmpresa
+      ? empresas.filter((e) => e.id === user?.empresaId)
+      : singleEmpresa
+        ? [singleEmpresa]
+        : []
+
+  const empresaNombre = (id: number) => filteredEmpresas.find((e) => e.id === id)?.nombre || '-'
 
   const columns: ColumnDef<Sucursal>[] = [
     {
@@ -68,7 +84,7 @@ export function Sucursales() {
       sortable: true,
       filterable: true,
       filterType: 'select',
-      filterOptions: empresas.map((e) => ({ label: e.nombre, value: String(e.id) })),
+      filterOptions: filteredEmpresas.map((e) => ({ label: e.nombre, value: String(e.id) })),
       render: (v) => <span className={styles.cellMuted}>{empresaNombre(v)}</span>,
     },
     {
@@ -87,44 +103,7 @@ export function Sucursales() {
     },
   ]
 
-  const load = () => {
-    setLoading(true)
-    if (isSuperAdmin) {
-      Promise.all([getSucursales(), getEmpresas()])
-        .then(([sucs, emps]) => {
-          setSucursales(sucs)
-          setEmpresas(emps)
-        })
-        .catch(() => toast.error('Error al cargar datos'))
-        .finally(() => setLoading(false))
-    } else if (isAdminEmpresa && user?.empresaId) {
-      Promise.all([getSucursalesByEmpresa(user.empresaId), getEmpresas()])
-        .then(([sucs, emps]) => {
-          setSucursales(sucs)
-          setEmpresas(emps.filter((e) => e.id === user.empresaId))
-        })
-        .catch(() => toast.error('Error al cargar datos'))
-        .finally(() => setLoading(false))
-    } else if (user?.empresaId) {
-      const promises: Promise<any>[] = [getEmpresa(user.empresaId)]
-      if (user?.sucursalId) {
-        promises.push(getSucursal(user.sucursalId).then((s) => [s]))
-      } else {
-        promises.push(Promise.resolve([]))
-      }
-      Promise.all(promises)
-        .then(([emp, sucs]) => {
-          setEmpresas([emp])
-          setSucursales(sucs)
-        })
-        .catch(() => toast.error('Error al cargar datos'))
-        .finally(() => setLoading(false))
-    } else {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => { load() }, [])
+  const deleteMutation = useDeleteSucursal()
 
   const openCreate = () => {
     setEditing(null)
@@ -141,7 +120,6 @@ export function Sucursales() {
     try {
       await formRef.current?.submit()
       setShowModal(false)
-      load()
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Error al guardar'))
     } finally {
@@ -152,9 +130,8 @@ export function Sucursales() {
   const handleDelete = async (id: number) => {
     if (!confirm('¿Eliminar esta sucursal?')) return
     try {
-      await deleteSucursal(id)
+      await deleteMutation.mutateAsync(id)
       toast.success('Sucursal eliminada')
-      load()
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Error al eliminar'))
     }
@@ -220,7 +197,7 @@ export function Sucursales() {
           <SucursalForm
             ref={formRef}
             sucursal={sucursalData}
-            empresas={empresas}
+            empresas={filteredEmpresas}
             isSuperAdmin={isSuperAdmin ?? false}
             defaultEmpresaId={user?.empresaId || 0}
             onSaved={() => {}}

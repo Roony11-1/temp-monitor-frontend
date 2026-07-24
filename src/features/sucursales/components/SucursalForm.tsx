@@ -1,6 +1,6 @@
 import { useEffect, forwardRef, useImperativeHandle } from 'react'
 import { useForm } from 'react-hook-form'
-import { createSucursal, updateSucursal } from '../../../api/sucursales'
+import { createSucursal, updateSucursal } from '../../sucursales/api/sucursales'
 import toast from 'react-hot-toast'
 import type { SucursalRequest, Empresa } from '../../../types'
 import styles from './SucursalForm.module.css'

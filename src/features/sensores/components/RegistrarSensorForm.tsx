@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
-import { registrarSensor } from '../../../api/sensores'
+import { registrarSensor } from '../../sensores/api/sensores'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import type { RegistroSensorResponse } from '../../../types'
 import styles from './RegistrarSensorForm.module.css'

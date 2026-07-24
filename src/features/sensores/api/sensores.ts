@@ -1,6 +1,6 @@
-import { api } from './axios'
-import { ApiConfig } from './ApiConfig'
-import type { Sensor, RegistroSensorRequest, RegistroSensorResponse, AsignarSensorRequest, ActualizarSensorRequest } from '../types'
+import { api } from '../../../api/axios'
+import { ApiConfig } from '../../../api/ApiConfig'
+import type { Sensor, RegistroSensorRequest, RegistroSensorResponse, AsignarSensorRequest, ActualizarSensorRequest } from '../../../types'
 
 export async function getSensores() {
   const res = await api.get<Sensor[]>(ApiConfig.sensores.list)

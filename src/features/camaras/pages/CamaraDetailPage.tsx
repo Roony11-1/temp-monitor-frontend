@@ -1,37 +1,19 @@
-import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getCamara } from '../../../api/camaras'
-import { getSensoresByCamara } from '../../../api/sensores'
+import { useCamara } from '../hooks/useCamaras'
+import { useSensoresByCamara } from '../../sensores/hooks/useSensores'
 import { Card } from '../../../shared/components/ui/Card'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
-import type { Camara, Sensor } from '../../../types'
 import styles from './CamaraDetailPage.module.css'
 
 export function CamaraDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [camara, setCamara] = useState<Camara | null>(null)
-  const [sensores, setSensores] = useState<Sensor[]>([])
-  const [loading, setLoading] = useState(true)
+  const camaraId = Number(id)
+  const { data: camara, isLoading } = useCamara(camaraId)
+  const { data: sensores = [] } = useSensoresByCamara(camaraId)
 
-  useEffect(() => {
-    if (!id) return
-    const camaraId = Number(id)
-    setLoading(true)
-    Promise.all([
-      getCamara(camaraId),
-      getSensoresByCamara(camaraId),
-    ])
-      .then(([cam, sens]) => {
-        setCamara(cam)
-        setSensores(sens)
-      })
-      .catch(() => navigate('/camaras'))
-      .finally(() => setLoading(false))
-  }, [id])
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className={styles.skeletonSpace}>
         <LoadingSkeleton width="200px" height="28px" />
