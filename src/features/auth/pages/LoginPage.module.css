@@ -35,6 +35,22 @@
   @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm;
 }
 
+.passwordWrapper {
+  @apply relative;
+}
+
+.passwordInput {
+  @apply w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm;
+}
+
+.togglePassword {
+  @apply absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors;
+}
+
 .button {
   @apply w-full py-2.5 px-4 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors text-sm;
+}
+
+.error {
+  @apply text-red-500 text-xs mt-1;
 }
