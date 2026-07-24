@@ -1,13 +1,12 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
-import { login as loginApi } from '../api/auth'
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { parseJwt } from '../utils/jwt'
-import type { LoginRequest, AuthUser } from '../types'
+import type { AuthUser } from '../types'
 
 interface AuthContextType 
 {
   user: AuthUser | null
   token: string | null
-  login: (data: LoginRequest) => Promise<void>
   logout: () => void
   isAuthenticated: boolean
   isSuperAdmin: boolean
@@ -15,61 +14,49 @@ interface AuthContextType
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: ReactNode }) 
-{
-  const [user, setUser] = useState<AuthUser | null>(null)
-  const [token, setToken] = useState<string | null>(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+function readAuthFromStorage() {
+  const savedToken = localStorage.getItem('token')
+  if (!savedToken) return { token: null, user: null, isAuthenticated: false }
 
-  const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN') ?? false
-
-  useEffect(() => {
-    const savedToken = localStorage.getItem('token')
-    if (savedToken) {
-      const claims = parseJwt(savedToken)
-      if (claims && claims.exp * 1000 > Date.now()) {
-        setToken(savedToken)
-        setUser({
-          id: Number(claims.sub),
-          email: claims.email || claims.upn,
-          roles: claims.roles || [],
-          empresaId: claims.empresaId ?? null,
-          sucursalId: claims.sucursalId ?? null,
-        })
-        setIsAuthenticated(true)
-      } else {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-      }
-    }
-  }, [])
-
-  const login = async (data: LoginRequest) => {
-    const res = await loginApi(data)
-    localStorage.setItem('token', res.token)
-    const claims = parseJwt(res.token)
-    const userData: AuthUser = {
-      id: Number(claims.sub),
-      email: claims.email || res.email,
-      roles: claims.roles || [],
-      empresaId: claims.empresaId ?? null,
-      sucursalId: claims.sucursalId ?? null,
-    }
-    setToken(res.token)
-    setUser(userData)
-    setIsAuthenticated(true)
-  }
-
-  const logout = () => {
+  const claims = parseJwt(savedToken)
+  if (!claims || claims.exp * 1000 <= Date.now()) {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
-    setToken(null)
-    setUser(null)
-    setIsAuthenticated(false)
+    return { token: null, user: null, isAuthenticated: false }
   }
 
+  const user: AuthUser = {
+    id: Number(claims.sub),
+    email: claims.email || claims.upn,
+    roles: claims.roles || [],
+    empresaId: claims.empresaId ?? null,
+    sucursalId: claims.sucursalId ?? null,
+  }
+  return { token: savedToken, user, isAuthenticated: true }
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) 
+{
+  const [state, setState] = useState(() => readAuthFromStorage())
+  const queryClient = useQueryClient()
+
+  const isSuperAdmin = state.user?.roles?.includes('SUPER_ADMIN') ?? false
+
+  useEffect(() => {
+    const sync = () => setState(readAuthFromStorage())
+    window.addEventListener('auth-changed', sync)
+    return () => window.removeEventListener('auth-changed', sync)
+  }, [])
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    queryClient.clear()
+    setState({ token: null, user: null, isAuthenticated: false })
+  }, [queryClient])
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated, isSuperAdmin }}>
+    <AuthContext.Provider value={{ ...state, logout, isSuperAdmin }}>
       {children}
     </AuthContext.Provider>
   )

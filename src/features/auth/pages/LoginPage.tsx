@@ -1,29 +1,16 @@
 import { useState } from 'react'
-import { useAuth } from '../../../contexts/AuthContext'
-import { useNavigate } from 'react-router-dom'
-import toast from 'react-hot-toast'
-import { getApiErrorMessage } from '../../../shared/utils/error'
+import { useLogin } from '../hooks/useLogin'
 import styles from './LoginPage.module.css'
 
 export function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
-  const navigate = useNavigate()
+  
+  const loginMutation = useLogin()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    try {
-      await login({ email, password })
-      toast.success('Inicio de sesión exitoso')
-      navigate('/dashboard')
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, 'Credenciales inválidas'))
-    } finally {
-      setLoading(false)
-    }
+    loginMutation.mutate({ email, password })
   }
 
   return (
@@ -58,10 +45,10 @@ export function Login() {
           </div>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loginMutation.isPending}
             className={styles.button}
           >
-            {loading ? 'Ingresando...' : 'Ingresar'}
+            {loginMutation.isPending ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>
       </div>
