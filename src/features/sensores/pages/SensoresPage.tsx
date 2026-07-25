@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useSensores } from '../hooks/useSensores'
+import { useSensoresPage } from '../hooks/useSensores'
 import { useCamaras } from '../../camaras/hooks/useCamaras'
 import { useEmpresas } from '../../empresas/hooks/useEmpresas'
 import { useSucursales } from '../../sucursales/hooks/useSucursales'
@@ -19,11 +19,15 @@ export function Sensores() {
   const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
   const [editingSensor, setEditingSensor] = useState<Sensor | null>(null)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
 
-  const { data: sensores = [], isLoading } = useSensores()
+  const { data: pageData, isLoading } = useSensoresPage(page, pageSize)
   const { data: camaras = [] } = useCamaras()
   const { data: empresas = [] } = useEmpresas()
   const { data: sucursales = [] } = useSucursales()
+
+  const sensores = pageData?.content ?? []
 
   const estadoOptions = [
     { label: 'Activo', value: 'ACTIVO' },
@@ -121,7 +125,9 @@ export function Sensores() {
         columns={columns}
         loading={isLoading}
         rowKey={(s) => s.id}
-
+        pagination={pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
         emptyMessage="No hay sensores registrados"
         actions={(sensor) => (
           <button

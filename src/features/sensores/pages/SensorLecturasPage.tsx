@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ResponsiveContainer,
@@ -8,9 +9,12 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts'
-import { useSensores, useLecturasSensor } from '../hooks/useSensores'
+import { useSensores, useLecturasSensor, useLecturasSensorPage } from '../hooks/useSensores'
 import { Card } from '../../../shared/components/ui/Card'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
+import { DataTable } from '../../../components/DataTable'
+import type { ColumnDef } from '../../../types/table'
+import type { Lectura } from '../../../types'
 import styles from './RegistrarSensorPage.module.css'
 
 interface ChartPoint {
@@ -21,11 +25,16 @@ interface ChartPoint {
 export function SensorLecturas() {
   const { uuid } = useParams<{ uuid: string }>()
   const navigate = useNavigate()
-  const { data: sensores = [], isLoading: loadingSens } = useSensores()
-  const { data: lecturas = [], isLoading: loadingLect } = useLecturasSensor(uuid ?? '')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
 
-  const loading = loadingSens || loadingLect
+  const { data: sensores = [], isLoading: loadingSens } = useSensores()
+  const { data: allLecturas = [], isLoading: loadingAllLect } = useLecturasSensor(uuid ?? '')
+  const { data: pageData, isLoading: loadingPage } = useLecturasSensorPage(uuid ?? '', page, pageSize)
+
+  const loading = loadingSens || loadingAllLect || loadingPage
   const sensor = sensores.find((x) => x.uuid === uuid)
+  const lecturas = pageData?.content ?? []
 
   if (!loading && !sensor) {
     navigate('/sensores')
@@ -41,12 +50,40 @@ export function SensorLecturas() {
     )
   }
 
-  const chartData: ChartPoint[] = [...lecturas]
+  const chartData: ChartPoint[] = [...allLecturas]
     .reverse()
     .map((l) => ({
       hora: new Date(l.timestamp).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
       temperatura: l.temperatura,
     }))
+
+  const columns: ColumnDef<Lectura>[] = [
+    {
+      key: 'timestamp',
+      label: 'Fecha / Hora',
+      sortable: true,
+      render: (v) => {
+        const d = new Date(v)
+        const now = new Date()
+        const diffMs = now.getTime() - d.getTime()
+        const diffMin = Math.floor(diffMs / 60000)
+        const diffHr = Math.floor(diffMs / 3600000)
+        const diffDays = Math.floor(diffMs / 86400000)
+        const relative = diffMin < 1 ? 'Ahora' : diffMin < 60 ? `Hace ${diffMin} min` : diffHr < 24 ? `Hace ${diffHr} h` : `Hace ${diffDays} día${diffDays > 1 ? 's' : ''}`
+        return (
+          <span className="text-gray-500">
+            {d.toLocaleString('es-CL')} <span className="text-gray-400">({relative})</span>
+          </span>
+        )
+      },
+    },
+    {
+      key: 'temperatura',
+      label: 'Temperatura',
+      sortable: true,
+      render: (v) => <span className="font-mono">{v}°C</span>,
+    },
+  ]
 
   return (
     <div className={styles.page}>
@@ -76,7 +113,7 @@ export function SensorLecturas() {
         </div>
         <div className={styles.field}>
           <span className={styles.fieldLabel}>Total lecturas</span>
-          <span>{lecturas.length}</span>
+          <span>{pageData?.total ?? allLecturas.length}</span>
         </div>
       </div>
 
@@ -109,32 +146,16 @@ export function SensorLecturas() {
         <h3 className="text-sm font-semibold text-gray-700 mb-3">
           Historial de lecturas
         </h3>
-        {lecturas.length === 0 ? (
-          <p className="text-sm text-gray-400">No hay lecturas registradas</p>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left text-gray-500">
-                  <th className="pb-2 pr-4 font-medium">#</th>
-                  <th className="pb-2 pr-4 font-medium">Temperatura</th>
-                  <th className="pb-2 font-medium">Fecha / Hora</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[...lecturas].reverse().map((l, i) => (
-                  <tr key={l.id} className="border-b last:border-0">
-                    <td className="py-2 pr-4 text-gray-400">{lecturas.length - i}</td>
-                    <td className="py-2 pr-4 font-mono">{l.temperatura}°C</td>
-                    <td className="py-2 text-gray-500">
-                      {new Date(l.timestamp).toLocaleString('es-CL')}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <DataTable
+          data={lecturas}
+          columns={columns}
+          loading={loading}
+          rowKey={(l) => l.id}
+          pagination={pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
+          emptyMessage="No hay lecturas registradas"
+        />
       </Card>
     </div>
   )

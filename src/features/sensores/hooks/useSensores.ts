@@ -1,12 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/sensores'
 import * as lecturasApi from '../api/lecturas'
-import type { RegistroSensorRequest, AsignarSensorRequest, ActualizarSensorRequest } from '../../../types'
+import type { Sensor, Lectura, RegistroSensorRequest, AsignarSensorRequest, ActualizarSensorRequest } from '../../../types'
+import type { PaginatedResponse } from '../../../types/table'
 
 const queryKey = 'sensores'
 
 export function useSensores() {
   return useQuery({ queryKey: [queryKey], queryFn: api.getSensores })
+}
+
+export function useSensoresPage(page: number, pageSize: number) {
+  return useQuery<PaginatedResponse<Sensor>>({
+    queryKey: [queryKey, 'page', page, pageSize],
+    queryFn: () => api.getSensoresPage(page, pageSize),
+    placeholderData: (prev) => prev,
+  })
 }
 
 export function useSensoresByCamara(camaraId: number) {
@@ -54,6 +63,15 @@ export function useLecturasSensor(uuid: string) {
     queryKey: ['lecturas', uuid],
     queryFn: () => lecturasApi.getLecturasSensor(uuid),
     enabled: !!uuid,
+  })
+}
+
+export function useLecturasSensorPage(uuid: string, page: number, pageSize: number) {
+  return useQuery<PaginatedResponse<Lectura>>({
+    queryKey: ['lecturas', uuid, 'page', page, pageSize],
+    queryFn: () => lecturasApi.getLecturasSensorPage(uuid, page, pageSize),
+    enabled: !!uuid,
+    placeholderData: (prev) => prev,
   })
 }
 

@@ -27,3 +27,11 @@ export interface PaginationState {
   pageSize: number
   total: number
 }
+
+export interface PaginatedResponse<T> {
+  content: T[]
+  page: number
+  pageSize: number
+  total: number
+  totalPages: number
+}

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useUsuarios, useUsuariosByEmpresa, useUsuariosBySucursal, useDeleteUsuario } from '../hooks/useUsuarios'
+import { useUsuariosByEmpresa, useUsuariosBySucursal, useDeleteUsuario, useUsuariosPage } from '../hooks/useUsuarios'
 import { useEmpresas, useEmpresa } from '../../empresas/hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
@@ -19,6 +19,8 @@ export function Usuarios() {
   const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Usuario | null>(null)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
 
   const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN')
   const isAdminEmpresa = currentUser?.roles?.includes('ADMIN_EMPRESA')
@@ -30,12 +32,12 @@ export function Usuarios() {
 
   const { data: empresas = [] } = useEmpresas()
   const { data: empresaData } = useEmpresa(!isSuperAdmin && !isAdminEmpresa ? empresaId! : 0)
-  const { data: allUsuarios = [], isLoading: loadingAll } = useUsuarios()
+  const { data: pageData, isLoading: loadingPage } = useUsuariosPage(page, pageSize)
   const { data: usuariosEmpresa = [], isLoading: loadingEmpresa } = useUsuariosByEmpresa(isAdminEmpresa ? empresaId! : 0)
   const { data: usuariosSucursal = [], isLoading: loadingSucursal } = useUsuariosBySucursal(!isSuperAdmin && !isAdminEmpresa ? sucursalId! : 0)
 
-  const usuarios = isSuperAdmin ? allUsuarios : isAdminEmpresa ? usuariosEmpresa : usuariosSucursal
-  const loading = isSuperAdmin ? loadingAll : isAdminEmpresa ? loadingEmpresa : loadingSucursal
+  const usuarios = isSuperAdmin ? (pageData?.content ?? []) : isAdminEmpresa ? usuariosEmpresa : usuariosSucursal
+  const loading = isSuperAdmin ? loadingPage : isAdminEmpresa ? loadingEmpresa : loadingSucursal
 
   const filteredEmpresas = isSuperAdmin
     ? empresas
@@ -122,7 +124,9 @@ export function Usuarios() {
         columns={columns as ColumnDef<Usuario>[]}
         loading={loading}
         rowKey={(u) => u.id}
-
+        pagination={isSuperAdmin && pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
         emptyMessage="No hay usuarios registrados"
         actions={(usr) => (
           <>

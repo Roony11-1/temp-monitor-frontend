@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useSucursales, useSucursalesByEmpresa, useSucursal, useDeleteSucursal } from '../hooks/useSucursales'
+import { useSucursalesPage, useSucursalesByEmpresa, useSucursal, useDeleteSucursal } from '../hooks/useSucursales'
 import { useEmpresas, useEmpresa } from '../../empresas/hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
@@ -19,13 +19,15 @@ export function Sucursales() {
   const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Sucursal | null>(null)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
 
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
   const isAdminEmpresa = user?.roles?.includes('ADMIN_EMPRESA')
   const isAdminSucursal = user?.roles?.includes('ADMIN_SUCURSAL')
   const canManage = isSuperAdmin || isAdminEmpresa || isAdminSucursal
 
-  const { data: allSucursales = [], isLoading: loadingAll } = useSucursales()
+  const { data: pageData, isLoading: loadingAll } = useSucursalesPage(page, pageSize)
   const { data: sucursalesByEmpresa = [], isLoading: loadingByEmp } = useSucursalesByEmpresa(isAdminEmpresa ? user!.empresaId! : 0)
   const { data: singleSucursal, isLoading: loadingSingle } = useSucursal(isAdminSucursal ? user!.sucursalId! : 0)
   const { data: empresas = [] } = useEmpresas()
@@ -34,7 +36,7 @@ export function Sucursales() {
   let sucursales: Sucursal[] = []
   let loading = false
   if (isSuperAdmin) {
-    sucursales = allSucursales
+    sucursales = pageData?.content ?? []
     loading = loadingAll
   } else if (isAdminEmpresa) {
     sucursales = sucursalesByEmpresa
@@ -155,7 +157,9 @@ export function Sucursales() {
         columns={columns}
         loading={loading}
         rowKey={(s) => s.id}
-
+        pagination={isSuperAdmin && pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
         emptyMessage="No hay sucursales registradas"
         actions={(suc) => (
           <>

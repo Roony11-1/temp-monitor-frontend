@@ -1,9 +1,17 @@
 import { api } from '../../../api/axios'
 import { ApiConfig } from '../../../api/ApiConfig'
 import type { Empresa, EmpresaRequest } from '../../../types'
+import type { PaginatedResponse } from '../../../types/table'
 
 export async function getEmpresas() {
-  const res = await api.get<Empresa[]>(ApiConfig.empresas.list)
+  const res = await api.get<PaginatedResponse<Empresa>>(ApiConfig.empresas.list)
+  return res.data.content
+}
+
+export async function getEmpresasPage(page: number, size: number) {
+  const res = await api.get<PaginatedResponse<Empresa>>(ApiConfig.empresas.list, {
+    params: { page: page - 1, size },
+  })
   return res.data
 }
 

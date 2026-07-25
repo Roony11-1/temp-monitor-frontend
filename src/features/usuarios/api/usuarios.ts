@@ -1,9 +1,17 @@
 import { api } from '../../../api/axios'
 import { ApiConfig } from '../../../api/ApiConfig'
 import type { Usuario, UsuarioRequest } from '../../../types'
+import type { PaginatedResponse } from '../../../types/table'
 
 export async function getUsuarios() {
-  const res = await api.get<Usuario[]>(ApiConfig.usuarios.list)
+  const res = await api.get<PaginatedResponse<Usuario>>(ApiConfig.usuarios.list)
+  return res.data.content
+}
+
+export async function getUsuariosPage(page: number, size: number) {
+  const res = await api.get<PaginatedResponse<Usuario>>(ApiConfig.usuarios.list, {
+    params: { page: page - 1, size },
+  })
   return res.data
 }
 

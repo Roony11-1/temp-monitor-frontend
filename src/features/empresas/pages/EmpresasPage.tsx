@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useEmpresas, useEmpresa, useDeleteEmpresa } from '../hooks/useEmpresas'
+import { useEmpresa, useDeleteEmpresa, useEmpresasPage } from '../hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
 import { DataTable } from '../../../components/DataTable'
@@ -18,16 +18,18 @@ export function Empresas() {
   const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Empresa | null>(null)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
 
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
   const canEdit = isSuperAdmin || user?.roles?.includes('ADMIN_EMPRESA')
   const canDelete = isSuperAdmin
 
-  const { data: allEmpresas = [], isLoading: loadingAll } = useEmpresas()
+  const { data: pageData, isLoading: loadingAll } = useEmpresasPage(page, pageSize)
   const { data: singleEmpresa, isLoading: loadingSingle } = useEmpresa(user?.empresaId ?? 0)
   const deleteMutation = useDeleteEmpresa()
 
-  const empresas = isSuperAdmin ? allEmpresas : singleEmpresa ? [singleEmpresa] : []
+  const empresas = isSuperAdmin ? (pageData?.content ?? []) : singleEmpresa ? [singleEmpresa] : []
   const loading = isSuperAdmin ? loadingAll : loadingSingle
 
   const columns: ColumnDef<Empresa>[] = [
@@ -121,7 +123,9 @@ export function Empresas() {
         columns={columns}
         loading={loading}
         rowKey={(e) => e.id}
-
+        pagination={isSuperAdmin && pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
         emptyMessage="No hay empresas registradas"
         actions={(emp) =>
           canEdit || canDelete ? (

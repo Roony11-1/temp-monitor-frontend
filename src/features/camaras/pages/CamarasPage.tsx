@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useCamaras, useCamarasBySucursal, useDeleteCamara } from '../hooks/useCamaras'
+import { useCamaras, useCamarasBySucursal, useCamarasPage, useDeleteCamara } from '../hooks/useCamaras'
 import { useSucursales, useSucursalesByEmpresa, useSucursal } from '../../sucursales/hooks/useSucursales'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
@@ -19,13 +19,16 @@ export function Camaras() {
   const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Camara | null>(null)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
 
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
   const isAdminEmpresa = user?.roles?.includes('ADMIN_EMPRESA')
   const isAdminSucursal = user?.roles?.includes('ADMIN_SUCURSAL')
   const canManage = isSuperAdmin || isAdminEmpresa || isAdminSucursal
 
-  const { data: allCamaras = [], isLoading: loadingAllCam } = useCamaras()
+  const { data: pageData, isLoading: loadingPage } = useCamarasPage(page, pageSize)
+  const { data: allCamaras = [] } = useCamaras()
   const { data: camarasBySuc = [], isLoading: loadingBySuc } = useCamarasBySucursal(user?.sucursalId ?? 0)
   const { data: allSucursales = [] } = useSucursales()
   const { data: sucursalesByEmp = [] } = useSucursalesByEmpresa(isAdminEmpresa ? user!.empresaId! : 0)
@@ -36,8 +39,8 @@ export function Camaras() {
   let sucursales: typeof allSucursales = []
 
   if (isSuperAdmin) {
-    camaras = allCamaras
-    loading = loadingAllCam
+    camaras = pageData?.content ?? []
+    loading = loadingPage
     sucursales = allSucursales
   } else if (isAdminEmpresa) {
     camaras = allCamaras
@@ -151,7 +154,9 @@ export function Camaras() {
         columns={columns}
         loading={loading}
         rowKey={(c) => c.id}
-
+        pagination={isSuperAdmin && pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
         emptyMessage="No hay cámaras registradas"
         actions={(cam) => (
           <>

@@ -1,9 +1,17 @@
 import { api } from '../../../api/axios'
 import { ApiConfig } from '../../../api/ApiConfig'
 import type { Sucursal, SucursalRequest } from '../../../types'
+import type { PaginatedResponse } from '../../../types/table'
 
 export async function getSucursales() {
-  const res = await api.get<Sucursal[]>(ApiConfig.sucursales.list)
+  const res = await api.get<PaginatedResponse<Sucursal>>(ApiConfig.sucursales.list)
+  return res.data.content
+}
+
+export async function getSucursalesPage(page: number, size: number) {
+  const res = await api.get<PaginatedResponse<Sucursal>>(ApiConfig.sucursales.list, {
+    params: { page: page - 1, size },
+  })
   return res.data
 }
 

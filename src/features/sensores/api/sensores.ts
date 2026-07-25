@@ -1,9 +1,17 @@
 import { api } from '../../../api/axios'
 import { ApiConfig } from '../../../api/ApiConfig'
 import type { Sensor, RegistroSensorRequest, RegistroSensorResponse, AsignarSensorRequest, ActualizarSensorRequest } from '../../../types'
+import type { PaginatedResponse } from '../../../types/table'
 
 export async function getSensores() {
-  const res = await api.get<Sensor[]>(ApiConfig.sensores.list)
+  const res = await api.get<PaginatedResponse<Sensor>>(ApiConfig.sensores.list)
+  return res.data.content
+}
+
+export async function getSensoresPage(page: number, size: number) {
+  const res = await api.get<PaginatedResponse<Sensor>>(ApiConfig.sensores.list, {
+    params: { page: page - 1, size },
+  })
   return res.data
 }
 

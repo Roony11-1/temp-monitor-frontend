@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/sucursales'
 import type { SucursalRequest } from '../../../types'
+import type { PaginatedResponse } from '../../../types/table'
+import type { Sucursal } from '../../../types'
 
 const queryKey = 'sucursales'
 
@@ -8,6 +10,14 @@ export function useSucursales() {
   return useQuery({
     queryKey: [queryKey],
     queryFn: api.getSucursales,
+  })
+}
+
+export function useSucursalesPage(page: number, pageSize: number) {
+  return useQuery<PaginatedResponse<Sucursal>>({
+    queryKey: [queryKey, 'page', page, pageSize],
+    queryFn: () => api.getSucursalesPage(page, pageSize),
+    placeholderData: (prev) => prev,
   })
 }
 

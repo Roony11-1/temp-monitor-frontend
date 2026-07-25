@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/camaras'
 import type { CamaraRequest } from '../../../types'
+import type { PaginatedResponse } from '../../../types/table'
+import type { Camara } from '../../../types'
 
 const queryKey = 'camaras'
 
@@ -8,6 +10,14 @@ export function useCamaras() {
   return useQuery({
     queryKey: [queryKey],
     queryFn: api.getCamaras,
+  })
+}
+
+export function useCamarasPage(page: number, pageSize: number) {
+  return useQuery<PaginatedResponse<Camara>>({
+    queryKey: [queryKey, 'page', page, pageSize],
+    queryFn: () => api.getCamarasPage(page, pageSize),
+    placeholderData: (prev) => prev,
   })
 }
 

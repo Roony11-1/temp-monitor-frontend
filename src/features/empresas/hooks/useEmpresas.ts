@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/empresas'
 import type { EmpresaRequest } from '../../../types'
+import type { PaginatedResponse } from '../../../types/table'
+import type { Empresa } from '../../../types'
 
 const queryKey = 'empresas'
 
@@ -8,6 +10,14 @@ export function useEmpresas() {
   return useQuery({
     queryKey: [queryKey],
     queryFn: api.getEmpresas,
+  })
+}
+
+export function useEmpresasPage(page: number, pageSize: number) {
+  return useQuery<PaginatedResponse<Empresa>>({
+    queryKey: [queryKey, 'page', page, pageSize],
+    queryFn: () => api.getEmpresasPage(page, pageSize),
+    placeholderData: (prev) => prev,
   })
 }
 
