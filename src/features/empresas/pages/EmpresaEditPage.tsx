@@ -1,17 +1,14 @@
-import { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useEmpresa } from '../hooks/useEmpresas'
 import { Card } from '../../../shared/components/ui/Card'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
-import { EmpresaForm, type EmpresaFormHandle } from '../components/EmpresaForm'
+import { EmpresaForm } from '../components/EmpresaForm'
 import styles from './EmpresaEditPage.module.css'
 
 export function EmpresaEdit() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const formRef = useRef<EmpresaFormHandle>(null)
   const { data: empresa, isLoading } = useEmpresa(Number(id))
-  const [saving, setSaving] = useState(false)
 
   if (isLoading) return (
     <div className={styles.skeletonSpace}>
@@ -30,16 +27,6 @@ export function EmpresaEdit() {
     email: empresa.email || '',
   }
 
-  const handleSave = async () => {
-    setSaving(true)
-    try {
-      await formRef.current?.submit()
-      navigate(`/empresas/${id}`)
-    } catch {
-      setSaving(false)
-    }
-  }
-
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -53,25 +40,12 @@ export function EmpresaEdit() {
       </div>
 
       <Card>
-        <EmpresaForm ref={formRef} empresa={empresaData} onSaved={() => {}} />
+        <EmpresaForm
+          empresa={empresaData}
+          onSaved={() => navigate(`/empresas/${id}`)}
+          onCancel={() => navigate(`/empresas/${id}`)}
+        />
       </Card>
-
-      <div className={styles.actions}>
-        <button
-          onClick={() => navigate(`/empresas/${id}`)}
-          disabled={saving}
-          className={styles.cancelBtn}
-        >
-          Cancelar
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className={styles.saveBtn}
-        >
-          {saving ? 'Guardando...' : 'Guardar'}
-        </button>
-      </div>
     </div>
   )
 }

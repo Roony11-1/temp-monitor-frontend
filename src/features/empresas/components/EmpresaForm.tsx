@@ -1,74 +1,79 @@
-import { useEffect, forwardRef, useImperativeHandle } from 'react'
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { createEmpresa, updateEmpresa } from '../../empresas/api/empresas'
+import { useCreateEmpresa, useUpdateEmpresa } from '../../empresas/hooks/useEmpresas'
 import toast from 'react-hot-toast'
+import { getApiErrorMessage } from '../../../shared/utils/error'
+import { Form, FormInput, FormButton } from '../../../shared/components/form'
 import type { EmpresaRequest } from '../../../types'
-import styles from './EmpresaForm.module.css'
-
-export interface EmpresaFormHandle {
-  submit: () => Promise<void>
-}
 
 interface Props {
   empresa?: { id: number } & EmpresaRequest
   onSaved: () => void
+  onCancel?: () => void
 }
 
-export const EmpresaForm = forwardRef<EmpresaFormHandle, Props>(({ empresa, onSaved }, ref) => {
-  const { register, handleSubmit, reset } = useForm<EmpresaRequest>({
+export function EmpresaForm({ empresa, onSaved, onCancel }: Props) {
+  const isEditing = !!empresa?.id
+  const createMutation = useCreateEmpresa()
+  const updateMutation = useUpdateEmpresa(empresa?.id ?? 0)
+
+  const methods = useForm<EmpresaRequest>({
     defaultValues: { nombre: '', direccion: '', telefono: '', email: '' },
   })
 
-  const isEditing = !!empresa?.id
-
   useEffect(() => {
     if (empresa) {
-      reset({
+      methods.reset({
         nombre: empresa.nombre,
         direccion: empresa.direccion,
         telefono: empresa.telefono,
         email: empresa.email,
       })
     }
-  }, [empresa, reset])
+  }, [empresa, methods.reset])
 
-  useImperativeHandle(ref, () => ({
-    submit: handleSubmit(
-      async (data) => {
-        if (isEditing) {
-          await updateEmpresa(empresa!.id, data)
-          toast.success('Empresa actualizada')
-        } else {
-          await createEmpresa(data)
-          toast.success('Empresa creada')
-        }
-        onSaved()
-      },
-      (errors) => {
-        const first = Object.values(errors)[0]
-        if (first?.message) toast.error(first.message)
-      },
-    ),
-  }), [handleSubmit, isEditing, empresa, onSaved])
+  const mutation = isEditing ? updateMutation : createMutation
 
-    return (
-      <div className={styles.container}>
-        <div>
-          <label className={styles.label}>Nombre</label>
-          <input type="text" {...register('nombre', { required: 'El nombre es obligatorio' })} className={styles.input} />
-        </div>
-        <div>
-          <label className={styles.label}>Dirección</label>
-          <input type="text" {...register('direccion')} className={styles.input} />
-        </div>
-        <div>
-          <label className={styles.label}>Teléfono</label>
-          <input type="text" {...register('telefono')} className={styles.input} />
-        </div>
-        <div>
-          <label className={styles.label}>Email</label>
-          <input type="email" {...register('email')} className={styles.input} />
-        </div>
+  const onSubmit = async (data: EmpresaRequest) => {
+    try {
+      await mutation.mutateAsync(data)
+      toast.success(isEditing ? 'Empresa actualizada' : 'Empresa creada')
+      onSaved()
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Error al guardar'))
+    }
+  }
+
+  return (
+    <Form methods={methods} onSubmit={onSubmit}>
+      <FormInput
+        label="Nombre"
+        name="nombre"
+        rules={{ required: 'El nombre es obligatorio' }}
+      />
+      <FormInput
+        label="Dirección"
+        name="direccion"
+      />
+      <FormInput
+        label="Teléfono"
+        name="telefono"
+      />
+      <FormInput
+        label="Email"
+        name="email"
+        type="email"
+      />
+      <div className="flex gap-2 justify-end pt-4">
+        {onCancel && (
+          <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+            Cancelar
+          </button>
+        )}
+        <FormButton isLoading={mutation.isPending}>
+          {isEditing ? 'Guardar cambios' : 'Crear empresa'}
+        </FormButton>
       </div>
+    </Form>
   )
-})
+}

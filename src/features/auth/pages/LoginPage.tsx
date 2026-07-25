@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useLogin } from '../hooks/useLogin'
+import { Form, FormInput, FormButton } from '../../../shared/components/form'
 import type { LoginRequest } from '../../../types'
 import styles from './LoginPage.module.css'
 
 export function Login() {
   const [showPassword, setShowPassword] = useState(false)
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginRequest>({
+  const methods = useForm<LoginRequest>({
     defaultValues: { email: '', password: '' },
   })
   const loginMutation = useLogin()
@@ -22,29 +23,26 @@ export function Login() {
           <h1 className={styles.title}>Temp Monitor</h1>
           <p className={styles.subtitle}>Sistema de monitoreo de temperatura</p>
         </div>
-        <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+        <Form methods={methods} onSubmit={onSubmit}>
+          <FormInput
+            label="Email"
+            name="email"
+            type="email"
+            placeholder="usuario@ejemplo.com"
+            rules={{ required: 'El email es obligatorio' }}
+          />
           <div>
-            <label className={styles.label}>Email</label>
-            <input
-              type="email"
-              {...register('email', { required: 'El email es obligatorio' })}
-              className={styles.input}
-              placeholder="usuario@ejemplo.com"
-            />
-            {errors.email && <p className={styles.error}>{errors.email.message}</p>}
-          </div>
-          <div>
-            <label className={styles.label}>Contraseña</label>
-            <div className={styles.passwordWrapper}>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Contraseña</label>
+            <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
-                {...register('password', { required: 'La contraseña es obligatoria' })}
-                className={styles.passwordInput}
+                {...methods.register('password', { required: 'La contraseña es obligatoria' })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none pr-10"
                 placeholder="••••••••"
               />
               <button
                 type="button"
-                className={styles.togglePassword}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex={-1}
               >
@@ -61,16 +59,12 @@ export function Login() {
                 )}
               </button>
             </div>
-            {errors.password && <p className={styles.error}>{errors.password.message}</p>}
+            {methods.formState.errors.password && (
+              <p className="mt-1 text-xs text-red-600">{methods.formState.errors.password.message}</p>
+            )}
           </div>
-          <button
-            type="submit"
-            disabled={loginMutation.isPending}
-            className={styles.button}
-          >
-            {loginMutation.isPending ? 'Ingresando...' : 'Ingresar'}
-          </button>
-        </form>
+          <FormButton isLoading={loginMutation.isPending}>Ingresar</FormButton>
+        </Form>
       </div>
     </div>
   )

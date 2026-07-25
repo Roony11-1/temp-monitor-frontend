@@ -1,48 +1,49 @@
-import { forwardRef, useImperativeHandle } from 'react'
 import { useForm } from 'react-hook-form'
 import { cambiarPassword } from '../../usuarios/api/usuarios'
 import toast from 'react-hot-toast'
-import styles from './PasswordForm.module.css'
-
-export interface PasswordFormHandle {
-  submit: () => Promise<void>
-}
+import { getApiErrorMessage } from '../../../shared/utils/error'
+import { Form, FormInput, FormButton } from '../../../shared/components/form'
 
 interface Props {
   userId: number
   onSaved: () => void
+  onCancel?: () => void
 }
 
 type FormValues = { nuevaPassword: string }
 
-export const PasswordForm = forwardRef<PasswordFormHandle, Props>(({ userId, onSaved }, ref) => {
-  const { register, handleSubmit, reset } = useForm<FormValues>({
+export function PasswordForm({ userId, onSaved, onCancel }: Props) {
+  const methods = useForm<FormValues>({
     defaultValues: { nuevaPassword: '' },
   })
 
-  useImperativeHandle(ref, () => ({
-    submit: handleSubmit(
-      async (data) => {
-        await cambiarPassword(userId, data.nuevaPassword)
-        toast.success('Contraseña actualizada')
-        reset()
-        onSaved()
-      },
-      (errors) => {
-        const first = Object.values(errors)[0]
-        if (first?.message) toast.error(first.message)
-      },
-    ),
-  }), [handleSubmit, userId, onSaved])
+  const onSubmit = async (data: FormValues) => {
+    try {
+      await cambiarPassword(userId, data.nuevaPassword)
+      toast.success('Contraseña actualizada')
+      methods.reset()
+      onSaved()
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Error al actualizar contraseña'))
+    }
+  }
 
   return (
-    <div>
-      <label className={styles.label}>Nueva contraseña</label>
-      <input
+    <Form methods={methods} onSubmit={onSubmit}>
+      <FormInput
+        label="Nueva contraseña"
+        name="nuevaPassword"
         type="password"
-        {...register('nuevaPassword', { required: 'La contraseña es obligatoria' })}
-        className={styles.input}
+        rules={{ required: 'La contraseña es obligatoria' }}
       />
-    </div>
+      <div className="flex gap-2 justify-end pt-4">
+        {onCancel && (
+          <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+            Cancelar
+          </button>
+        )}
+        <FormButton>Cambiar contraseña</FormButton>
+      </div>
+    </Form>
   )
-})
+}

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEmpresas, useEmpresa, useDeleteEmpresa } from '../hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
-import { EmpresaForm, type EmpresaFormHandle } from '../components/EmpresaForm'
+import { EmpresaForm } from '../components/EmpresaForm'
 import type { Empresa } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './EmpresasPage.module.css'
@@ -16,10 +16,8 @@ import styles from './EmpresasPage.module.css'
 export function Empresas() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const formRef = useRef<EmpresaFormHandle>(null)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Empresa | null>(null)
-  const [saving, setSaving] = useState(false)
 
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
   const canEdit = isSuperAdmin || user?.roles?.includes('ADMIN_EMPRESA')
@@ -38,7 +36,11 @@ export function Empresas() {
       label: 'Nombre',
       sortable: true,
       filterable: true,
-      render: (v) => <span className={styles.cellName}>{v}</span>,
+      render: (v, row) => (
+        <span className="cursor-pointer hover:text-indigo-600 font-medium text-gray-900" onClick={() => navigate(`/empresas/${row.id}`)}>
+          {v}
+        </span>
+      ),
     },
     {
       key: 'direccion',
@@ -87,18 +89,6 @@ export function Empresas() {
     setShowModal(true)
   }
 
-  const handleSave = async () => {
-    setSaving(true)
-    try {
-      await formRef.current?.submit()
-      setShowModal(false)
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, 'Error al guardar'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
   const handleDelete = async (id: number) => {
     if (!confirm('¿Eliminar esta empresa?')) return
     try {
@@ -109,7 +99,7 @@ export function Empresas() {
     }
   }
 
-  const empresaData = editing
+  const editingEmpresaData = editing
     ? { id: editing.id, nombre: editing.nombre, direccion: editing.direccion || '', telefono: editing.telefono || '', email: editing.email || '' }
     : undefined
 
@@ -131,7 +121,7 @@ export function Empresas() {
         columns={columns}
         loading={loading}
         rowKey={(e) => e.id}
-        onRowClick={(e) => navigate(`/empresas/${e.id}`)}
+
         emptyMessage="No hay empresas registradas"
         actions={(emp) =>
           canEdit || canDelete ? (
@@ -161,13 +151,10 @@ export function Empresas() {
         <Modal
           title={editing ? 'Editar empresa' : 'Nueva empresa'}
           onClose={() => setShowModal(false)}
-          onSave={handleSave}
-          isSaving={saving}
         >
           <EmpresaForm
-            ref={formRef}
-            empresa={empresaData}
-            onSaved={() => {}}
+            empresa={editingEmpresaData}
+            onSaved={() => setShowModal(false)}
           />
         </Modal>
       )}

@@ -1,13 +1,10 @@
-import { useEffect, forwardRef, useImperativeHandle } from 'react'
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { createSucursal, updateSucursal } from '../../sucursales/api/sucursales'
+import { useCreateSucursal, useUpdateSucursal } from '../../sucursales/hooks/useSucursales'
 import toast from 'react-hot-toast'
+import { getApiErrorMessage } from '../../../shared/utils/error'
+import { Form, FormInput, FormSelect, FormButton } from '../../../shared/components/form'
 import type { SucursalRequest, Empresa } from '../../../types'
-import styles from './SucursalForm.module.css'
-
-export interface SucursalFormHandle {
-  submit: () => Promise<void>
-}
 
 interface Props {
   sucursal?: { id: number } & SucursalRequest
@@ -15,77 +12,81 @@ interface Props {
   isSuperAdmin: boolean
   defaultEmpresaId: number
   onSaved: () => void
+  onCancel?: () => void
 }
 
-export const SucursalForm = forwardRef<SucursalFormHandle, Props>(
-  ({ sucursal, empresas, isSuperAdmin, defaultEmpresaId, onSaved }, ref) => {
-    const { register, handleSubmit, reset } = useForm<SucursalRequest>({
-      defaultValues: {
-        nombre: '',
-        direccion: '',
-        telefono: '',
-        empresaId: defaultEmpresaId,
-      },
-    })
+export function SucursalForm({ sucursal, empresas, isSuperAdmin, defaultEmpresaId, onSaved, onCancel }: Props) {
+  const isEditing = !!sucursal?.id
+  const createMutation = useCreateSucursal()
+  const updateMutation = useUpdateSucursal(sucursal?.id ?? 0)
 
-    const isEditing = !!sucursal?.id
+  const methods = useForm<SucursalRequest>({
+    defaultValues: {
+      nombre: '',
+      direccion: '',
+      telefono: '',
+      empresaId: defaultEmpresaId,
+    },
+  })
 
-    useEffect(() => {
-      if (sucursal) {
-        reset({
-          nombre: sucursal.nombre,
-          direccion: sucursal.direccion,
-          telefono: sucursal.telefono,
-          empresaId: sucursal.empresaId,
-        })
-      }
-    }, [sucursal, reset])
+  useEffect(() => {
+    if (sucursal) {
+      methods.reset({
+        nombre: sucursal.nombre,
+        direccion: sucursal.direccion,
+        telefono: sucursal.telefono,
+        empresaId: sucursal.empresaId,
+      })
+    }
+  }, [sucursal, methods.reset])
 
-    useImperativeHandle(ref, () => ({
-      submit: handleSubmit(
-        async (data) => {
-          if (isEditing) {
-            await updateSucursal(sucursal!.id, data)
-            toast.success('Sucursal actualizada')
-          } else {
-            await createSucursal(data)
-            toast.success('Sucursal creada')
-          }
-          onSaved()
-        },
-        (errors) => {
-          const first = Object.values(errors)[0]
-          if (first?.message) toast.error(first.message)
-        },
-      ),
-    }), [handleSubmit, isEditing, sucursal, onSaved])
+  const mutation = isEditing ? updateMutation : createMutation
 
-    return (
-      <div className={styles.container}>
-        <div>
-          <label className={styles.label}>Nombre</label>
-          <input type="text" {...register('nombre', { required: 'El nombre es obligatorio' })} className={styles.input} />
-        </div>
-        <div>
-          <label className={styles.label}>Dirección</label>
-          <input type="text" {...register('direccion')} className={styles.input} />
-        </div>
-        <div>
-          <label className={styles.label}>Teléfono</label>
-          <input type="text" {...register('telefono')} className={styles.input} />
-        </div>
-        <div>
-          <label className={styles.label}>Empresa</label>
-          <select {...register('empresaId', { valueAsNumber: true })} disabled={!isSuperAdmin} className={styles.input}>
-            <option value={0}>Seleccione una empresa</option>
-            {empresas.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.nombre}
-              </option>
-            ))}
-          </select>
-        </div>
+  const onSubmit = async (data: SucursalRequest) => {
+    try {
+      await mutation.mutateAsync(data)
+      toast.success(isEditing ? 'Sucursal actualizada' : 'Sucursal creada')
+      onSaved()
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Error al guardar'))
+    }
+  }
+
+  const empresaOptions = empresas.map((e) => ({ label: e.nombre, value: e.id }))
+
+  return (
+    <Form methods={methods} onSubmit={onSubmit}>
+      <FormInput
+        label="Nombre"
+        name="nombre"
+        rules={{ required: 'El nombre es obligatorio' }}
+      />
+      <FormInput
+        label="Dirección"
+        name="direccion"
+      />
+      <FormInput
+        label="Teléfono"
+        name="telefono"
+      />
+      <FormSelect
+        label="Empresa"
+        name="empresaId"
+        options={empresaOptions}
+        placeholder="Seleccione una empresa"
+        disabled={!isSuperAdmin}
+        rules={{ setValueAs: (v: string) => Number(v) }}
+      />
+      <div className="flex gap-2 justify-end pt-4">
+        {onCancel && (
+          <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+            Cancelar
+          </button>
+        )}
+        <FormButton isLoading={mutation.isPending}>
+          {isEditing ? 'Guardar cambios' : 'Crear sucursal'}
+        </FormButton>
       </div>
-    )
-  },
-)
+    </Form>
+  )
+}

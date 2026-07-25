@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSucursales, useSucursalesByEmpresa, useSucursal, useDeleteSucursal } from '../hooks/useSucursales'
 import { useEmpresas, useEmpresa } from '../../empresas/hooks/useEmpresas'
@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
-import { SucursalForm, type SucursalFormHandle } from '../components/SucursalForm'
+import { SucursalForm } from '../components/SucursalForm'
 import type { Sucursal } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './SucursalesPage.module.css'
@@ -17,10 +17,8 @@ import styles from './SucursalesPage.module.css'
 export function Sucursales() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const formRef = useRef<SucursalFormHandle>(null)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Sucursal | null>(null)
-  const [saving, setSaving] = useState(false)
 
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
   const isAdminEmpresa = user?.roles?.includes('ADMIN_EMPRESA')
@@ -62,7 +60,11 @@ export function Sucursales() {
       label: 'Nombre',
       sortable: true,
       filterable: true,
-      render: (v) => <span className={styles.cellName}>{v}</span>,
+      render: (v, row) => (
+        <span className="cursor-pointer hover:text-indigo-600 font-medium text-gray-900" onClick={() => navigate(`/sucursales/${row.id}`)}>
+          {v}
+        </span>
+      ),
     },
     {
       key: 'direccion',
@@ -115,18 +117,6 @@ export function Sucursales() {
     setShowModal(true)
   }
 
-  const handleSave = async () => {
-    setSaving(true)
-    try {
-      await formRef.current?.submit()
-      setShowModal(false)
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, 'Error al guardar'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
   const handleDelete = async (id: number) => {
     if (!confirm('¿Eliminar esta sucursal?')) return
     try {
@@ -137,7 +127,7 @@ export function Sucursales() {
     }
   }
 
-  const sucursalData = editing
+  const editingSucursalData = editing
     ? {
         id: editing.id,
         nombre: editing.nombre,
@@ -165,7 +155,7 @@ export function Sucursales() {
         columns={columns}
         loading={loading}
         rowKey={(s) => s.id}
-        onRowClick={(s) => navigate(`/sucursales/${s.id}`)}
+
         emptyMessage="No hay sucursales registradas"
         actions={(suc) => (
           <>
@@ -191,16 +181,13 @@ export function Sucursales() {
         <Modal
           title={editing ? 'Editar sucursal' : 'Nueva sucursal'}
           onClose={() => setShowModal(false)}
-          onSave={handleSave}
-          isSaving={saving}
         >
           <SucursalForm
-            ref={formRef}
-            sucursal={sucursalData}
+            sucursal={editingSucursalData}
             empresas={filteredEmpresas}
             isSuperAdmin={isSuperAdmin ?? false}
             defaultEmpresaId={user?.empresaId || 0}
-            onSaved={() => {}}
+            onSaved={() => setShowModal(false)}
           />
         </Modal>
       )}

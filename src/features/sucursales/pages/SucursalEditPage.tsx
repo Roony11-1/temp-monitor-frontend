@@ -1,21 +1,18 @@
-import { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useSucursal } from '../hooks/useSucursales'
 import { useEmpresas } from '../../empresas/hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Card } from '../../../shared/components/ui/Card'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
-import { SucursalForm, type SucursalFormHandle } from '../components/SucursalForm'
+import { SucursalForm } from '../components/SucursalForm'
 import styles from './SucursalEditPage.module.css'
 
 export function SucursalEdit() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const formRef = useRef<SucursalFormHandle>(null)
   const { data: sucursal, isLoading } = useSucursal(Number(id))
   const { data: empresas = [] } = useEmpresas()
-  const [saving, setSaving] = useState(false)
 
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN') ?? false
 
@@ -36,16 +33,6 @@ export function SucursalEdit() {
     empresaId: sucursal.empresaId,
   }
 
-  const handleSave = async () => {
-    setSaving(true)
-    try {
-      await formRef.current?.submit()
-      navigate(`/sucursales/${id}`)
-    } catch {
-      setSaving(false)
-    }
-  }
-
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -60,31 +47,14 @@ export function SucursalEdit() {
 
       <Card>
         <SucursalForm
-          ref={formRef}
           sucursal={sucursalData}
           empresas={empresas}
           isSuperAdmin={isSuperAdmin}
           defaultEmpresaId={sucursal.empresaId}
-          onSaved={() => {}}
+          onSaved={() => navigate(`/sucursales/${id}`)}
+          onCancel={() => navigate(`/sucursales/${id}`)}
         />
       </Card>
-
-      <div className={styles.actions}>
-        <button
-          onClick={() => navigate(`/sucursales/${id}`)}
-          disabled={saving}
-          className={styles.cancelBtn}
-        >
-          Cancelar
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className={styles.saveBtn}
-        >
-          {saving ? 'Guardando...' : 'Guardar'}
-        </button>
-      </div>
     </div>
   )
 }

@@ -1,16 +1,15 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUsuarios, useUsuariosByEmpresa, useUsuariosBySucursal, useDeleteUsuario } from '../hooks/useUsuarios'
 import { useEmpresas, useEmpresa } from '../../empresas/hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
-import { useQueryClient } from '@tanstack/react-query'
 import { Modal } from '../../../components/Modal'
 import { DataTable } from '../../../components/DataTable'
 import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
-import { UsuarioForm, type UsuarioFormHandle } from '../components/UsuarioForm'
+import { UsuarioForm } from '../components/UsuarioForm'
 import type { Usuario } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './UsuariosPage.module.css'
@@ -18,11 +17,8 @@ import styles from './UsuariosPage.module.css'
 export function Usuarios() {
   const { user: currentUser } = useAuth()
   const navigate = useNavigate()
-  const formRef = useRef<UsuarioFormHandle>(null)
-  const queryClient = useQueryClient()
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Usuario | null>(null)
-  const [saving, setSaving] = useState(false)
 
   const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN')
   const isAdminEmpresa = currentUser?.roles?.includes('ADMIN_EMPRESA')
@@ -61,19 +57,6 @@ export function Usuarios() {
     setShowModal(true)
   }
 
-  const handleSave = async () => {
-    setSaving(true)
-    try {
-      await formRef.current?.submit()
-      setShowModal(false)
-      queryClient.invalidateQueries({ queryKey: ['usuarios'] })
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, 'Error al guardar'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
   const handleDelete = async (id: number) => {
     if (!confirm('¿Eliminar este usuario?')) return
     try {
@@ -85,7 +68,17 @@ export function Usuarios() {
   }
 
   const columns: ColumnDef<Usuario>[] = [
-    { key: 'email', label: 'Email', sortable: true, filterable: true },
+    {
+      key: 'email',
+      label: 'Email',
+      sortable: true,
+      filterable: true,
+      render: (v, row) => (
+        <span className="cursor-pointer hover:text-indigo-600 font-medium text-gray-900" onClick={() => navigate(`/usuarios/${row.id}`)}>
+          {v}
+        </span>
+      ),
+    },
     { key: 'nombre', label: 'Nombre', sortable: true, filterable: true },
     { key: 'empresa', label: 'Empresa', sortable: true, filterable: true, render: (v) => v || '-' },
     { key: 'sucursal', label: 'Sucursal', sortable: true, filterable: true, render: (v) => v || '-' },
@@ -99,7 +92,7 @@ export function Usuarios() {
     },
   ]
 
-  const usuarioData = editing
+  const editingUsuarioData = editing
     ? {
         id: editing.id,
         email: editing.email,
@@ -129,7 +122,7 @@ export function Usuarios() {
         columns={columns as ColumnDef<Usuario>[]}
         loading={loading}
         rowKey={(u) => u.id}
-        onRowClick={(u) => navigate(`/usuarios/${u.id}`)}
+
         emptyMessage="No hay usuarios registrados"
         actions={(usr) => (
           <>
@@ -157,21 +150,17 @@ export function Usuarios() {
         <Modal
           title={editing ? 'Editar usuario' : 'Nuevo usuario'}
           onClose={() => setShowModal(false)}
-          onSave={handleSave}
-          isSaving={saving}
         >
           <UsuarioForm
-            ref={formRef}
-            usuario={usuarioData}
+            usuario={editingUsuarioData}
             empresas={filteredEmpresas}
             canManage={canManage ?? false}
             isReadOnly={isReadOnly ?? false}
             defaultEmpresaId={currentUser?.empresaId || null}
-            onSaved={() => {}}
+            onSaved={() => setShowModal(false)}
           />
         </Modal>
       )}
-
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCamaras, useCamarasBySucursal, useDeleteCamara } from '../hooks/useCamaras'
 import { useSucursales, useSucursalesByEmpresa, useSucursal } from '../../sucursales/hooks/useSucursales'
@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
-import { CamaraForm, type CamaraFormHandle } from '../components/CamaraForm'
+import { CamaraForm } from '../components/CamaraForm'
 import type { Camara } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './CamarasPage.module.css'
@@ -17,10 +17,8 @@ import styles from './CamarasPage.module.css'
 export function Camaras() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const formRef = useRef<CamaraFormHandle>(null)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Camara | null>(null)
-  const [saving, setSaving] = useState(false)
 
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
   const isAdminEmpresa = user?.roles?.includes('ADMIN_EMPRESA')
@@ -63,7 +61,11 @@ export function Camaras() {
       label: 'Nombre',
       sortable: true,
       filterable: true,
-      render: (v) => <span className={styles.cellName}>{v}</span>,
+      render: (v, row) => (
+        <span className="cursor-pointer hover:text-indigo-600 font-medium text-gray-900" onClick={() => navigate(`/camaras/${row.id}`)}>
+          {v}
+        </span>
+      ),
     },
     {
       key: 'descripcion',
@@ -109,18 +111,6 @@ export function Camaras() {
     setShowModal(true)
   }
 
-  const handleSave = async () => {
-    setSaving(true)
-    try {
-      await formRef.current?.submit()
-      setShowModal(false)
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, 'Error al guardar'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
   const handleDelete = async (id: number) => {
     if (!confirm('¿Eliminar esta cámara?')) return
     try {
@@ -131,7 +121,7 @@ export function Camaras() {
     }
   }
 
-  const camaraData = editing
+  const editingCamaraData = editing
     ? {
         id: editing.id,
         nombre: editing.nombre,
@@ -161,7 +151,7 @@ export function Camaras() {
         columns={columns}
         loading={loading}
         rowKey={(c) => c.id}
-        onRowClick={(c) => navigate(`/camaras/${c.id}`)}
+
         emptyMessage="No hay cámaras registradas"
         actions={(cam) => (
           <>
@@ -185,16 +175,13 @@ export function Camaras() {
         <Modal
           title={editing ? 'Editar cámara' : 'Nueva cámara'}
           onClose={() => setShowModal(false)}
-          onSave={handleSave}
-          isSaving={saving}
         >
           <CamaraForm
-            ref={formRef}
-            camara={camaraData}
+            camara={editingCamaraData}
             sucursales={sucursales}
             canSelectSucursal={canSelectSucursal ?? false}
             defaultSucursalId={defaultSucursalId}
-            onSaved={() => {}}
+            onSaved={() => setShowModal(false)}
           />
         </Modal>
       )}

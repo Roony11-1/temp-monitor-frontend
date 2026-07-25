@@ -4,18 +4,22 @@ import toast from 'react-hot-toast'
 import { asignarSensor } from '../../sensores/api/sensores'
 import { getCamaras } from '../../camaras/api/camaras'
 import { getApiErrorMessage } from '../../../shared/utils/error'
+import { Form, FormSelect, FormButton } from '../../../shared/components/form'
 import type { Sensor, Camara } from '../../../types'
-import styles from './RegistrarSensorForm.module.css'
 
-interface AsignarSensorFormProps {
+interface Props {
   uuid: string
   apiKey: string
   onSuccess: (sensor: Sensor) => void
 }
 
-export function AsignarSensorForm({ uuid, apiKey, onSuccess }: AsignarSensorFormProps) {
+interface FormValues {
+  camaraId: string
+}
+
+export function AsignarSensorForm({ uuid, apiKey, onSuccess }: Props) {
   const [camaras, setCamaras] = useState<Camara[]>([])
-  const { register, handleSubmit, formState: { isSubmitting } } = useForm<{ camaraId: string }>()
+  const methods = useForm<FormValues>()
 
   useEffect(() => {
     getCamaras()
@@ -23,7 +27,7 @@ export function AsignarSensorForm({ uuid, apiKey, onSuccess }: AsignarSensorForm
       .catch(() => toast.error('Error al cargar cámaras'))
   }, [])
 
-  const onSubmit = async (data: { camaraId: string }) => {
+  const onSubmit = async (data: FormValues) => {
     if (!data.camaraId) {
       toast.error('Debe seleccionar una cámara')
       return
@@ -37,34 +41,26 @@ export function AsignarSensorForm({ uuid, apiKey, onSuccess }: AsignarSensorForm
     }
   }
 
+  const camaraOptions = camaras.map((c) => ({ label: c.nombre, value: c.id }))
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+    <Form methods={methods} onSubmit={onSubmit}>
       <div>
-        <label className={styles.label}>UUID</label>
-        <input type="text" value={uuid} className={styles.input} readOnly disabled />
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">UUID</label>
+        <input type="text" value={uuid} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-500" readOnly disabled />
       </div>
       <div>
-        <label className={styles.label}>API Key</label>
-        <input type="text" value={apiKey} className={styles.input} readOnly disabled />
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">API Key</label>
+        <input type="text" value={apiKey} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-500" readOnly disabled />
       </div>
-      <div>
-        <label className={styles.label}>Asignar a Cámara</label>
-        <select {...register('camaraId')} className={styles.input} required>
-          <option value="">-- Seleccione una cámara --</option>
-          {camaras.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nombre}
-            </option>
-          ))}
-        </select>
-      </div>
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className={styles.button}
-      >
-        {isSubmitting ? 'Asignando...' : 'Asignar a Cámara'}
-      </button>
-    </form>
+      <FormSelect
+        label="Asignar a Cámara"
+        name="camaraId"
+        options={camaraOptions}
+        placeholder="-- Seleccione una cámara --"
+        rules={{ required: 'Debe seleccionar una cámara' }}
+      />
+      <FormButton>Asignar a Cámara</FormButton>
+    </Form>
   )
 }

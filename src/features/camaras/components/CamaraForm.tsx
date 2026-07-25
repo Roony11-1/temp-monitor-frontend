@@ -1,13 +1,10 @@
-import { useEffect, forwardRef, useImperativeHandle } from 'react'
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { createCamara, updateCamara } from '../../camaras/api/camaras'
+import { useCreateCamara, useUpdateCamara } from '../../camaras/hooks/useCamaras'
 import toast from 'react-hot-toast'
+import { getApiErrorMessage } from '../../../shared/utils/error'
+import { Form, FormInput, FormSelect, FormButton } from '../../../shared/components/form'
 import type { CamaraRequest, Sucursal } from '../../../types'
-import styles from './CamaraForm.module.css'
-
-export interface CamaraFormHandle {
-  submit: () => Promise<void>
-}
 
 interface Props {
   camara?: { id: number } & CamaraRequest
@@ -15,71 +12,75 @@ interface Props {
   canSelectSucursal: boolean
   defaultSucursalId: number
   onSaved: () => void
+  onCancel?: () => void
 }
 
-export const CamaraForm = forwardRef<CamaraFormHandle, Props>(
-  ({ camara, sucursales, canSelectSucursal, defaultSucursalId, onSaved }, ref) => {
-    const { register, handleSubmit, reset } = useForm<CamaraRequest>({
-      defaultValues: {
-        nombre: '',
-        descripcion: '',
-        sucursalId: defaultSucursalId,
-      },
-    })
+export function CamaraForm({ camara, sucursales, canSelectSucursal, defaultSucursalId, onSaved, onCancel }: Props) {
+  const isEditing = !!camara?.id
+  const createMutation = useCreateCamara()
+  const updateMutation = useUpdateCamara(camara?.id ?? 0)
 
-    const isEditing = !!camara?.id
+  const methods = useForm<CamaraRequest>({
+    defaultValues: {
+      nombre: '',
+      descripcion: '',
+      sucursalId: defaultSucursalId,
+    },
+  })
 
-    useEffect(() => {
-      if (camara) {
-        reset({
-          nombre: camara.nombre,
-          descripcion: camara.descripcion,
-          sucursalId: camara.sucursalId,
-        })
-      }
-    }, [camara, reset])
+  useEffect(() => {
+    if (camara) {
+      methods.reset({
+        nombre: camara.nombre,
+        descripcion: camara.descripcion,
+        sucursalId: camara.sucursalId,
+      })
+    }
+  }, [camara, methods.reset])
 
-    useImperativeHandle(ref, () => ({
-      submit: handleSubmit(
-        async (data) => {
-          if (isEditing) {
-            await updateCamara(camara!.id, data)
-            toast.success('Cámara actualizada')
-          } else {
-            await createCamara(data)
-            toast.success('Cámara creada')
-          }
-          onSaved()
-        },
-        (errors) => {
-          const first = Object.values(errors)[0]
-          if (first?.message) toast.error(first.message)
-        },
-      ),
-    }), [handleSubmit, isEditing, camara, onSaved])
+  const mutation = isEditing ? updateMutation : createMutation
 
-    return (
-      <div className={styles.container}>
-        <div>
-          <label className={styles.label}>Nombre</label>
-          <input type="text" {...register('nombre', { required: 'El nombre es obligatorio' })} className={styles.input} />
-        </div>
-        <div>
-          <label className={styles.label}>Descripción</label>
-          <input type="text" {...register('descripcion')} className={styles.input} />
-        </div>
-        <div>
-          <label className={styles.label}>Sucursal</label>
-          <select {...register('sucursalId', { valueAsNumber: true })} disabled={!canSelectSucursal} className={styles.input}>
-            <option value={0}>Seleccione una sucursal</option>
-            {sucursales.map((suc) => (
-              <option key={suc.id} value={suc.id}>
-                {suc.nombre}
-              </option>
-            ))}
-          </select>
-        </div>
+  const onSubmit = async (data: CamaraRequest) => {
+    try {
+      await mutation.mutateAsync(data)
+      toast.success(isEditing ? 'Cámara actualizada' : 'Cámara creada')
+      onSaved()
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Error al guardar'))
+    }
+  }
+
+  const sucursalOptions = sucursales.map((s) => ({ label: s.nombre, value: s.id }))
+
+  return (
+    <Form methods={methods} onSubmit={onSubmit}>
+      <FormInput
+        label="Nombre"
+        name="nombre"
+        rules={{ required: 'El nombre es obligatorio' }}
+      />
+      <FormInput
+        label="Descripción"
+        name="descripcion"
+      />
+      <FormSelect
+        label="Sucursal"
+        name="sucursalId"
+        options={sucursalOptions}
+        placeholder="Seleccione una sucursal"
+        disabled={!canSelectSucursal}
+        rules={{ setValueAs: (v: string) => Number(v) }}
+      />
+      <div className="flex gap-2 justify-end pt-4">
+        {onCancel && (
+          <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+            Cancelar
+          </button>
+        )}
+        <FormButton isLoading={mutation.isPending}>
+          {isEditing ? 'Guardar cambios' : 'Crear cámara'}
+        </FormButton>
       </div>
-    )
-  },
-)
+    </Form>
+  )
+}

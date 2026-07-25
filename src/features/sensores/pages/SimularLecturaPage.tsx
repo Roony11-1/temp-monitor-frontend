@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { useSensores, useRegistrarLecturaSensor } from '../hooks/useSensores'
 import { getApiErrorMessage } from '../../../shared/utils/error'
+import { Form, FormSelect, FormInput, FormButton } from '../../../shared/components/form'
 import type { Sensor } from '../../../types'
 import styles from './RegistrarSensorPage.module.css'
 
@@ -11,16 +12,12 @@ type FormValues = { sensorUuid: string; temperatura: string }
 export function SimularLectura() {
   const { data: sensores = [] } = useSensores()
   const [ultimoEnvio, setUltimoEnvio] = useState<{ uuid: string; temp: number } | null>(null)
-  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<FormValues>({
+  const methods = useForm<FormValues>({
     defaultValues: { sensorUuid: '', temperatura: '' },
   })
   const enviarMutation = useRegistrarLecturaSensor()
 
   const onSubmit = async (data: FormValues) => {
-    if (!data.sensorUuid) {
-      toast.error('Seleccione un sensor')
-      return
-    }
     const temp = Number(data.temperatura)
     if (isNaN(temp)) {
       toast.error('Ingrese una temperatura válida')
@@ -30,48 +27,42 @@ export function SimularLectura() {
       await enviarMutation.mutateAsync({ uuid: data.sensorUuid, temperatura: temp })
       toast.success(`Lectura enviada: ${temp}°C`)
       setUltimoEnvio({ uuid: data.sensorUuid, temp })
-      reset({ sensorUuid: data.sensorUuid, temperatura: '' })
+      methods.reset({ sensorUuid: data.sensorUuid, temperatura: '' })
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Error al enviar lectura'))
     }
   }
+
+  const sensorOptions = sensores.map((s: Sensor) => ({
+    label: `${s.macAddress} — ${s.camara?.nombre ?? 'Sin cámara'} (${s.estado})`,
+    value: s.uuid,
+  }))
 
   return (
     <div className={styles.page}>
       <h1 className={styles.title}>Simular Lectura</h1>
       <p className={styles.subtitle}>Envía una medición de temperatura simulada para un sensor</p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="max-w-md space-y-4">
-        <div>
-          <label className={styles.label}>Sensor</label>
-          <select {...register('sensorUuid')} className={styles.input}>
-            <option value="">-- Seleccione un sensor --</option>
-            {sensores.map((s: Sensor) => (
-              <option key={s.uuid} value={s.uuid}>
-                {s.macAddress} — {s.camara?.nombre ?? 'Sin cámara'} ({s.estado})
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className={styles.label}>Temperatura (°C)</label>
-          <input
+      <div className="max-w-md">
+        <Form methods={methods} onSubmit={onSubmit}>
+          <FormSelect
+            label="Sensor"
+            name="sensorUuid"
+            options={sensorOptions}
+            placeholder="-- Seleccione un sensor --"
+            rules={{ required: 'Seleccione un sensor' }}
+          />
+          <FormInput
+            label="Temperatura (°C)"
+            name="temperatura"
             type="number"
             step="0.1"
-            {...register('temperatura')}
             placeholder="25.5"
-            className={styles.input}
-            required
+            rules={{ required: 'Ingrese una temperatura' }}
           />
-        </div>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className={styles.button}
-        >
-          {isSubmitting ? 'Enviando...' : 'Enviar Lectura'}
-        </button>
-      </form>
+          <FormButton isLoading={enviarMutation.isPending}>Enviar Lectura</FormButton>
+        </Form>
+      </div>
 
       {ultimoEnvio && (
         <div className={styles.result}>

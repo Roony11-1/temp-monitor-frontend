@@ -1,0 +1,9 @@
+@reference "tailwindcss";
+
+.form {
+  @apply space-y-4;
+}
+
+.title {
+  @apply text-lg font-semibold text-gray-900;
+}
