@@ -105,7 +105,7 @@ export function DataTable<T>({
                       onChange={(e) => updateFilter(col.key, e.target.value)}
                       className={styles.filterInput}
                     >
-                      <option value="">Todos</option>
+                      <option value="">{col.label} (todos)</option>
                       <option value="true">Activo</option>
                       <option value="false">Inactivo</option>
                     </select>
@@ -115,7 +115,7 @@ export function DataTable<T>({
                       onChange={(e) => updateFilter(col.key, e.target.value)}
                       className={styles.filterInput}
                     >
-                      <option value="">Todos</option>
+                      <option value="">{col.label} (todos)</option>
                       {col.filterOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>
                           {opt.label}
@@ -125,7 +125,7 @@ export function DataTable<T>({
                   ) : col.filterType === 'number' ? (
                     <input
                       type="text"
-                      placeholder="ej: >25, <10, =5"
+                      placeholder={`${col.label} (ej: >25)`}
                       value={filters[col.key] ?? ''}
                       onChange={(e) => updateFilter(col.key, e.target.value)}
                       className={styles.filterInput}
@@ -133,7 +133,7 @@ export function DataTable<T>({
                   ) : (
                     <input
                       type="text"
-                      placeholder="Filtrar..."
+                      placeholder={`Filtrar ${col.label.toLowerCase()}...`}
                       value={filters[col.key] ?? ''}
                       onChange={(e) => updateFilter(col.key, e.target.value)}
                       className={styles.filterInput}
@@ -141,6 +141,14 @@ export function DataTable<T>({
                   )}
                 </div>
               ))}
+            {Object.values(filters).some((v) => v !== '' && v != null) && (
+              <button
+                onClick={() => setFilters({})}
+                className={styles.clearBtn}
+              >
+                Limpiar
+              </button>
+            )}
           </div>
         </div>
       )}
