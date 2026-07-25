@@ -73,6 +73,7 @@ export function Sensores() {
   const estadoOptions = [
     { label: 'Activo', value: 'ACTIVO' },
     { label: 'Deshabilitado', value: 'DESHABILITADO' },
+    { label: 'Pendiente', value: 'PENDIENTE' },
   ]
 
   const columns: ColumnDef<Sensor>[] = [
@@ -113,7 +114,7 @@ export function Sensores() {
       filterType: 'select',
       filterOptions: estadoOptions,
       render: (v, row) => {
-        if (editandoUuid === row.uuid) {
+        if (editandoUuid === row.uuid && row.estado !== 'PENDIENTE') {
           return (
             <select
               value={editForm.estado}
