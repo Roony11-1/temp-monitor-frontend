@@ -58,18 +58,18 @@ export function useActualizarSensor() {
   })
 }
 
-export function useLecturasSensor(uuid: string) {
+export function useLecturasSensor(uuid: string, since?: number) {
   return useQuery({
-    queryKey: ['lecturas', uuid],
-    queryFn: () => lecturasApi.getLecturasSensor(uuid),
+    queryKey: ['lecturas', uuid, ...(since ? ['since', since] : [])],
+    queryFn: () => lecturasApi.getLecturasSensor(uuid, since),
     enabled: !!uuid,
   })
 }
 
-export function useLecturasSensorPage(uuid: string, page: number, pageSize: number) {
+export function useLecturasSensorPage(uuid: string, page: number, pageSize: number, since?: number) {
   return useQuery<PaginatedResponse<Lectura>>({
-    queryKey: ['lecturas', uuid, 'page', page, pageSize],
-    queryFn: () => lecturasApi.getLecturasSensorPage(uuid, page, pageSize),
+    queryKey: ['lecturas', uuid, 'page', page, pageSize, ...(since ? ['since', since] : [])],
+    queryFn: () => lecturasApi.getLecturasSensorPage(uuid, page, pageSize, since),
     enabled: !!uuid,
     placeholderData: (prev) => prev,
   })

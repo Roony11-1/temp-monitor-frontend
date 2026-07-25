@@ -27,9 +27,11 @@ export function SensorLecturas() {
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
+  const [chartRange, setChartRange] = useState<'24h' | '7d' | '30d' | 'all'>('7d')
+  const [since, setSince] = useState<number | undefined>(() => Date.now() - 604800000)
 
   const { data: sensores = [], isLoading: loadingSens } = useSensores()
-  const { data: allLecturas = [], isLoading: loadingAllLect } = useLecturasSensor(uuid ?? '')
+  const { data: allLecturas = [], isLoading: loadingAllLect } = useLecturasSensor(uuid ?? '', since)
   const { data: pageData, isLoading: loadingPage } = useLecturasSensorPage(uuid ?? '', page, pageSize)
 
   const loading = loadingSens || loadingAllLect || loadingPage
@@ -117,11 +119,31 @@ export function SensorLecturas() {
         </div>
       </div>
 
-      {lecturas.length > 0 && (
-        <Card>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">
+      <Card>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-gray-700">
             Temperatura
           </h3>
+          <div className="flex gap-1">
+            {(['24h', '7d', '30d', 'all'] as const).map((r) => (
+              <button
+                key={r}
+                onClick={() => {
+                  setChartRange(r)
+                  setSince(r === 'all' ? undefined : Date.now() - (r === '24h' ? 86400000 : r === '7d' ? 604800000 : 2592000000))
+                }}
+                className={`px-2 py-1 text-xs rounded transition-colors ${
+                  chartRange === r
+                    ? 'bg-indigo-100 text-indigo-700 font-medium'
+                    : 'text-gray-500 hover:bg-gray-100'
+                }`}
+              >
+                {r === 'all' ? 'Todo' : r}
+              </button>
+            ))}
+          </div>
+        </div>
+        {chartData.length > 0 ? (
           <div style={{ height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
@@ -139,8 +161,10 @@ export function SensorLecturas() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </Card>
-      )}
+        ) : (
+          <div className="text-sm text-gray-400 py-8 text-center">No hay lecturas en este rango</div>
+        )}
+      </Card>
 
       <Card>
         <h3 className="text-sm font-semibold text-gray-700 mb-3">
