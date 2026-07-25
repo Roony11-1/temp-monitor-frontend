@@ -1,9 +1,17 @@
-import { useState, useMemo } from 'react'
-import type { ColumnDef, SortState, FilterValues, PaginationState } from '../types/table'
-import { applyFilters, applySorting } from '../utils/tableFilters'
+import { useState, useMemo, useRef, useEffect } from 'react'
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  flexRender,
+  type ColumnDef as TanStackColumnDef,
+  type SortingState,
+} from '@tanstack/react-table'
+import type { ColumnDef, FilterValues, PaginationState } from '../types/table'
+import { applyFilters } from '../utils/tableFilters'
+import { cn } from '../shared/utils/cn'
 import { EmptyState } from '../shared/components/ui/EmptyState'
 import { SkeletonTable } from '../shared/components/ui/SkeletonTable'
-import { cn } from '../shared/utils/cn'
 import styles from './DataTable.module.css'
 
 interface DataTableProps<T> {
@@ -19,9 +27,11 @@ interface DataTableProps<T> {
   pagination?: PaginationState
   onPageChange?: (page: number) => void
   onPageSizeChange?: (size: number) => void
+  onFilterChange?: (filters: Record<string, string>) => void
 }
 
 const pageSizeOptions = [10, 20, 50, 100]
+const DEBOUNCE_MS = 300
 
 function getPageNumbers(current: number, total: number): (number | 'dots')[] {
   if (total <= 7) {
@@ -50,6 +60,36 @@ function getPageNumbers(current: number, total: number): (number | 'dots')[] {
   return pages
 }
 
+function rowValue<T>(row: T, key: string): any {
+  const keys = key.split('.')
+  let val: any = row
+  for (const k of keys) {
+    val = val?.[k as keyof typeof val]
+  }
+  return val
+}
+
+function toTanStackColumns<T>(cols: ColumnDef<T>[], actions?: (row: T) => React.ReactNode): TanStackColumnDef<T>[] {
+  const result: TanStackColumnDef<T>[] = cols.map((col) => ({
+    id: col.key,
+    header: col.label,
+    accessorFn: col.getValue ?? ((row: T) => rowValue(row, col.key)),
+    cell: col.render ? (info) => col.render!(info.getValue(), info.row.original) : undefined,
+    enableSorting: col.sortable ?? false,
+  }))
+
+  if (actions) {
+    result.push({
+      id: 'acciones',
+      header: 'Acciones',
+      enableSorting: false,
+      cell: (info) => actions(info.row.original),
+    })
+  }
+
+  return result
+}
+
 export function DataTable<T>({
   data,
   columns,
@@ -63,28 +103,81 @@ export function DataTable<T>({
   pagination,
   onPageChange,
   onPageSizeChange,
+  onFilterChange,
 }: DataTableProps<T>) {
-  const [sort, setSort] = useState<SortState | null>(null)
+  const [sorting, setSorting] = useState<SortingState>([])
   const [filters, setFilters] = useState<FilterValues>({})
+  const filtersRef = useRef<FilterValues>({})
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const visibleColumns = columns.filter((c) => c.filterable || c.sortable || c.key)
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
 
-  const processed = useMemo(() => {
-    const filtered = applyFilters(data, columns, filters)
-    return applySorting(filtered, columns, sort)
-  }, [data, columns, filters, sort])
+  const filteredData = useMemo(() => {
+    return applyFilters(data, columns, filters)
+  }, [data, columns, filters])
 
-  const handleSort = (key: string) => {
-    setSort((prev) => {
-      if (prev?.key === key) {
-        return prev.direction === 'asc' ? { key, direction: 'desc' } : null
+  const tanStackColumns = useMemo(() => toTanStackColumns(columns, actions), [columns, actions])
+
+  const table = useReactTable({
+    data: filteredData,
+    columns: tanStackColumns,
+    state: {
+      sorting,
+      columnVisibility: columns.reduce<Record<string, boolean>>((acc, col) => {
+        acc[col.key] = true
+        return acc
+      }, {}),
+    },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    manualPagination: true,
+    pageCount: pagination ? Math.ceil(pagination.total / pagination.pageSize) : -1,
+  })
+
+  const triggerFilterChange = (newFilters: FilterValues) => {
+    if (onPageChange) onPageChange(1)
+    if (onFilterChange) {
+      const strFilters: Record<string, string> = {}
+      for (const [k, v] of Object.entries(newFilters)) {
+        if (v !== '' && v != null) {
+          strFilters[k] = String(v)
+        }
       }
-      return { key, direction: 'asc' }
-    })
+      onFilterChange(strFilters)
+    }
   }
 
   const updateFilter = (key: string, value: any) => {
-    setFilters((prev) => ({ ...prev, [key]: value }))
+    filtersRef.current = { ...filtersRef.current, [key]: value }
+    setFilters(filtersRef.current)
+
+    const col = columns.find((c) => c.key === key)
+    const isInstant = col?.filterType === 'select' || col?.filterType === 'boolean'
+
+    if (isInstant) {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      debounceRef.current = null
+      triggerFilterChange(filtersRef.current)
+    } else {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      debounceRef.current = setTimeout(() => {
+        triggerFilterChange(filtersRef.current)
+      }, DEBOUNCE_MS)
+    }
+  }
+
+  const clearFilters = () => {
+    filtersRef.current = {}
+    setFilters({})
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = null
+    if (onPageChange) onPageChange(1)
+    if (onFilterChange) onFilterChange({})
   }
 
   const hasAnyFilters = columns.some((c) => c.filterable)
@@ -143,7 +236,7 @@ export function DataTable<T>({
               ))}
             {Object.values(filters).some((v) => v !== '' && v != null) && (
               <button
-                onClick={() => setFilters({})}
+                onClick={clearFilters}
                 className={styles.clearBtn}
               >
                 Limpiar
@@ -156,58 +249,52 @@ export function DataTable<T>({
       {loading ? (
         <div className={styles.tableWrapper}>
           <SkeletonTable
-            columns={visibleColumns.length}
+            columns={table.getAllColumns().length}
             rows={5}
             actions={!!actions}
           />
         </div>
-      ) : processed.length > 0 ? (
+      ) : table.getRowModel().rows.length > 0 ? (
         <div className={styles.tableWrapper}>
           <div className={styles.tableContainer}>
             <table className={styles.table}>
               <thead className={styles.tableHead}>
                 <tr>
-                  {visibleColumns.map((col) => (
-                    <th
-                      key={col.key}
-                      className={cn(
-                        styles.headerCell,
-                        col.sortable && styles.headerCellSortable,
-                        col.key === 'acciones' ? styles.headerCellRight : styles.headerCellLeft,
-                      )}
-                      onClick={() => col.sortable && handleSort(col.key)}
-                    >
-                      <span className={styles.sortLabel}>
-                        {col.label}
-                        {sort?.key === col.key && (
-                          <span className={styles.sortIcon}>
-                            {sort.direction === 'asc' ? '\u25B2' : '\u25BC'}
-                          </span>
+                  {table.getHeaderGroups().map((hg) =>
+                    hg.headers.map((header) => (
+                      <th
+                        key={header.id}
+                        className={cn(
+                          styles.headerCell,
+                          header.column.getCanSort() && styles.headerCellSortable,
                         )}
-                      </span>
-                    </th>
-                  ))}
-                  {actions && <th className={cn(styles.headerCell, styles.headerCellRight)}>Acciones</th>}
+                        onClick={() => header.column.getCanSort() && header.column.toggleSorting()}
+                      >
+                        <span className={styles.sortLabel}>
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {header.column.getIsSorted() && (
+                            <span className={styles.sortIcon}>
+                              {header.column.getIsSorted() === 'asc' ? '\u25B2' : '\u25BC'}
+                            </span>
+                          )}
+                        </span>
+                      </th>
+                    )),
+                  )}
                 </tr>
               </thead>
               <tbody className={styles.tableBody}>
-                {processed.map((row) => (
+                {table.getRowModel().rows.map((row) => (
                   <tr
-                    key={rowKey(row)}
+                    key={rowKey(row.original)}
                     className={cn(styles.tableRow, onRowClick && styles.tableRowClickable)}
-                    onClick={() => onRowClick?.(row)}
+                    onClick={() => onRowClick?.(row.original)}
                   >
-                    {visibleColumns.map((col) => {
-                      const raw = (row as any)[col.key]
-                      return (
-                        <td key={col.key} className={styles.tableCell}>
-                          {col.render ? col.render(raw, row) : String(raw ?? '-')}
-                        </td>
-                      )
-                    })}
-                    {actions && (
-                      <td className={styles.actionsCell}>{actions(row)}</td>
-                    )}
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className={styles.tableCell}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
@@ -297,9 +384,9 @@ export function DataTable<T>({
         </div>
       )}
 
-      {!pagination && !loading && processed.length > 0 && (
+      {!pagination && !loading && table.getRowModel().rows.length > 0 && (
         <div className={styles.recordCount}>
-          {processed.length} de {data.length} registros
+          {table.getRowModel().rows.length} de {data.length} registros
         </div>
       )}
     </div>

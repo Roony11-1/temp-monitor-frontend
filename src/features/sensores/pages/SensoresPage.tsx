@@ -21,8 +21,9 @@ export function Sensores() {
   const [editingSensor, setEditingSensor] = useState<Sensor | null>(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
+  const [filters, setFilters] = useState<Record<string, string>>({})
 
-  const { data: pageData, isLoading } = useSensoresPage(page, pageSize)
+  const { data: pageData, isLoading } = useSensoresPage(page, pageSize, filters)
   const { data: camaras = [] } = useCamaras()
   const { data: empresas = [] } = useEmpresas()
   const { data: sucursales = [] } = useSucursales()
@@ -128,6 +129,7 @@ export function Sensores() {
         pagination={pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
         onPageChange={setPage}
         onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
+        onFilterChange={setFilters}
         emptyMessage="No hay sensores registrados"
         actions={(sensor) => (
           <button

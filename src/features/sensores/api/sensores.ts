@@ -8,10 +8,14 @@ export async function getSensores() {
   return res.data.content
 }
 
-export async function getSensoresPage(page: number, size: number) {
-  const res = await api.get<PaginatedResponse<Sensor>>(ApiConfig.sensores.list, {
-    params: { page: page - 1, size },
-  })
+export async function getSensoresPage(page: number, size: number, filters?: Record<string, string>) {
+  const params: Record<string, any> = { page: page - 1, size }
+  if (filters) {
+    for (const [key, value] of Object.entries(filters)) {
+      params[key] = value
+    }
+  }
+  const res = await api.get<PaginatedResponse<Sensor>>(ApiConfig.sensores.list, { params })
   return res.data
 }
 

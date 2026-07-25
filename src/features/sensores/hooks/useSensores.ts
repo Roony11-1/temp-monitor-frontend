@@ -10,10 +10,10 @@ export function useSensores() {
   return useQuery({ queryKey: [queryKey], queryFn: api.getSensores })
 }
 
-export function useSensoresPage(page: number, pageSize: number) {
+export function useSensoresPage(page: number, pageSize: number, filters?: Record<string, string>) {
   return useQuery<PaginatedResponse<Sensor>>({
-    queryKey: [queryKey, 'page', page, pageSize],
-    queryFn: () => api.getSensoresPage(page, pageSize),
+    queryKey: [queryKey, 'page', page, pageSize, JSON.stringify(filters ?? {})],
+    queryFn: () => api.getSensoresPage(page, pageSize, filters),
     placeholderData: (prev) => prev,
   })
 }

@@ -18,6 +18,8 @@ interface Props {
 }
 
 export function SensorForm({ uuid, defaultValues, camaras, onSaved }: Props) {
+  const isPendiente = defaultValues.estado === 'PENDIENTE'
+
   const methods = useForm<SensorFormValues>({
     defaultValues: {
       estado: defaultValues.estado,
@@ -29,7 +31,8 @@ export function SensorForm({ uuid, defaultValues, camaras, onSaved }: Props) {
 
   const onSubmit = async (data: SensorFormValues) => {
     try {
-      await mutation.mutateAsync({ uuid, data })
+      const payload = isPendiente ? { camaraId: data.camaraId } : data
+      await mutation.mutateAsync({ uuid, data: payload })
       toast.success('Sensor actualizado')
       onSaved()
     } catch (err) {
@@ -46,12 +49,18 @@ export function SensorForm({ uuid, defaultValues, camaras, onSaved }: Props) {
 
   return (
     <Form methods={methods} onSubmit={onSubmit}>
-      <FormSelect
-        label="Estado"
-        name="estado"
-        options={estadoOptions}
-        rules={{ required: 'El estado es obligatorio' }}
-      />
+      {isPendiente ? (
+        <p className="text-sm text-gray-500 mb-4">
+          Sensor pendiente de configuración. Asigne una cámara para activarlo.
+        </p>
+      ) : (
+        <FormSelect
+          label="Estado"
+          name="estado"
+          options={estadoOptions}
+          rules={{ required: 'El estado es obligatorio' }}
+        />
+      )}
       <FormSelect
         label="Cámara"
         name="camaraId"
