@@ -32,7 +32,7 @@ export function SensorLecturas() {
 
   const { data: sensores = [], isLoading: loadingSens } = useSensores()
   const { data: allLecturas = [], isLoading: loadingAllLect } = useLecturasSensor(uuid ?? '', since)
-  const { data: pageData, isLoading: loadingPage } = useLecturasSensorPage(uuid ?? '', page, pageSize)
+  const { data: pageData, isLoading: loadingPage } = useLecturasSensorPage(uuid ?? '', page, pageSize, since)
 
   const loading = loadingSens || loadingAllLect || loadingPage
   const sensor = sensores.find((x) => x.uuid === uuid)
