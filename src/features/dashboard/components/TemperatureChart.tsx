@@ -35,10 +35,13 @@ export function TemperatureChart({ data }: TemperatureChartProps) {
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis
                 dataKey="hora"
-                tick={{ fontSize: 11, fill: '#94a3b8' }}
+                tick={{ fontSize: 10, fill: '#94a3b8' }}
                 tickLine={false}
                 axisLine={false}
                 interval={3}
+                angle={-20}
+                textAnchor="end"
+                height={50}
               />
               <YAxis
                 tick={{ fontSize: 11, fill: '#94a3b8' }}
@@ -54,6 +57,7 @@ export function TemperatureChart({ data }: TemperatureChartProps) {
                   fontSize: '13px',
                 }}
                 labelStyle={{ fontWeight: 600, color: '#1e293b' }}
+                formatter={(value) => [`${value}°C`, 'Temperatura']}
               />
               <Area
                 type="monotone"

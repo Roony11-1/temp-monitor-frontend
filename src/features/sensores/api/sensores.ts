@@ -43,3 +43,8 @@ export async function consultarEstadoSensor(uuid: string) {
   const res = await api.get<string>(ApiConfig.sensores.estado(uuid))
   return res.data
 }
+
+export async function renewApiKeySensor(uuid: string) {
+  const res = await api.post<RegistroSensorResponse>(ApiConfig.sensores.renewApiKey(uuid))
+  return res.data
+}

@@ -29,6 +29,7 @@ export const ApiConfig = {
     byCamara: (camaraId: number) => `/api/sensores/camara/${camaraId}`,
     byUuid: (uuid: string) => `/api/sensores/${uuid}`,
     estado: (uuid: string) => `/api/sensores/${uuid}/estado`,
+    renewApiKey: (uuid: string) => `/api/sensores/${uuid}/renew-api-key`,
   },
   lecturas: {
     porSensor: (uuid: string) => `/api/lecturas/sensor/${uuid}`,

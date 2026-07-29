@@ -52,10 +52,13 @@ export function SensorLecturas() {
     )
   }
 
+  const fmtHora = (ts: string) =>
+    new Date(ts).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+
   const chartData: ChartPoint[] = [...allLecturas]
     .reverse()
     .map((l) => ({
-      hora: new Date(l.timestamp).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
+      hora: fmtHora(l.timestamp),
       temperatura: l.temperatura,
     }))
 
@@ -154,9 +157,9 @@ export function SensorLecturas() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="hora" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
+                <XAxis dataKey="hora" tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} interval={Math.max(1, Math.floor(chartData.length / 12))} angle={-20} textAnchor="end" height={50} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} domain={['dataMin - 1', 'dataMax + 1']} />
-                <Tooltip />
+                <Tooltip labelFormatter={(label) => `${label}`} formatter={(value) => [`${value}°C`, 'Temperatura']} />
                 <Area type="monotone" dataKey="temperatura" stroke="#6366f1" strokeWidth={2} fill="url(#tempGradient)" dot={false} activeDot={{ r: 4, fill: '#6366f1' }} />
               </AreaChart>
             </ResponsiveContainer>

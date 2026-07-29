@@ -75,6 +75,14 @@ export function useLecturasSensorPage(uuid: string, page: number, pageSize: numb
   })
 }
 
+export function useRenewApiKey() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (uuid: string) => api.renewApiKeySensor(uuid),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [queryKey] }),
+  })
+}
+
 export function useRegistrarLecturaSensor() {
   const qc = useQueryClient()
   return useMutation({

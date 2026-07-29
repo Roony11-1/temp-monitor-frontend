@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useSensoresPage } from '../hooks/useSensores'
+import { useSensoresPage, useRenewApiKey } from '../hooks/useSensores'
 import { useCamaras } from '../../camaras/hooks/useCamaras'
 import { useEmpresas } from '../../empresas/hooks/useEmpresas'
 import { useSucursales } from '../../sucursales/hooks/useSucursales'
@@ -10,7 +10,7 @@ import { DataTable } from '../../../components/DataTable'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
 import { SensorForm } from '../components/SensorForm'
-import type { Sensor } from '../../../types'
+import type { Sensor, RegistroSensorResponse } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './SensoresPage.module.css'
 
@@ -19,6 +19,8 @@ export function Sensores() {
   const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
   const [editingSensor, setEditingSensor] = useState<Sensor | null>(null)
+  const [showKeyModal, setShowKeyModal] = useState(false)
+  const [newKeyData, setNewKeyData] = useState<RegistroSensorResponse | null>(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const [filters, setFilters] = useState<Record<string, string>>({})
@@ -27,6 +29,7 @@ export function Sensores() {
   const { data: camaras = [] } = useCamaras()
   const { data: empresas = [] } = useEmpresas()
   const { data: sucursales = [] } = useSucursales()
+  const renewMutation = useRenewApiKey()
 
   const sensores = pageData?.content ?? []
 
@@ -39,6 +42,16 @@ export function Sensores() {
   const openEdit = (sensor: Sensor) => {
     setEditingSensor(sensor)
     setShowModal(true)
+  }
+
+  const handleRenew = async (sensor: Sensor) => {
+    try {
+      const result = await renewMutation.mutateAsync(sensor.uuid)
+      setNewKeyData(result)
+      setShowKeyModal(true)
+    } catch {
+      alert('Error al renovar la API key')
+    }
   }
 
   const columns: ColumnDef<Sensor>[] = [
@@ -132,12 +145,23 @@ export function Sensores() {
         onFilterChange={setFilters}
         emptyMessage="No hay sensores registrados"
         actions={(sensor) => (
-          <button
-            onClick={() => openEdit(sensor)}
-            className={styles.editBtn}
-          >
-            Editar
-          </button>
+          <div className={styles.actions}>
+            <button
+              onClick={() => openEdit(sensor)}
+              className={styles.editBtn}
+            >
+              Editar
+            </button>
+            {isSuperAdmin && (
+              <button
+                onClick={() => handleRenew(sensor)}
+                className={styles.saveBtn}
+                disabled={renewMutation.isPending}
+              >
+                {renewMutation.isPending ? '...' : 'Renovar API Key'}
+              </button>
+            )}
+          </div>
         )}
       />
 
@@ -149,6 +173,24 @@ export function Sensores() {
             camaras={camaras}
             onSaved={() => setShowModal(false)}
           />
+        </Modal>
+      )}
+
+      {showKeyModal && newKeyData && (
+        <Modal title="API Key renovada" onClose={() => setShowKeyModal(false)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div>
+              <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>UUID</p>
+              <code style={{ fontSize: '13px', wordBreak: 'break-all' }}>{newKeyData.uuid}</code>
+            </div>
+            <div>
+              <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Nueva API Key</p>
+              <code style={{ fontSize: '13px', wordBreak: 'break-all', background: '#f1f5f9', padding: '8px 12px', borderRadius: '6px', display: 'block' }}>{newKeyData.apiKey}</code>
+            </div>
+            <p style={{ fontSize: '12px', color: '#ef4444' }}>
+              Copiá esta API Key. No se volverá a mostrar.
+            </p>
+          </div>
         </Modal>
       )}
     </div>
