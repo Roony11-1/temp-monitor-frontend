@@ -87,6 +87,18 @@ export function Camaras() {
       render: (v) => <span className={styles.cellMuted}>{sucursalNombre(v)}</span>,
     },
     {
+      key: 'temperaturaMin',
+      label: 'Rango temp. (°C)',
+      sortable: true,
+      render: (_, row) => {
+        const min = row.temperaturaMin
+        const max = row.temperaturaMax
+        if (min == null && max == null) return <span className={styles.cellMuted}>No asignado</span>
+        if (min != null && max != null) return <span>[{min}, {max}]</span>
+        return <span>{min != null ? min : max}</span>
+      },
+    },
+    {
       key: 'activo',
       label: 'Estado',
       sortable: true,
@@ -130,6 +142,8 @@ export function Camaras() {
         nombre: editing.nombre,
         descripcion: editing.descripcion || '',
         sucursalId: editing.sucursalId,
+        temperaturaMin: editing.temperaturaMin ?? null,
+        temperaturaMax: editing.temperaturaMax ?? null,
       }
     : undefined
 

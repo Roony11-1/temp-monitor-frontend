@@ -31,6 +31,8 @@ export function CamaraEdit() {
     nombre: camara.nombre,
     descripcion: camara.descripcion || '',
     sucursalId: camara.sucursalId,
+    temperaturaMin: camara.temperaturaMin ?? null,
+    temperaturaMax: camara.temperaturaMax ?? null,
   }
 
   return (

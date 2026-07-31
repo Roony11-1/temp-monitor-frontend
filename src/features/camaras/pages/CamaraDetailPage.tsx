@@ -62,6 +62,16 @@ export function CamaraDetail() {
             <p className={styles.fieldValue}>{camara.descripcion || '-'}</p>
           </div>
           <div>
+            <p className={styles.fieldLabel}>Rango temp. (°C)</p>
+            <p className={styles.fieldValue}>
+              {camara.temperaturaMin != null && camara.temperaturaMax != null
+                ? `[${camara.temperaturaMin}, ${camara.temperaturaMax}]`
+                : camara.temperaturaMin != null || camara.temperaturaMax != null
+                  ? (camara.temperaturaMin ?? camara.temperaturaMax)
+                  : 'No asignado'}
+            </p>
+          </div>
+          <div>
             <p className={styles.fieldLabel}>Estado</p>
             <div className={styles.badgeWrapper}>
               <Badge variant={camara.activo ? 'success' : 'danger'}>

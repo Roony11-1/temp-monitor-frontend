@@ -25,6 +25,8 @@ export function CamaraForm({ camara, sucursales, canSelectSucursal, defaultSucur
       nombre: '',
       descripcion: '',
       sucursalId: defaultSucursalId,
+      temperaturaMin: null,
+      temperaturaMax: null,
     },
   })
 
@@ -34,6 +36,8 @@ export function CamaraForm({ camara, sucursales, canSelectSucursal, defaultSucur
         nombre: camara.nombre,
         descripcion: camara.descripcion,
         sucursalId: camara.sucursalId,
+        temperaturaMin: camara.temperaturaMin ?? null,
+        temperaturaMax: camara.temperaturaMax ?? null,
       })
     }
   }, [camara, methods.reset])
@@ -49,6 +53,9 @@ export function CamaraForm({ camara, sucursales, canSelectSucursal, defaultSucur
       toast.error(getApiErrorMessage(err, 'Error al guardar'))
     }
   }
+
+  const validarRangoParcial = (value: number | null, otroExtremo: number | null) =>
+    (value != null) !== (otroExtremo != null) ? 'Indicá ambos extremos o dejá ambos vacíos' : true
 
   const sucursalOptions = sucursales.map((s) => ({ label: s.nombre, value: s.id }))
 
@@ -71,6 +78,30 @@ export function CamaraForm({ camara, sucursales, canSelectSucursal, defaultSucur
         disabled={!canSelectSucursal}
         rules={{ setValueAs: (v: string) => Number(v) }}
       />
+      <div className="grid grid-cols-2 gap-4">
+        <FormInput
+          label="Temperatura mínima (°C)"
+          name="temperaturaMin"
+          type="number"
+          step="0.1"
+          placeholder="Ej: 5"
+          rules={{
+            setValueAs: (v: string) => (v === '' ? null : Number(v)),
+            validate: (v) => validarRangoParcial(v, methods.getValues('temperaturaMax')),
+          }}
+        />
+        <FormInput
+          label="Temperatura máxima (°C)"
+          name="temperaturaMax"
+          type="number"
+          step="0.1"
+          placeholder="Ej: 40"
+          rules={{
+            setValueAs: (v: string) => (v === '' ? null : Number(v)),
+            validate: (v) => validarRangoParcial(v, methods.getValues('temperaturaMin')),
+          }}
+        />
+      </div>
       <div className="flex gap-2 justify-end pt-4">
         {onCancel && (
           <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">

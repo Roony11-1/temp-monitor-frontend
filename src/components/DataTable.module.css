@@ -37,7 +37,7 @@
 }
 
 .headerCell {
-  @apply px-6 py-3 font-medium;
+  @apply px-6 py-3 font-medium text-center;
 }
 
 .headerCellSortable {
@@ -73,7 +73,7 @@
 }
 
 .tableCell {
-  @apply px-6 py-4;
+  @apply px-6 py-4 text-center;
 }
 
 .actionsCell {
