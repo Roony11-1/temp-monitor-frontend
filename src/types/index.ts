@@ -91,6 +91,18 @@ export interface CamaraRequest {
   temperaturaMax: number | null
 }
 
+export interface CamaraTemperatura {
+  promedio: number | null
+  sensoresConDatos: number
+  ultimaLectura: string | null
+}
+
+export interface UltimaLecturaSensor {
+  sensorUuid: string
+  temperatura: number
+  timestamp: string
+}
+
 export interface RegistroSensorRequest {
   macAddress: string
 }

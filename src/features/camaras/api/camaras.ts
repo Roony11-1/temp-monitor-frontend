@@ -1,6 +1,6 @@
 import { api } from '../../../api/axios'
 import { ApiConfig } from '../../../api/ApiConfig'
-import type { Camara, CamaraRequest } from '../../../types'
+import type { Camara, CamaraRequest, CamaraTemperatura, UltimaLecturaSensor } from '../../../types'
 import type { PaginatedResponse } from '../../../types/table'
 
 export async function getCamaras() {
@@ -22,6 +22,16 @@ export async function getCamarasBySucursal(sucursalId: number) {
 
 export async function getCamara(id: number) {
   const res = await api.get<Camara>(ApiConfig.camaras.byId(id))
+  return res.data
+}
+
+export async function getCamaraTemperatura(id: number) {
+  const res = await api.get<CamaraTemperatura>(ApiConfig.camaras.temperatura(id))
+  return res.data
+}
+
+export async function getUltimasLecturas(id: number) {
+  const res = await api.get<UltimaLecturaSensor[]>(ApiConfig.camaras.ultimasLecturas(id))
   return res.data
 }
 

@@ -21,6 +21,8 @@ export const ApiConfig = {
     bySucursal: (sucursalId: number) => `/api/camaras/sucursal/${sucursalId}`,
     activar: (id: number) => `/api/camaras/${id}/activar`,
     desactivar: (id: number) => `/api/camaras/${id}/desactivar`,
+    temperatura: (id: number) => `/api/camaras/${id}/temperatura`,
+    ultimasLecturas: (id: number) => `/api/camaras/${id}/ultimas-lecturas`,
   },
   sensores: {
     list: '/api/sensores',

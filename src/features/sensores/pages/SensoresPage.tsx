@@ -93,7 +93,17 @@ export function Sensores() {
       label: 'Cámara',
       sortable: false,
       filterable: false,
-      render: (_, row) => <span>{row.camara?.nombre ?? '-'}</span>,
+      render: (_, row) =>
+        row.camara ? (
+          <span
+            className="cursor-pointer hover:text-indigo-600 font-medium"
+            onClick={() => navigate(`/camaras/${row.camara!.id}`)}
+          >
+            {row.camara.nombre}
+          </span>
+        ) : (
+          <span className={styles.cellMuted}>-</span>
+        ),
     },
     {
       key: 'empresaNombre',

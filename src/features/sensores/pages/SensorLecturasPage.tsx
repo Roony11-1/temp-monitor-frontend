@@ -13,6 +13,7 @@ import { useSensores, useLecturasSensor, useLecturasSensorPage } from '../hooks/
 import { Card } from '../../../shared/components/ui/Card'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import { DataTable } from '../../../components/DataTable'
+import { timeAgo } from '../../../shared/utils/timeAgo'
 import type { ColumnDef } from '../../../types/table'
 import type { Lectura } from '../../../types'
 import styles from './RegistrarSensorPage.module.css'
@@ -69,15 +70,9 @@ export function SensorLecturas() {
       sortable: true,
       render: (v) => {
         const d = new Date(v)
-        const now = new Date()
-        const diffMs = now.getTime() - d.getTime()
-        const diffMin = Math.floor(diffMs / 60000)
-        const diffHr = Math.floor(diffMs / 3600000)
-        const diffDays = Math.floor(diffMs / 86400000)
-        const relative = diffMin < 1 ? 'Ahora' : diffMin < 60 ? `Hace ${diffMin} min` : diffHr < 24 ? `Hace ${diffHr} h` : `Hace ${diffDays} día${diffDays > 1 ? 's' : ''}`
         return (
           <span className="text-gray-500">
-            {d.toLocaleString('es-CL')} <span className="text-gray-400">({relative})</span>
+            {d.toLocaleString('es-CL')} <span className="text-gray-400">({timeAgo(v)})</span>
           </span>
         )
       },

@@ -1,9 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useCamara } from '../hooks/useCamaras'
+import { useCamara, useCamaraTemperatura, useUltimasLecturas } from '../hooks/useCamaras'
 import { useSensoresByCamara } from '../../sensores/hooks/useSensores'
 import { Card } from '../../../shared/components/ui/Card'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
+import { timeAgo } from '../../../shared/utils/timeAgo'
 import styles from './CamaraDetailPage.module.css'
 
 export function CamaraDetail() {
@@ -11,7 +12,11 @@ export function CamaraDetail() {
   const navigate = useNavigate()
   const camaraId = Number(id)
   const { data: camara, isLoading } = useCamara(camaraId)
+  const { data: temperatura } = useCamaraTemperatura(camaraId)
+  const { data: ultimasLecturas = [] } = useUltimasLecturas(camaraId)
   const { data: sensores = [] } = useSensoresByCamara(camaraId)
+
+  const ultimaMedidaPorSensor = new Map(ultimasLecturas.map((l) => [l.sensorUuid, l]))
 
   if (isLoading) {
     return (
@@ -58,6 +63,20 @@ export function CamaraDetail() {
       <Card>
         <div className={styles.grid}>
           <div>
+            <p className={styles.fieldLabel}>Temperatura medida (°C)</p>
+            <p className={styles.tempValue}>
+              {temperatura?.promedio != null
+                ? `${temperatura.promedio}°`
+                : 'Sin datos'}
+            </p>
+            {temperatura?.promedio != null && (
+              <p className={styles.tempMeta}>
+                promedio de {temperatura.sensoresConDatos}{' '}
+                {temperatura.sensoresConDatos === 1 ? 'sensor' : 'sensores'}
+              </p>
+            )}
+          </div>
+          <div>
             <p className={styles.fieldLabel}>Descripción</p>
             <p className={styles.fieldValue}>{camara.descripcion || '-'}</p>
           </div>
@@ -98,25 +117,46 @@ export function CamaraDetail() {
               <tr className={styles.tableHeaderRow}>
                 <th className={styles.tableHeader}>MAC Address</th>
                 <th className={styles.tableHeader}>UUID</th>
+                <th className={styles.tableHeader}>Última medida</th>
                 <th className={styles.tableHeader}>Estado</th>
                 <th className={styles.tableHeader}>Último Contacto</th>
               </tr>
             </thead>
             <tbody>
-              {sensores.map((s) => (
-                <tr key={s.id} className={styles.tableRow}>
-                  <td className={styles.tableCell}>{s.macAddress}</td>
-                  <td className={styles.tableCell}>
-                    <span className={styles.mono}>{s.uuid}</span>
-                  </td>
-                  <td className={styles.tableCell}>{estadoBadge(s.estado)}</td>
-                  <td className={styles.tableCell}>
-                    {s.ultimoContacto
-                      ? new Date(s.ultimoContacto).toLocaleString()
-                      : '-'}
-                  </td>
-                </tr>
-              ))}
+              {sensores.map((s) => {
+                const ultima = ultimaMedidaPorSensor.get(s.uuid)
+                return (
+                  <tr key={s.id} className={styles.tableRow}>
+                    <td className={styles.tableCell}>
+                      <span
+                        className="cursor-pointer hover:text-indigo-600 font-mono text-xs"
+                        onClick={() => navigate(`/sensores/${s.uuid}/lecturas`)}
+                      >
+                        {s.macAddress}
+                      </span>
+                    </td>
+                    <td className={styles.tableCell}>
+                      <span
+                        className="cursor-pointer hover:text-indigo-600 font-mono text-xs"
+                        onClick={() => navigate(`/sensores/${s.uuid}/lecturas`)}
+                      >
+                        {s.uuid}
+                      </span>
+                    </td>
+                    <td className={styles.tableCell}>
+                      {ultima
+                        ? <span className={styles.mono}>{ultima.temperatura}°C</span>
+                        : '-'}
+                    </td>
+                    <td className={styles.tableCell}>{estadoBadge(s.estado)}</td>
+                    <td className={styles.tableCell}>
+                      {s.ultimoContacto
+                        ? <span className={styles.cellMuted}>{timeAgo(s.ultimoContacto)}</span>
+                        : '-'}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </Card>

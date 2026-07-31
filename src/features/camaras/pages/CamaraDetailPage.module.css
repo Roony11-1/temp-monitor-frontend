@@ -40,6 +40,14 @@
   @apply text-sm text-gray-900 mt-1;
 }
 
+.tempValue {
+  @apply text-3xl font-bold text-gray-900 mt-1;
+}
+
+.tempMeta {
+  @apply text-xs text-gray-500 mt-1;
+}
+
 .section {
 }
 
@@ -85,6 +93,10 @@
 
 .mono {
   @apply font-mono text-xs;
+}
+
+.cellMuted {
+  @apply text-gray-500;
 }
 
 .skeletonSpace {
