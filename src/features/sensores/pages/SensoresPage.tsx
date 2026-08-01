@@ -7,10 +7,11 @@ import { useSucursales } from '../../sucursales/hooks/useSucursales'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
 import { DataTable } from '../../../components/DataTable'
+import { useUrlFilters } from '../../../shared/hooks/useUrlFilters'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
 import { SensorForm } from '../components/SensorForm'
-import type { Sensor, RegistroSensorResponse } from '../../../types'
+import type { SensorSummaryResponse, RegistroSensorResponse } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './SensoresPage.module.css'
 
@@ -18,12 +19,12 @@ export function Sensores() {
   const { isSuperAdmin } = useAuth()
   const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
-  const [editingSensor, setEditingSensor] = useState<Sensor | null>(null)
+  const [editingSensor, setEditingSensor] = useState<SensorSummaryResponse | null>(null)
   const [showKeyModal, setShowKeyModal] = useState(false)
   const [newKeyData, setNewKeyData] = useState<RegistroSensorResponse | null>(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
-  const [filters, setFilters] = useState<Record<string, string>>({})
+  const { filters, setFilters } = useUrlFilters()
 
   const { data: pageData, isLoading } = useSensoresPage(page, pageSize, filters)
   const { data: camaras = [] } = useCamaras()
@@ -39,12 +40,12 @@ export function Sensores() {
     { label: 'Pendiente', value: 'PENDIENTE' },
   ]
 
-  const openEdit = (sensor: Sensor) => {
+  const openEdit = (sensor: SensorSummaryResponse) => {
     setEditingSensor(sensor)
     setShowModal(true)
   }
 
-  const handleRenew = async (sensor: Sensor) => {
+  const handleRenew = async (sensor: SensorSummaryResponse) => {
     try {
       const result = await renewMutation.mutateAsync(sensor.uuid)
       setNewKeyData(result)
@@ -54,7 +55,7 @@ export function Sensores() {
     }
   }
 
-  const columns: ColumnDef<Sensor>[] = [
+  const columns: ColumnDef<SensorSummaryResponse>[] = [
     {
       key: 'macAddress',
       label: 'MAC Address',
@@ -89,17 +90,17 @@ export function Sensores() {
       ),
     },
     {
-      key: 'camara',
+      key: 'camaraNombre',
       label: 'Cámara',
-      sortable: false,
+      sortable: true,
       filterable: false,
-      render: (_, row) =>
-        row.camara ? (
+      render: (v, row) =>
+        row.camaraId ? (
           <span
             className="cursor-pointer hover:text-indigo-600 font-medium"
-            onClick={() => navigate(`/camaras/${row.camara!.id}`)}
+            onClick={() => navigate(`/camaras/${row.camaraId}`)}
           >
-            {row.camara.nombre}
+            {v}
           </span>
         ) : (
           <span className={styles.cellMuted}>-</span>
@@ -153,6 +154,7 @@ export function Sensores() {
         onPageChange={setPage}
         onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
         onFilterChange={setFilters}
+        initialFilters={filters}
         emptyMessage="No hay sensores registrados"
         actions={(sensor) => (
           <div className={styles.actions}>
@@ -179,7 +181,7 @@ export function Sensores() {
         <Modal title="Editar sensor" onClose={() => setShowModal(false)}>
           <SensorForm
             uuid={editingSensor.uuid}
-            defaultValues={{ estado: editingSensor.estado, camaraId: editingSensor.camara?.id ?? null }}
+            defaultValues={{ estado: editingSensor.estado, camaraId: editingSensor.camaraId ?? null }}
             camaras={camaras}
             onSaved={() => setShowModal(false)}
           />

@@ -10,10 +10,10 @@ export function useUsuarios() {
   return useQuery({ queryKey: [queryKey], queryFn: api.getUsuarios })
 }
 
-export function useUsuariosPage(page: number, pageSize: number) {
+export function useUsuariosPage(page: number, pageSize: number, filters?: Record<string, string>) {
   return useQuery<PaginatedResponse<Usuario>>({
-    queryKey: [queryKey, 'page', page, pageSize],
-    queryFn: () => api.getUsuariosPage(page, pageSize),
+    queryKey: [queryKey, 'page', page, pageSize, JSON.stringify(filters ?? {})],
+    queryFn: () => api.getUsuariosPage(page, pageSize, filters),
     placeholderData: (prev) => prev,
   })
 }

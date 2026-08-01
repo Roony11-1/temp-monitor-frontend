@@ -146,6 +146,22 @@ export interface Sensor {
   updatedAt: string | null
 }
 
+export interface SensorSummaryResponse {
+  id: number
+  uuid: string
+  macAddress: string
+  camaraId: number | null
+  camaraNombre: string | null
+  sucursalId: number | null
+  sucursalNombre: string | null
+  empresaId: number | null
+  empresaNombre: string | null
+  ultimoContacto: string | null
+  estado: string
+  createdAt: string
+  updatedAt: string | null
+}
+
 export interface ActualizarSensorRequest {
   estado?: string
   camaraId?: number

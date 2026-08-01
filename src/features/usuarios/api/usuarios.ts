@@ -8,10 +8,18 @@ export async function getUsuarios() {
   return res.data.content
 }
 
-export async function getUsuariosPage(page: number, size: number) {
-  const res = await api.get<PaginatedResponse<Usuario>>(ApiConfig.usuarios.list, {
-    params: { page: page - 1, size },
-  })
+export async function getUsuariosPage(page: number, size: number, filters?: Record<string, string>) {
+  const params: Record<string, any> = { page: page - 1, size }
+  if (filters) {
+    for (const [key, value] of Object.entries(filters)) {
+      const mappedKey =
+        key === 'empresa' ? 'empresa.nombre' :
+        key === 'sucursal' ? 'sucursal.nombre' :
+        key
+      params[mappedKey] = value
+    }
+  }
+  const res = await api.get<PaginatedResponse<Usuario>>(ApiConfig.usuarios.list, { params })
   return res.data
 }
 

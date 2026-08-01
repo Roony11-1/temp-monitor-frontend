@@ -5,6 +5,7 @@ import { useSucursales, useSucursalesByEmpresa, useSucursal } from '../../sucurs
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
 import { DataTable } from '../../../components/DataTable'
+import { useUrlFilters } from '../../../shared/hooks/useUrlFilters'
 import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
@@ -21,13 +22,14 @@ export function Camaras() {
   const [editing, setEditing] = useState<CamaraSummaryResponse | null>(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
+  const { filters, setFilters } = useUrlFilters()
 
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
   const isAdminEmpresa = user?.roles?.includes('ADMIN_EMPRESA')
   const isAdminSucursal = user?.roles?.includes('ADMIN_SUCURSAL')
   const canManage = isSuperAdmin || isAdminEmpresa || isAdminSucursal
 
-  const { data: pageData, isLoading: loadingPage } = useCamarasPage(page, pageSize)
+  const { data: pageData, isLoading: loadingPage } = useCamarasPage(page, pageSize, filters)
   const { data: allCamaras = [] } = useCamaras()
   const { data: camarasBySuc = [], isLoading: loadingBySuc } = useCamarasBySucursal(user?.sucursalId ?? 0)
   const { data: allSucursales = [] } = useSucursales()
@@ -179,6 +181,8 @@ export function Camaras() {
         pagination={isSuperAdmin && pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
         onPageChange={setPage}
         onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
+        onFilterChange={setFilters}
+        initialFilters={filters}
         emptyMessage="No hay cámaras registradas"
         actions={(cam) => (
           <>

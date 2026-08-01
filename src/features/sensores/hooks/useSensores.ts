@@ -1,17 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/sensores'
 import * as lecturasApi from '../api/lecturas'
-import type { Sensor, Lectura, RegistroSensorRequest, AsignarSensorRequest, ActualizarSensorRequest } from '../../../types'
+import type { SensorSummaryResponse, Lectura, RegistroSensorRequest, AsignarSensorRequest, ActualizarSensorRequest } from '../../../types'
 import type { PaginatedResponse } from '../../../types/table'
 
 const queryKey = 'sensores'
 
 export function useSensores() {
-  return useQuery({ queryKey: [queryKey], queryFn: api.getSensores })
+  return useQuery<SensorSummaryResponse[]>({ queryKey: [queryKey], queryFn: api.getSensores })
 }
 
 export function useSensoresPage(page: number, pageSize: number, filters?: Record<string, string>) {
-  return useQuery<PaginatedResponse<Sensor>>({
+  return useQuery<PaginatedResponse<SensorSummaryResponse>>({
     queryKey: [queryKey, 'page', page, pageSize, JSON.stringify(filters ?? {})],
     queryFn: () => api.getSensoresPage(page, pageSize, filters),
     placeholderData: (prev) => prev,

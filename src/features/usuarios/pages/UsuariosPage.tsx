@@ -5,6 +5,7 @@ import { useEmpresas, useEmpresa } from '../../empresas/hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
 import { DataTable } from '../../../components/DataTable'
+import { useUrlFilters } from '../../../shared/hooks/useUrlFilters'
 import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
@@ -21,6 +22,7 @@ export function Usuarios() {
   const [editing, setEditing] = useState<Usuario | null>(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
+  const { filters, setFilters } = useUrlFilters()
 
   const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN')
   const isAdminEmpresa = currentUser?.roles?.includes('ADMIN_EMPRESA')
@@ -32,7 +34,7 @@ export function Usuarios() {
 
   const { data: empresas = [] } = useEmpresas()
   const { data: empresaData } = useEmpresa(!isSuperAdmin && !isAdminEmpresa ? empresaId! : 0)
-  const { data: pageData, isLoading: loadingPage } = useUsuariosPage(page, pageSize)
+  const { data: pageData, isLoading: loadingPage } = useUsuariosPage(page, pageSize, filters)
   const { data: usuariosEmpresa = [], isLoading: loadingEmpresa } = useUsuariosByEmpresa(isAdminEmpresa ? empresaId! : 0)
   const { data: usuariosSucursal = [], isLoading: loadingSucursal } = useUsuariosBySucursal(!isSuperAdmin && !isAdminEmpresa ? sucursalId! : 0)
 
@@ -127,6 +129,8 @@ export function Usuarios() {
         pagination={isSuperAdmin && pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
         onPageChange={setPage}
         onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
+        onFilterChange={setFilters}
+        initialFilters={filters}
         emptyMessage="No hay usuarios registrados"
         actions={(usr) => (
           <>

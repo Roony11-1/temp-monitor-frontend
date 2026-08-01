@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'
 import { useSensores, useRegistrarLecturaSensor } from '../hooks/useSensores'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Form, FormSelect, FormInput, FormButton } from '../../../shared/components/form'
-import type { Sensor } from '../../../types'
+import type { SensorSummaryResponse } from '../../../types'
 import styles from './RegistrarSensorPage.module.css'
 
 type FormValues = { sensorUuid: string; temperatura: string }
@@ -33,8 +33,8 @@ export function SimularLectura() {
     }
   }
 
-  const sensorOptions = sensores.map((s: Sensor) => ({
-    label: `${s.macAddress} — ${s.camara?.nombre ?? 'Sin cámara'} (${s.estado})`,
+  const sensorOptions = sensores.map((s: SensorSummaryResponse) => ({
+    label: `${s.macAddress} — ${s.camaraNombre ?? 'Sin cámara'} (${s.estado})`,
     value: s.uuid,
   }))
 

@@ -12,10 +12,10 @@ export function useCamaras() {
   })
 }
 
-export function useCamarasPage(page: number, pageSize: number) {
+export function useCamarasPage(page: number, pageSize: number, filters?: Record<string, string>) {
   return useQuery<PaginatedResponse<CamaraSummaryResponse>>({
-    queryKey: [queryKey, 'page', page, pageSize],
-    queryFn: () => api.getCamarasPage(page, pageSize),
+    queryKey: [queryKey, 'page', page, pageSize, JSON.stringify(filters ?? {})],
+    queryFn: () => api.getCamarasPage(page, pageSize, filters),
     placeholderData: (prev) => prev,
   })
 }

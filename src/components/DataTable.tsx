@@ -28,6 +28,7 @@ interface DataTableProps<T> {
   onPageChange?: (page: number) => void
   onPageSizeChange?: (size: number) => void
   onFilterChange?: (filters: Record<string, string>) => void
+  initialFilters?: Record<string, string>
 }
 
 const pageSizeOptions = [10, 20, 50, 100]
@@ -104,10 +105,11 @@ export function DataTable<T>({
   onPageChange,
   onPageSizeChange,
   onFilterChange,
+  initialFilters,
 }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([])
-  const [filters, setFilters] = useState<FilterValues>({})
-  const filtersRef = useRef<FilterValues>({})
+  const [filters, setFilters] = useState<FilterValues>(initialFilters ?? {})
+  const filtersRef = useRef<FilterValues>(initialFilters ?? {})
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {

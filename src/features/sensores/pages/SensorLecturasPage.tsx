@@ -97,7 +97,7 @@ export function SensorLecturas() {
         <div>
           <h1 className={styles.title}>Lecturas del Sensor</h1>
           <p className={styles.subtitle}>
-            {sensor!.macAddress} — {sensor!.camara?.nombre ?? 'Sin cámara'}
+            {sensor!.macAddress} — {sensor!.camaraNombre ?? 'Sin cámara'}
           </p>
         </div>
       </div>

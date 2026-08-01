@@ -13,10 +13,10 @@ export function useSucursales() {
   })
 }
 
-export function useSucursalesPage(page: number, pageSize: number) {
+export function useSucursalesPage(page: number, pageSize: number, filters?: Record<string, string>) {
   return useQuery<PaginatedResponse<Sucursal>>({
-    queryKey: [queryKey, 'page', page, pageSize],
-    queryFn: () => api.getSucursalesPage(page, pageSize),
+    queryKey: [queryKey, 'page', page, pageSize, JSON.stringify(filters ?? {})],
+    queryFn: () => api.getSucursalesPage(page, pageSize, filters),
     placeholderData: (prev) => prev,
   })
 }

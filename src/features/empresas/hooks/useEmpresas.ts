@@ -13,10 +13,10 @@ export function useEmpresas() {
   })
 }
 
-export function useEmpresasPage(page: number, pageSize: number) {
+export function useEmpresasPage(page: number, pageSize: number, filters?: Record<string, string>) {
   return useQuery<PaginatedResponse<Empresa>>({
-    queryKey: [queryKey, 'page', page, pageSize],
-    queryFn: () => api.getEmpresasPage(page, pageSize),
+    queryKey: [queryKey, 'page', page, pageSize, JSON.stringify(filters ?? {})],
+    queryFn: () => api.getEmpresasPage(page, pageSize, filters),
     placeholderData: (prev) => prev,
   })
 }

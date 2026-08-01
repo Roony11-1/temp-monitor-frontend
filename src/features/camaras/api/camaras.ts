@@ -8,10 +8,18 @@ export async function getCamaras() {
   return res.data.content
 }
 
-export async function getCamarasPage(page: number, size: number) {
-  const res = await api.get<PaginatedResponse<CamaraSummaryResponse>>(ApiConfig.camaras.list, {
-    params: { page: page - 1, size },
-  })
+export async function getCamarasPage(page: number, size: number, filters?: Record<string, string>) {
+  const params: Record<string, any> = { page: page - 1, size }
+  if (filters) {
+    for (const [key, value] of Object.entries(filters)) {
+      const mappedKey =
+        key === 'sucursal' ? 'sucursal.nombre' :
+        key === 'estado' ? 'activo' :
+        key
+      params[mappedKey] = value
+    }
+  }
+  const res = await api.get<PaginatedResponse<CamaraSummaryResponse>>(ApiConfig.camaras.list, { params })
   return res.data
 }
 
