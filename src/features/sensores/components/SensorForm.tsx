@@ -3,7 +3,7 @@ import { useActualizarSensor } from '../hooks/useSensores'
 import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Form, FormSelect, FormButton } from '../../../shared/components/form'
-import type { Camara } from '../../../types'
+import type { CamaraSummaryResponse } from '../../../types'
 
 interface SensorFormValues {
   estado: string
@@ -13,7 +13,7 @@ interface SensorFormValues {
 interface Props {
   uuid: string
   defaultValues: { estado: string; camaraId: number | null }
-  camaras: Camara[]
+  camaras: CamaraSummaryResponse[]
   onSaved: () => void
 }
 

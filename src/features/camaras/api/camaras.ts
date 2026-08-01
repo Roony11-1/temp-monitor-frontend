@@ -1,15 +1,15 @@
 import { api } from '../../../api/axios'
 import { ApiConfig } from '../../../api/ApiConfig'
-import type { Camara, CamaraRequest, CamaraTemperatura, UltimaLecturaSensor } from '../../../types'
+import type { Camara, CamaraRequest, CamaraSummaryResponse, CamaraTemperatura, UltimaLecturaSensor } from '../../../types'
 import type { PaginatedResponse } from '../../../types/table'
 
 export async function getCamaras() {
-  const res = await api.get<PaginatedResponse<Camara>>(ApiConfig.camaras.list)
+  const res = await api.get<PaginatedResponse<CamaraSummaryResponse>>(ApiConfig.camaras.list)
   return res.data.content
 }
 
 export async function getCamarasPage(page: number, size: number) {
-  const res = await api.get<PaginatedResponse<Camara>>(ApiConfig.camaras.list, {
+  const res = await api.get<PaginatedResponse<CamaraSummaryResponse>>(ApiConfig.camaras.list, {
     params: { page: page - 1, size },
   })
   return res.data

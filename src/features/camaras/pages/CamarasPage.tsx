@@ -10,7 +10,7 @@ import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
 import { CamaraForm } from '../components/CamaraForm'
-import type { Camara } from '../../../types'
+import type { CamaraSummaryResponse } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './CamarasPage.module.css'
 
@@ -18,7 +18,7 @@ export function Camaras() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
-  const [editing, setEditing] = useState<Camara | null>(null)
+  const [editing, setEditing] = useState<CamaraSummaryResponse | null>(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
 
@@ -34,9 +34,11 @@ export function Camaras() {
   const { data: sucursalesByEmp = [] } = useSucursalesByEmpresa(isAdminEmpresa ? user!.empresaId! : 0)
   const { data: singleSucursal } = useSucursal(isAdminSucursal ? user!.sucursalId! : 0)
 
-  let camaras: Camara[] = []
+  let camaras: CamaraSummaryResponse[] = []
   let loading = false
   let sucursales: typeof allSucursales = []
+
+  const sucursalNombre = (id: number) => sucursales.find((s) => s.id === id)?.nombre || '-'
 
   if (isSuperAdmin) {
     camaras = pageData?.content ?? []
@@ -47,18 +49,24 @@ export function Camaras() {
     sucursales = sucursalesByEmp
     loading = loadingBySuc
     if (sucursales.length) {
-      const sucIds = sucursales.map((s) => s.id)
-      camaras = allCamaras.filter((c) => sucIds.includes(c.sucursalId))
+      const sucursalNombres = new Set(sucursales.map((s) => s.nombre))
+      camaras = allCamaras.filter((c) => sucursalNombres.has(c.sucursal))
     }
   } else if (isAdminSucursal) {
-    camaras = camarasBySuc
     sucursales = singleSucursal ? [singleSucursal] : []
+    camaras = camarasBySuc.map((c) => ({
+      id: c.id,
+      nombre: c.nombre,
+      descripcion: c.descripcion,
+      sucursal: sucursalNombre(c.sucursalId),
+      temperaturaMin: c.temperaturaMin,
+      temperaturaMax: c.temperaturaMax,
+      estado: c.activo,
+    }))
     loading = loadingBySuc
   }
 
-  const sucursalNombre = (id: number) => sucursales.find((s) => s.id === id)?.nombre || '-'
-
-  const columns: ColumnDef<Camara>[] = [
+  const columns: ColumnDef<CamaraSummaryResponse>[] = [
     {
       key: 'nombre',
       label: 'Nombre',
@@ -78,13 +86,13 @@ export function Camaras() {
       render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
     },
     {
-      key: 'sucursalId',
+      key: 'sucursal',
       label: 'Sucursal',
       sortable: true,
       filterable: true,
       filterType: 'select',
-      filterOptions: sucursales.map((s) => ({ label: s.nombre, value: String(s.id) })),
-      render: (v) => <span className={styles.cellMuted}>{sucursalNombre(v)}</span>,
+      filterOptions: sucursales.map((s) => ({ label: s.nombre, value: s.nombre })),
+      render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
     },
     {
       key: 'temperaturaMin',
@@ -99,7 +107,7 @@ export function Camaras() {
       },
     },
     {
-      key: 'activo',
+      key: 'estado',
       label: 'Estado',
       sortable: true,
       filterable: true,
@@ -121,7 +129,7 @@ export function Camaras() {
     setShowModal(true)
   }
 
-  const openEdit = (cam: Camara) => {
+  const openEdit = (cam: CamaraSummaryResponse) => {
     setEditing(cam)
     setShowModal(true)
   }
@@ -141,7 +149,7 @@ export function Camaras() {
         id: editing.id,
         nombre: editing.nombre,
         descripcion: editing.descripcion || '',
-        sucursalId: editing.sucursalId,
+        sucursalId: sucursales.find((s) => s.nombre === editing.sucursal)?.id ?? 0,
         temperaturaMin: editing.temperaturaMin ?? null,
         temperaturaMax: editing.temperaturaMax ?? null,
       }

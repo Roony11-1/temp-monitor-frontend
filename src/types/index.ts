@@ -83,6 +83,17 @@ export interface Camara {
   updatedAt: string | null
 }
 
+export interface CamaraSummaryResponse
+{
+  id: number
+  nombre: string
+  descripcion: string | null
+  sucursal: string
+  temperaturaMin: number | null
+  temperaturaMax: number | null
+  estado: boolean
+}
+
 export interface CamaraRequest {
   nombre: string
   descripcion: string

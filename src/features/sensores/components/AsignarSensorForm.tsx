@@ -5,7 +5,7 @@ import { asignarSensor } from '../../sensores/api/sensores'
 import { getCamaras } from '../../camaras/api/camaras'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Form, FormSelect, FormButton } from '../../../shared/components/form'
-import type { Sensor, Camara } from '../../../types'
+import type { Sensor, CamaraSummaryResponse } from '../../../types'
 
 interface Props {
   uuid: string
@@ -18,7 +18,7 @@ interface FormValues {
 }
 
 export function AsignarSensorForm({ uuid, apiKey, onSuccess }: Props) {
-  const [camaras, setCamaras] = useState<Camara[]>([])
+  const [camaras, setCamaras] = useState<CamaraSummaryResponse[]>([])
   const methods = useForm<FormValues>()
 
   useEffect(() => {
