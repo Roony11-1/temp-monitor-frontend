@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useUsuariosByEmpresa, useUsuariosBySucursal, useDeleteUsuario, useUsuariosPage } from '../hooks/useUsuarios'
+import { useUsuariosByEmpresa, useUsuariosBySucursal, useDeleteUsuario, useUsuariosPage, useUsuario } from '../hooks/useUsuarios'
 import { useEmpresas, useEmpresa } from '../../empresas/hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
@@ -11,7 +11,7 @@ import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
 import { UsuarioForm } from '../components/UsuarioForm'
-import type { Usuario } from '../../../types'
+import type { UsuarioSummaryResponse } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './UsuariosPage.module.css'
 
@@ -19,7 +19,7 @@ export function Usuarios() {
   const { user: currentUser } = useAuth()
   const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
-  const [editing, setEditing] = useState<Usuario | null>(null)
+  const [editing, setEditing] = useState<UsuarioSummaryResponse | null>(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const { filters, setFilters } = useUrlFilters()
@@ -37,8 +37,9 @@ export function Usuarios() {
   const { data: pageData, isLoading: loadingPage } = useUsuariosPage(page, pageSize, filters)
   const { data: usuariosEmpresa = [], isLoading: loadingEmpresa } = useUsuariosByEmpresa(isAdminEmpresa ? empresaId! : 0)
   const { data: usuariosSucursal = [], isLoading: loadingSucursal } = useUsuariosBySucursal(!isSuperAdmin && !isAdminEmpresa ? sucursalId! : 0)
+  const { data: editingDetail } = useUsuario(editing?.id ?? 0)
 
-  const usuarios = isSuperAdmin ? (pageData?.content ?? []) : isAdminEmpresa ? usuariosEmpresa : usuariosSucursal
+  const usuarios: UsuarioSummaryResponse[] = isSuperAdmin ? (pageData?.content ?? []) : isAdminEmpresa ? usuariosEmpresa : usuariosSucursal
   const loading = isSuperAdmin ? loadingPage : isAdminEmpresa ? loadingEmpresa : loadingSucursal
 
   const filteredEmpresas = isSuperAdmin
@@ -56,7 +57,7 @@ export function Usuarios() {
     setShowModal(true)
   }
 
-  const openEdit = (usr: Usuario) => {
+  const openEdit = (usr: UsuarioSummaryResponse) => {
     setEditing(usr)
     setShowModal(true)
   }
@@ -71,7 +72,7 @@ export function Usuarios() {
     }
   }
 
-  const columns: ColumnDef<Usuario>[] = [
+  const columns: ColumnDef<UsuarioSummaryResponse>[] = [
     {
       key: 'email',
       label: 'Email',
@@ -83,9 +84,35 @@ export function Usuarios() {
         </span>
       ),
     },
-    { key: 'nombre', label: 'Nombre', sortable: true, filterable: true },
-    { key: 'empresa', label: 'Empresa', sortable: true, filterable: true, render: (v) => v || '-' },
-    { key: 'sucursal', label: 'Sucursal', sortable: true, filterable: true, render: (v) => v || '-' },
+    { key: 'nombre', label: 'Nombre', sortable: true, filterable: true, render: (v) => <span className={styles.cellMuted}>{v || '-'}</span> },
+    {
+      key: 'empresa',
+      label: 'Empresa',
+      sortable: true,
+      filterable: true,
+      render: (v, row) =>
+        row.empresaId ? (
+          <span className="cursor-pointer hover:text-indigo-600 font-medium" onClick={() => navigate(`/empresas/${row.empresaId}`)}>
+            {v || '-'}
+          </span>
+        ) : (
+          <span className={styles.cellMuted}>{v || '-'}</span>
+        ),
+    },
+    {
+      key: 'sucursal',
+      label: 'Sucursal',
+      sortable: true,
+      filterable: true,
+      render: (v, row) =>
+        row.sucursalId ? (
+          <span className="cursor-pointer hover:text-indigo-600 font-medium" onClick={() => navigate(`/sucursales/${row.sucursalId}`)}>
+            {v || '-'}
+          </span>
+        ) : (
+          <span className={styles.cellMuted}>{v || '-'}</span>
+        ),
+    },
     {
       key: 'activo',
       label: 'Estado',
@@ -96,15 +123,15 @@ export function Usuarios() {
     },
   ]
 
-  const editingUsuarioData = editing
+  const editingUsuarioData = editingDetail
     ? {
-        id: editing.id,
-        email: editing.email,
-        nombre: editing.nombre || '',
-        telefono: editing.telefono || '',
-        empresaId: editing.empresaId,
-        sucursalId: editing.sucursalId,
-        roles: editing.roles,
+        id: editingDetail.id,
+        email: editingDetail.email,
+        nombre: editingDetail.nombre || '',
+        telefono: editingDetail.telefono || '',
+        empresaId: editingDetail.empresaId,
+        sucursalId: editingDetail.sucursalId,
+        roles: editingDetail.roles,
       }
     : undefined
 
@@ -123,7 +150,7 @@ export function Usuarios() {
 
       <DataTable
         data={usuarios}
-        columns={columns as ColumnDef<Usuario>[]}
+        columns={columns as ColumnDef<UsuarioSummaryResponse>[]}
         loading={loading}
         rowKey={(u) => u.id}
         pagination={isSuperAdmin && pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}

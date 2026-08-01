@@ -1,17 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/usuarios'
-import type { UsuarioRequest } from '../../../types'
+import type { UsuarioRequest, UsuarioSummaryResponse } from '../../../types'
 import type { PaginatedResponse } from '../../../types/table'
-import type { Usuario } from '../../../types'
 
 const queryKey = 'usuarios'
 
 export function useUsuarios() {
-  return useQuery({ queryKey: [queryKey], queryFn: api.getUsuarios })
+  return useQuery<UsuarioSummaryResponse[]>({ queryKey: [queryKey], queryFn: api.getUsuarios })
 }
 
 export function useUsuariosPage(page: number, pageSize: number, filters?: Record<string, string>) {
-  return useQuery<PaginatedResponse<Usuario>>({
+  return useQuery<PaginatedResponse<UsuarioSummaryResponse>>({
     queryKey: [queryKey, 'page', page, pageSize, JSON.stringify(filters ?? {})],
     queryFn: () => api.getUsuariosPage(page, pageSize, filters),
     placeholderData: (prev) => prev,

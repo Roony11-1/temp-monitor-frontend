@@ -34,6 +34,11 @@ export async function getSensoresByCamara(camaraId: number) {
   return res.data
 }
 
+export async function getSensor(uuid: string) {
+  const res = await api.get<Sensor>(ApiConfig.sensores.byUuid(uuid))
+  return res.data
+}
+
 export async function actualizarSensor(uuid: string, data: ActualizarSensorRequest) {
   const res = await api.put<Sensor>(ApiConfig.sensores.byUuid(uuid), data)
   return res.data

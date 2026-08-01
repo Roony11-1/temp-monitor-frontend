@@ -92,7 +92,17 @@ export function Sucursales() {
       filterType: 'select',
       filterOptions: filteredEmpresas.map((e) => ({ label: e.nombre, value: e.nombre })),
       getValue: (row) => empresaNombre(row.empresaId),
-      render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
+      render: (v, row) =>
+        row.empresaId ? (
+          <span
+            className="cursor-pointer hover:text-indigo-600 font-medium"
+            onClick={() => navigate(`/empresas/${row.empresaId}`)}
+          >
+            {v || '-'}
+          </span>
+        ) : (
+          <span className={styles.cellMuted}>{v || '-'}</span>
+        ),
     },
     {
       key: 'activo',

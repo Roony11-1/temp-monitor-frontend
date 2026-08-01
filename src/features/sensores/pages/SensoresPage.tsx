@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useSensoresPage, useRenewApiKey } from '../hooks/useSensores'
+import { useSensoresPage, useRenewApiKey, useSensor } from '../hooks/useSensores'
 import { useCamaras } from '../../camaras/hooks/useCamaras'
 import { useEmpresas } from '../../empresas/hooks/useEmpresas'
 import { useSucursales } from '../../sucursales/hooks/useSucursales'
@@ -33,6 +33,9 @@ export function Sensores() {
   const renewMutation = useRenewApiKey()
 
   const sensores = pageData?.content ?? []
+
+  const editingUuid = editingSensor?.uuid ?? ''
+  const { data: editingDetail } = useSensor(editingUuid)
 
   const estadoOptions = [
     { label: 'Activo', value: 'ACTIVO' },
@@ -72,7 +75,7 @@ export function Sensores() {
       label: 'UUID',
       sortable: true,
       filterable: true,
-      render: (v) => <span className={styles.mono}>{v}</span>,
+      render: (v) => <span className={`${styles.mono} ${styles.cellMuted}`}>{v}</span>,
     },
     {
       key: 'estado',
@@ -103,7 +106,7 @@ export function Sensores() {
             {v}
           </span>
         ) : (
-          <span className={styles.cellMuted}>-</span>
+          <span className={styles.cellMuted}>{v || '-'}</span>
         ),
     },
     {
@@ -113,7 +116,17 @@ export function Sensores() {
       filterable: true,
       filterType: 'select',
       filterOptions: empresas.map((e) => ({ label: e.nombre, value: e.nombre })),
-      render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
+      render: (v, row) =>
+        row.empresaId ? (
+          <span
+            className="cursor-pointer hover:text-indigo-600 font-medium"
+            onClick={() => navigate(`/empresas/${row.empresaId}`)}
+          >
+            {v}
+          </span>
+        ) : (
+          <span className={styles.cellMuted}>{v || '-'}</span>
+        ),
     },
     {
       key: 'sucursalNombre',
@@ -122,7 +135,17 @@ export function Sensores() {
       filterable: true,
       filterType: 'select',
       filterOptions: sucursales.map((s) => ({ label: s.nombre, value: s.nombre })),
-      render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
+      render: (v, row) =>
+        row.sucursalId ? (
+          <span
+            className="cursor-pointer hover:text-indigo-600 font-medium"
+            onClick={() => navigate(`/sucursales/${row.sucursalId}`)}
+          >
+            {v}
+          </span>
+        ) : (
+          <span className={styles.cellMuted}>{v || '-'}</span>
+        ),
     },
   ]
 
@@ -181,7 +204,10 @@ export function Sensores() {
         <Modal title="Editar sensor" onClose={() => setShowModal(false)}>
           <SensorForm
             uuid={editingSensor.uuid}
-            defaultValues={{ estado: editingSensor.estado, camaraId: editingSensor.camaraId ?? null }}
+            defaultValues={{
+              estado: editingDetail?.estado ?? editingSensor.estado,
+              camaraId: editingDetail?.camara?.id ?? null,
+            }}
             camaras={camaras}
             onSaved={() => setShowModal(false)}
           />

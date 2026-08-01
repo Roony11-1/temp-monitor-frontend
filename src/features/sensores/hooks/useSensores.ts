@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/sensores'
 import * as lecturasApi from '../api/lecturas'
-import type { SensorSummaryResponse, Lectura, RegistroSensorRequest, AsignarSensorRequest, ActualizarSensorRequest } from '../../../types'
+import type { SensorSummaryResponse, Sensor, Lectura, RegistroSensorRequest, AsignarSensorRequest, ActualizarSensorRequest } from '../../../types'
 import type { PaginatedResponse } from '../../../types/table'
 
 const queryKey = 'sensores'
@@ -23,6 +23,14 @@ export function useSensoresByCamara(camaraId: number) {
     queryKey: [queryKey, 'camara', camaraId],
     queryFn: () => api.getSensoresByCamara(camaraId),
     enabled: !!camaraId,
+  })
+}
+
+export function useSensor(uuid: string) {
+  return useQuery<Sensor>({
+    queryKey: [queryKey, uuid],
+    queryFn: () => api.getSensor(uuid),
+    enabled: !!uuid,
   })
 }
 

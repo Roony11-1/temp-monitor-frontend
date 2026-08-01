@@ -71,6 +71,19 @@ export interface UsuarioRequest {
   roles: Rol[]
 }
 
+export interface UsuarioSummaryResponse {
+  id: number
+  email: string
+  nombre: string | null
+  telefono: string | null
+  empresa: string | null
+  empresaId: number | null
+  sucursal: string | null
+  sucursalId: number | null
+  roles: Rol[]
+  activo: boolean
+}
+
 export interface Camara {
   id: number
   nombre: string
@@ -88,6 +101,7 @@ export interface CamaraSummaryResponse
   id: number
   nombre: string
   descripcion: string | null
+  sucursalId: number
   sucursal: string
   temperaturaMin: number | null
   temperaturaMax: number | null
@@ -156,10 +170,7 @@ export interface SensorSummaryResponse {
   sucursalNombre: string | null
   empresaId: number | null
   empresaNombre: string | null
-  ultimoContacto: string | null
   estado: string
-  createdAt: string
-  updatedAt: string | null
 }
 
 export interface ActualizarSensorRequest {

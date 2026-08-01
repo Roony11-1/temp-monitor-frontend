@@ -60,6 +60,7 @@ export function Camaras() {
       id: c.id,
       nombre: c.nombre,
       descripcion: c.descripcion,
+      sucursalId: c.sucursalId,
       sucursal: sucursalNombre(c.sucursalId),
       temperaturaMin: c.temperaturaMin,
       temperaturaMax: c.temperaturaMax,
@@ -94,7 +95,11 @@ export function Camaras() {
       filterable: true,
       filterType: 'select',
       filterOptions: sucursales.map((s) => ({ label: s.nombre, value: s.nombre })),
-      render: (v) => <span className={styles.cellMuted}>{v || '-'}</span>,
+      render: (v, row) => (
+        <span className="cursor-pointer hover:text-indigo-600 font-medium" onClick={() => navigate(`/sucursales/${row.sucursalId}`)}>
+          {v || '-'}
+        </span>
+      ),
     },
     {
       key: 'temperaturaMin',
