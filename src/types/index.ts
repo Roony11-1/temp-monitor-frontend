@@ -39,6 +39,16 @@ export interface Sucursal {
   updatedAt: string | null
 }
 
+export interface SucursalSummaryResponse {
+  id: number
+  nombre: string
+  direccion: string | null
+  telefono: string | null
+  empresa: string
+  empresaId: number
+  activo: boolean
+}
+
 export interface SucursalRequest {
   nombre: string
   direccion: string

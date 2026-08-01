@@ -11,7 +11,7 @@ import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
 import { SucursalForm } from '../components/SucursalForm'
-import type { Sucursal } from '../../../types'
+import type { Sucursal, SucursalSummaryResponse } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './SucursalesPage.module.css'
 
@@ -19,7 +19,7 @@ export function Sucursales() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
-  const [editing, setEditing] = useState<Sucursal | null>(null)
+  const [editing, setEditing] = useState<Sucursal | SucursalSummaryResponse | null>(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const { filters, setFilters } = useUrlFilters()
@@ -35,7 +35,7 @@ export function Sucursales() {
   const { data: empresas = [] } = useEmpresas()
   const { data: singleEmpresa } = useEmpresa(!isSuperAdmin && !isAdminEmpresa && user?.empresaId ? user.empresaId : 0)
 
-  let sucursales: Sucursal[] = []
+  let sucursales: Array<Sucursal | SucursalSummaryResponse> = []
   let loading = false
   if (isSuperAdmin) {
     sucursales = pageData?.content ?? []
@@ -58,7 +58,7 @@ export function Sucursales() {
 
   const empresaNombre = (id: number) => filteredEmpresas.find((e) => e.id === id)?.nombre || '-'
 
-  const columns: ColumnDef<Sucursal>[] = [
+  const columns: ColumnDef<Sucursal | SucursalSummaryResponse>[] = [
     {
       key: 'nombre',
       label: 'Nombre',
@@ -127,7 +127,7 @@ export function Sucursales() {
     setShowModal(true)
   }
 
-  const openEdit = (suc: Sucursal) => {
+  const openEdit = (suc: Sucursal | SucursalSummaryResponse) => {
     setEditing(suc)
     setShowModal(true)
   }

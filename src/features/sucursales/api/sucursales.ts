@@ -1,6 +1,6 @@
 import { api } from '../../../api/axios'
 import { ApiConfig } from '../../../api/ApiConfig'
-import type { Sucursal, SucursalRequest } from '../../../types'
+import type { Sucursal, SucursalRequest, SucursalSummaryResponse } from '../../../types'
 import type { PaginatedResponse } from '../../../types/table'
 
 export async function getSucursales() {
@@ -21,7 +21,7 @@ export async function getSucursalesPage(page: number, size: number, filters?: Re
 }
 
 export async function getSucursalesByEmpresa(empresaId: number) {
-  const res = await api.get<Sucursal[]>(ApiConfig.sucursales.byEmpresa(empresaId))
+  const res = await api.get<SucursalSummaryResponse[]>(ApiConfig.sucursales.byEmpresa(empresaId))
   return res.data
 }
 

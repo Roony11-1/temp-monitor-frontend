@@ -24,12 +24,12 @@ export async function getUsuariosPage(page: number, size: number, filters?: Reco
 }
 
 export async function getUsuariosByEmpresa(empresaId: number) {
-  const res = await api.get<Usuario[]>(ApiConfig.usuarios.byEmpresa(empresaId))
+  const res = await api.get<UsuarioSummaryResponse[]>(ApiConfig.usuarios.byEmpresa(empresaId))
   return res.data
 }
 
 export async function getUsuariosBySucursal(sucursalId: number) {
-  const res = await api.get<Usuario[]>(ApiConfig.usuarios.bySucursal(sucursalId))
+  const res = await api.get<UsuarioSummaryResponse[]>(ApiConfig.usuarios.bySucursal(sucursalId))
   return res.data
 }
 

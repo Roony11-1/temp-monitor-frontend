@@ -4,11 +4,11 @@ import { useCreateCamara, useUpdateCamara } from '../../camaras/hooks/useCamaras
 import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Form, FormInput, FormSelect, FormButton } from '../../../shared/components/form'
-import type { CamaraRequest, Sucursal } from '../../../types'
+import type { CamaraRequest, Sucursal, SucursalSummaryResponse } from '../../../types'
 
 interface Props {
   camara?: { id: number } & CamaraRequest
-  sucursales: Sucursal[]
+  sucursales: Array<Sucursal | SucursalSummaryResponse>
   canSelectSucursal: boolean
   defaultSucursalId: number
   onSaved: () => void

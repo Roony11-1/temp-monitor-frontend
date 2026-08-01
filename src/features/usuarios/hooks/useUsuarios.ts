@@ -18,7 +18,7 @@ export function useUsuariosPage(page: number, pageSize: number, filters?: Record
 }
 
 export function useUsuariosByEmpresa(empresaId: number) {
-  return useQuery({
+  return useQuery<UsuarioSummaryResponse[]>({
     queryKey: [queryKey, 'empresa', empresaId],
     queryFn: () => api.getUsuariosByEmpresa(empresaId),
     enabled: !!empresaId,
@@ -26,7 +26,7 @@ export function useUsuariosByEmpresa(empresaId: number) {
 }
 
 export function useUsuariosBySucursal(sucursalId: number) {
-  return useQuery({
+  return useQuery<UsuarioSummaryResponse[]>({
     queryKey: [queryKey, 'sucursal', sucursalId],
     queryFn: () => api.getUsuariosBySucursal(sucursalId),
     enabled: !!sucursalId,

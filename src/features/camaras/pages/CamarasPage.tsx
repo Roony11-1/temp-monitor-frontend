@@ -11,7 +11,7 @@ import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
 import { CamaraForm } from '../components/CamaraForm'
-import type { CamaraSummaryResponse } from '../../../types'
+import type { CamaraSummaryResponse, Sucursal, SucursalSummaryResponse } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './CamarasPage.module.css'
 
@@ -38,7 +38,7 @@ export function Camaras() {
 
   let camaras: CamaraSummaryResponse[] = []
   let loading = false
-  let sucursales: typeof allSucursales = []
+  let sucursales: Array<Sucursal | SucursalSummaryResponse> = []
 
   const sucursalNombre = (id: number) => sucursales.find((s) => s.id === id)?.nombre || '-'
 

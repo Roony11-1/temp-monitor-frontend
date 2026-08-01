@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/sucursales'
-import type { SucursalRequest } from '../../../types'
+import type { SucursalRequest, SucursalSummaryResponse } from '../../../types'
 import type { PaginatedResponse } from '../../../types/table'
 import type { Sucursal } from '../../../types'
 
@@ -22,7 +22,7 @@ export function useSucursalesPage(page: number, pageSize: number, filters?: Reco
 }
 
 export function useSucursalesByEmpresa(empresaId: number) {
-  return useQuery({
+  return useQuery<SucursalSummaryResponse[]>({
     queryKey: [queryKey, 'empresa', empresaId],
     queryFn: () => api.getSucursalesByEmpresa(empresaId),
     enabled: !!empresaId,
