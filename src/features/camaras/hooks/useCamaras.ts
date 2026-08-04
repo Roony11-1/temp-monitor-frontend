@@ -54,6 +54,15 @@ export function useUltimasLecturas(id: number) {
   })
 }
 
+export function useCamaraLecturas(id: number, since?: number) {
+  return useQuery({
+    queryKey: [queryKey, id, 'lecturas', ...(since ? [since] : [])],
+    queryFn: () => api.getCamaraLecturas(id, since),
+    enabled: !!id,
+    refetchInterval: 5 * 60_000,
+  })
+}
+
 export function useCreateCamara() {
   const qc = useQueryClient()
   return useMutation({

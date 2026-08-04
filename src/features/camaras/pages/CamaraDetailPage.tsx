@@ -1,5 +1,15 @@
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useCamara, useCamaraTemperatura, useUltimasLecturas } from '../hooks/useCamaras'
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from 'recharts'
+import { useCamara, useUltimasLecturas, useCamaraLecturas } from '../hooks/useCamaras'
 import { useSensoresByCamara } from '../../sensores/hooks/useSensores'
 import { Card } from '../../../shared/components/ui/Card'
 import { Badge } from '../../../shared/components/ui/Badge'
@@ -7,16 +17,47 @@ import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import { timeAgo } from '../../../shared/utils/timeAgo'
 import styles from './CamaraDetailPage.module.css'
 
+const CADENCIA_MUESTRA_MS = 330_000
+
 export function CamaraDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const camaraId = Number(id)
   const { data: camara, isLoading, isError } = useCamara(camaraId)
-  const { data: temperatura } = useCamaraTemperatura(camaraId)
   const { data: ultimasLecturas = [] } = useUltimasLecturas(camaraId)
   const { data: sensores = [] } = useSensoresByCamara(camaraId)
+  const [chartRange, setChartRange] = useState<'24h' | '7d' | '30d' | 'all'>('7d')
+  const [since, setSince] = useState<number | undefined>(() => Date.now() - 604800000)
+  const { data: lecturas = [] } = useCamaraLecturas(camaraId, since)
+  const [ahora, setAhora] = useState(() => Date.now())
+  const [siguienteAt, setSiguienteAt] = useState<number | null>(null)
+
+  useEffect(() => {
+    const t = setInterval(() => setAhora(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [])
+
+  useEffect(() => {
+    if (lecturas.length > 0) {
+      setSiguienteAt(new Date(lecturas[lecturas.length - 1].timestamp).getTime() + CADENCIA_MUESTRA_MS)
+    }
+  }, [lecturas])
+
+  const ultimaMuestra = lecturas.length > 0 ? lecturas[lecturas.length - 1] : null
+  const faltaSeg = siguienteAt ? Math.max(0, Math.ceil((siguienteAt - ahora) / 1000)) : null
+  const mm = faltaSeg != null ? Math.floor(faltaSeg / 60) : null
+  const ss = faltaSeg != null ? faltaSeg % 60 : null
+  const esperandoSiguiente = siguienteAt == null || (siguienteAt - ahora) <= 0
 
   const ultimaMedidaPorSensor = new Map(ultimasLecturas.map((l) => [l.sensorUuid, l]))
+
+  const fmtHora = (ts: string) =>
+    new Date(ts).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+
+  const chartData = lecturas.map((l) => ({
+    hora: fmtHora(l.timestamp),
+    temperatura: l.promedio,
+  }))
 
   if (isLoading) {
     return (
@@ -86,16 +127,26 @@ export function CamaraDetail() {
           <div>
             <p className={styles.fieldLabel}>Temperatura medida (°C)</p>
             <p className={styles.tempValue}>
-              {temperatura?.promedio != null
-                ? `${temperatura.promedio}°`
-                : 'Sin datos'}
+              {ultimaMuestra
+                ? `${Math.round(ultimaMuestra.promedio * 10) / 10}°`
+                : 'Tomando lecturas'}
             </p>
-            {temperatura?.promedio != null && (
+            {ultimaMuestra && (
               <p className={styles.tempMeta}>
-                promedio de {temperatura.sensoresConDatos}{' '}
-                {temperatura.sensoresConDatos === 1 ? 'sensor' : 'sensores'}
+                promedio de {ultimaMuestra.sensores}{' '}
+                {ultimaMuestra.sensores === 1 ? 'sensor' : 'sensores'}
               </p>
             )}
+            <p className={styles.tempMeta}>
+              {esperandoSiguiente ? (
+                <>
+                  <span className={styles.spinner} />
+                  Tomando lecturas…
+                </>
+              ) : (
+                `Próxima muestra en ${mm}:${String(ss).padStart(2, '0')}`
+              )}
+            </p>
           </div>
           <div>
             <p className={styles.fieldLabel}>Descripción</p>
@@ -120,6 +171,51 @@ export function CamaraDetail() {
             </div>
           </div>
         </div>
+      </Card>
+
+      <Card>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-gray-700">Temperatura (promedio)</h3>
+          <div className="flex gap-1">
+            {(['24h', '7d', '30d', 'all'] as const).map((r) => (
+              <button
+                key={r}
+                onClick={() => {
+                  setChartRange(r)
+                  setSince(r === 'all' ? undefined : Date.now() - (r === '24h' ? 86400000 : r === '7d' ? 604800000 : 2592000000))
+                }}
+                className={`px-2 py-1 text-xs rounded transition-colors ${
+                  chartRange === r
+                    ? 'bg-indigo-100 text-indigo-700 font-medium'
+                    : 'text-gray-500 hover:bg-gray-100'
+                }`}
+              >
+                {r === 'all' ? 'Todo' : r}
+              </button>
+            ))}
+          </div>
+        </div>
+        {chartData.length > 0 ? (
+          <div style={{ height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="camTempGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="hora" tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} angle={-20} textAnchor="end" height={50} interval={Math.max(1, Math.floor(chartData.length / 12))} />
+                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} domain={['dataMin - 1', 'dataMax + 1']} />
+                <Tooltip formatter={(value) => [`${value}°C`, 'Promedio']} />
+                <Area type="monotone" dataKey="temperatura" stroke="#6366f1" strokeWidth={2} fill="url(#camTempGradient)" dot={false} activeDot={{ r: 4, fill: '#6366f1' }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="text-sm text-gray-400 py-8 text-center">No hay muestras en este rango</div>
+        )}
       </Card>
 
       <div className={styles.sectionHeader}>

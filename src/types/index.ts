@@ -195,6 +195,12 @@ export interface Lectura {
   timestamp: string
 }
 
+export interface CamaraLectura {
+  timestamp: string
+  promedio: number
+  sensores: number
+}
+
 export interface AuthUser {
   id: number
   email: string

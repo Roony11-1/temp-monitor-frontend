@@ -48,6 +48,17 @@
   @apply text-xs text-gray-500 mt-1;
 }
 
+.spinner {
+  @apply inline-block w-4 h-4 align-text-bottom rounded-full border-2 border-indigo-200 border-t-indigo-600 mr-1.5;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .section {
 }
 

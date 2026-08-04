@@ -23,6 +23,7 @@ export const ApiConfig = {
     desactivar: (id: number) => `/api/camaras/${id}/desactivar`,
     temperatura: (id: number) => `/api/camaras/${id}/temperatura`,
     ultimasLecturas: (id: number) => `/api/camaras/${id}/ultimas-lecturas`,
+    lecturas: (id: number) => `/api/camaras/${id}/lecturas`,
   },
   sensores: {
     list: '/api/sensores',
