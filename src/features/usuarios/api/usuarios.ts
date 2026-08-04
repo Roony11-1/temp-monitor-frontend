@@ -12,11 +12,7 @@ export async function getUsuariosPage(page: number, size: number, filters?: Reco
   const params: Record<string, any> = { page: page - 1, size }
   if (filters) {
     for (const [key, value] of Object.entries(filters)) {
-      const mappedKey =
-        key === 'empresa' ? 'empresa.nombre' :
-        key === 'sucursal' ? 'sucursal.nombre' :
-        key
-      params[mappedKey] = value
+      params[key] = value
     }
   }
   const res = await api.get<PaginatedResponse<UsuarioSummaryResponse>>(ApiConfig.usuarios.list, { params })

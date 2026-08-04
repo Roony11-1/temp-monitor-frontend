@@ -12,8 +12,7 @@ export async function getSucursalesPage(page: number, size: number, filters?: Re
   const params: Record<string, any> = { page: page - 1, size }
   if (filters) {
     for (const [key, value] of Object.entries(filters)) {
-      const mappedKey = key === 'empresa' ? 'empresa.nombre' : key
-      params[mappedKey] = value
+      params[key] = value
     }
   }
   const res = await api.get<PaginatedResponse<Sucursal>>(ApiConfig.sucursales.list, { params })

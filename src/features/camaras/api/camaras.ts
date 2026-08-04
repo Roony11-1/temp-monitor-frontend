@@ -12,11 +12,7 @@ export async function getCamarasPage(page: number, size: number, filters?: Recor
   const params: Record<string, any> = { page: page - 1, size }
   if (filters) {
     for (const [key, value] of Object.entries(filters)) {
-      const mappedKey =
-        key === 'sucursal' ? 'sucursal.nombre' :
-        key === 'estado' ? 'activo' :
-        key
-      params[mappedKey] = value
+      params[key] = value
     }
   }
   const res = await api.get<PaginatedResponse<CamaraSummaryResponse>>(ApiConfig.camaras.list, { params })
