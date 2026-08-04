@@ -9,7 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts'
-import { useSensores, useLecturasSensor, useLecturasSensorPage } from '../hooks/useSensores'
+import { useSensor, useLecturasSensor, useLecturasSensorPage } from '../hooks/useSensores'
 import { Card } from '../../../shared/components/ui/Card'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import { DataTable } from '../../../components/DataTable'
@@ -31,17 +31,33 @@ export function SensorLecturas() {
   const [chartRange, setChartRange] = useState<'24h' | '7d' | '30d' | 'all'>('7d')
   const [since, setSince] = useState<number | undefined>(() => Date.now() - 604800000)
 
-  const { data: sensores = [], isLoading: loadingSens } = useSensores()
+  const { data: sensor, isLoading: loadingSensor, isError: errorSensor } = useSensor(uuid ?? '')
   const { data: allLecturas = [], isLoading: loadingAllLect } = useLecturasSensor(uuid ?? '', since)
   const { data: pageData, isLoading: loadingPage } = useLecturasSensorPage(uuid ?? '', page, pageSize, since)
 
-  const loading = loadingSens || loadingAllLect || loadingPage
-  const sensor = sensores.find((x) => x.uuid === uuid)
+  const loading = loadingSensor || loadingAllLect || loadingPage
   const lecturas = pageData?.content ?? []
 
-  if (!loading && !sensor) {
-    navigate('/sensores')
-    return null
+  if (errorSensor) {
+    return (
+      <div className={styles.page}>
+        <div className="flex items-center gap-4 mb-4">
+          <button
+            onClick={() => navigate('/sensores')}
+            className="text-sm text-gray-500 hover:text-gray-700"
+          >
+            &larr; Volver
+          </button>
+          <div>
+            <h1 className={styles.title}>Sensor no encontrado</h1>
+            <p className={styles.subtitle}>No se pudo cargar el sensor o no tiene acceso a él.</p>
+          </div>
+        </div>
+        <Card>
+          <p className="py-8 text-center text-sm text-gray-500">El sensor no existe o no está disponible en tu ámbito de acceso.</p>
+        </Card>
+      </div>
+    )
   }
 
   if (loading) {
@@ -97,7 +113,7 @@ export function SensorLecturas() {
         <div>
           <h1 className={styles.title}>Lecturas del Sensor</h1>
           <p className={styles.subtitle}>
-            {sensor!.macAddress} — {sensor!.camaraNombre ?? 'Sin cámara'}
+            {sensor!.macAddress} — {sensor!.camara?.nombre ?? 'Sin cámara'}
           </p>
         </div>
       </div>
