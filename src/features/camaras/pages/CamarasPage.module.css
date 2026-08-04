@@ -26,3 +26,22 @@
 .badgeCenter {
   @apply flex justify-center;
 }
+
+.tempActual {
+  @apply inline-flex items-center gap-2;
+}
+
+.spinner {
+  @apply inline-block w-3.5 h-3.5 rounded-full border-2 border-indigo-200 border-t-indigo-600;
+  animation: spin 1s linear infinite;
+}
+
+.emptyValue {
+  @apply text-gray-400;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -168,7 +168,7 @@ export function SensorLecturas() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="hora" tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} interval={Math.max(1, Math.floor(chartData.length / 12))} angle={-20} textAnchor="end" height={50} />
+                <XAxis dataKey="hora" tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} interval={0} angle={-20} textAnchor="end" height={50} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} domain={['dataMin - 1', 'dataMax + 1']} />
                 <Tooltip labelFormatter={(label) => `${label}`} formatter={(value) => [`${value}°C`, 'Temperatura']} />
                 <Area type="monotone" dataKey="temperatura" stroke="#6366f1" strokeWidth={2} fill="url(#tempGradient)" dot={false} activeDot={{ r: 4, fill: '#6366f1' }} />

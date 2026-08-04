@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ResponsiveContainer,
@@ -17,7 +17,7 @@ import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import { timeAgo } from '../../../shared/utils/timeAgo'
 import styles from './CamaraDetailPage.module.css'
 
-const CADENCIA_MUESTRA_MS = 330_000
+const CADENCIA_MUESTRA_MS = 165_000
 
 export function CamaraDetail() {
   const { id } = useParams<{ id: string }>()
@@ -31,6 +31,7 @@ export function CamaraDetail() {
   const { data: lecturas = [] } = useCamaraLecturas(camaraId, since)
   const [ahora, setAhora] = useState(() => Date.now())
   const [siguienteAt, setSiguienteAt] = useState<number | null>(null)
+  const ultimaMuestreadoRef = useRef<string | null>(null)
 
   useEffect(() => {
     const t = setInterval(() => setAhora(Date.now()), 1000)
@@ -38,9 +39,11 @@ export function CamaraDetail() {
   }, [])
 
   useEffect(() => {
-    if (lecturas.length > 0) {
-      setSiguienteAt(new Date(lecturas[lecturas.length - 1].timestamp).getTime() + CADENCIA_MUESTRA_MS)
-    }
+    if (lecturas.length === 0) return
+    const ultima = lecturas[lecturas.length - 1]
+    if (ultimaMuestreadoRef.current === ultima.muestreadoEn) return
+    ultimaMuestreadoRef.current = ultima.muestreadoEn
+    setSiguienteAt(new Date(ultima.muestreadoEn).getTime() + CADENCIA_MUESTRA_MS)
   }, [lecturas])
 
   const ultimaMuestra = lecturas.length > 0 ? lecturas[lecturas.length - 1] : null
@@ -56,7 +59,7 @@ export function CamaraDetail() {
 
   const chartData = lecturas.map((l) => ({
     hora: fmtHora(l.timestamp),
-    temperatura: l.promedio,
+    temperatura: Math.round(l.promedio * 10) / 10,
   }))
 
   if (isLoading) {
@@ -206,9 +209,9 @@ export function CamaraDetail() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="hora" tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} angle={-20} textAnchor="end" height={50} interval={Math.max(1, Math.floor(chartData.length / 12))} />
+                <XAxis dataKey="hora" tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} angle={-20} textAnchor="end" height={50} interval={0} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} domain={['dataMin - 1', 'dataMax + 1']} />
-                <Tooltip formatter={(value) => [`${value}°C`, 'Promedio']} />
+                <Tooltip formatter={(value) => [`${Number(value).toFixed(1)}°C`, 'Promedio']} />
                 <Area type="monotone" dataKey="temperatura" stroke="#6366f1" strokeWidth={2} fill="url(#camTempGradient)" dot={false} activeDot={{ r: 4, fill: '#6366f1' }} />
               </AreaChart>
             </ResponsiveContainer>

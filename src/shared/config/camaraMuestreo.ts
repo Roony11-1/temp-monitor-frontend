@@ -1,0 +1,1 @@
+export const CADENCIA_MUESTRA_MS = Number(import.meta.env.VITE_CAMARA_MUESTREO_CADENCIA_MS ?? 165000)

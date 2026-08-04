@@ -115,6 +115,7 @@ export interface CamaraSummaryResponse
   sucursal: string
   temperaturaMin: number | null
   temperaturaMax: number | null
+  temperaturaActual: number | null
   estado: boolean
 }
 
@@ -197,6 +198,7 @@ export interface Lectura {
 
 export interface CamaraLectura {
   timestamp: string
+  muestreadoEn: string
   promedio: number
   sensores: number
 }

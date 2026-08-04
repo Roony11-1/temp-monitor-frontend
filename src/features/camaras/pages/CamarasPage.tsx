@@ -64,6 +64,7 @@ export function Camaras() {
       sucursal: sucursalNombre(c.sucursalId),
       temperaturaMin: c.temperaturaMin,
       temperaturaMax: c.temperaturaMax,
+      temperaturaActual: null,
       estado: c.activo,
     }))
     loading = loadingBySuc
@@ -111,6 +112,26 @@ export function Camaras() {
         if (min == null && max == null) return <span className={styles.cellMuted}>No asignado</span>
         if (min != null && max != null) return <span>[{min}, {max}]</span>
         return <span>{min != null ? min : max}</span>
+      },
+    },
+    {
+      key: 'temperaturaActual',
+      label: 'Temp. actual (°C)',
+      sortable: false,
+      filterable: false,
+      render: (_, row) => {
+        if (row.temperaturaActual != null) {
+          return <span className="font-medium">{Math.round(row.temperaturaActual * 10) / 10}°</span>
+        }
+        if (!row.estado) {
+          return <span className={styles.emptyValue}>Sin medición</span>
+        }
+        return (
+          <span className={styles.tempActual}>
+            <span className={styles.spinner} />
+            <span className={styles.cellMuted}>Midiendo</span>
+          </span>
+        )
       },
     },
     {
