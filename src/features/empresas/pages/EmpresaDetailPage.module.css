@@ -78,3 +78,7 @@
 .badgeWrapper {
   @apply mt-1;
 }
+
+.notFound {
+  @apply py-8 text-center text-sm text-gray-500;
+}

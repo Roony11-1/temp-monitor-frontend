@@ -11,7 +11,7 @@ export function UsuarioDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user: currentUser } = useAuth()
-  const { data: usuario, isLoading } = useUsuario(Number(id))
+  const { data: usuario, isLoading, isError } = useUsuario(Number(id))
 
   const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN')
   const isAdminEmpresa = currentUser?.roles?.includes('ADMIN_EMPRESA')
@@ -22,6 +22,27 @@ export function UsuarioDetail() {
       <div className={styles.skeletonSpace}>
         <LoadingSkeleton width="200px" height="28px" />
         <Card><LoadingSkeleton width="100%" height="160px" /></Card>
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.header}>
+          <div className={styles.headerLeft}>
+            <button onClick={() => navigate('/usuarios')} className={styles.backBtn}>
+              &larr;
+            </button>
+            <div>
+              <h1 className={styles.pageTitle}>Usuario no encontrado</h1>
+              <p className={styles.pageSubtitle}>No se pudo cargar el usuario o no tiene acceso a él.</p>
+            </div>
+          </div>
+        </div>
+        <Card>
+          <p className="py-8 text-center text-sm text-gray-500">El usuario no existe o no está disponible en tu ámbito de acceso.</p>
+        </Card>
       </div>
     )
   }

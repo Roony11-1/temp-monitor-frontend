@@ -11,7 +11,7 @@ export function CamaraDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const camaraId = Number(id)
-  const { data: camara, isLoading } = useCamara(camaraId)
+  const { data: camara, isLoading, isError } = useCamara(camaraId)
   const { data: temperatura } = useCamaraTemperatura(camaraId)
   const { data: ultimasLecturas = [] } = useUltimasLecturas(camaraId)
   const { data: sensores = [] } = useSensoresByCamara(camaraId)
@@ -23,6 +23,27 @@ export function CamaraDetail() {
       <div className={styles.skeletonSpace}>
         <LoadingSkeleton width="200px" height="28px" />
         <Card><LoadingSkeleton width="100%" height="160px" /></Card>
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.header}>
+          <div className={styles.headerLeft}>
+            <button onClick={() => navigate('/camaras')} className={styles.backBtn}>
+              &larr;
+            </button>
+            <div>
+              <h1 className={styles.pageTitle}>Cámara no encontrada</h1>
+              <p className={styles.pageSubtitle}>No se pudo cargar la cámara o no tiene acceso a ella.</p>
+            </div>
+          </div>
+        </div>
+        <Card>
+          <p className="py-8 text-center text-sm text-gray-500">La cámara no existe o no está disponible en tu ámbito de acceso.</p>
+        </Card>
       </div>
     )
   }

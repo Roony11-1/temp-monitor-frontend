@@ -13,7 +13,7 @@ export function SucursalDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const sucursalId = Number(id)
-  const { data: sucursal, isLoading: loadingSuc } = useSucursal(sucursalId)
+  const { data: sucursal, isLoading: loadingSuc, isError: errorSuc } = useSucursal(sucursalId)
   const { data: camaras = [], isLoading: loadingCam } = useCamarasBySucursal(sucursalId)
 
   const columns: ColumnDef<Camara>[] = [
@@ -51,6 +51,27 @@ export function SucursalDetail() {
         <LoadingSkeleton width="200px" height="28px" />
         <Card><LoadingSkeleton width="100%" height="120px" /></Card>
         <Card><LoadingSkeleton width="100%" height="200px" /></Card>
+      </div>
+    )
+  }
+
+  if (errorSuc) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.header}>
+          <div className={styles.headerLeft}>
+            <button onClick={() => navigate('/sucursales')} className={styles.backBtn}>
+              &larr;
+            </button>
+            <div>
+              <h1 className={styles.pageTitle}>Sucursal no encontrada</h1>
+              <p className={styles.pageSubtitle}>No se pudo cargar la sucursal o no tiene acceso a ella.</p>
+            </div>
+          </div>
+        </div>
+        <Card>
+          <p className="py-8 text-center text-sm text-gray-500">La sucursal no existe o no está disponible en tu ámbito de acceso.</p>
+        </Card>
       </div>
     )
   }

@@ -20,7 +20,7 @@ export function EmpresaDetail() {
   const { user } = useAuth()
   const [tab, setTab] = useState<TabKey>('sucursales')
   const empresaId = Number(id)
-  const { data: empresa, isLoading: loadingEmpresa } = useEmpresa(empresaId)
+  const { data: empresa, isLoading: loadingEmpresa, isError: errorEmpresa } = useEmpresa(empresaId)
   const { data: sucursales = [], isLoading: loadingSucursales } = useSucursalesByEmpresa(empresaId)
   const { data: usuarios = [], isLoading: loadingUsuarios } = useUsuariosByEmpresa(empresaId)
 
@@ -127,6 +127,29 @@ export function EmpresaDetail() {
         <LoadingSkeleton width="200px" height="28px" />
         <Card><LoadingSkeleton width="100%" height="120px" /></Card>
         <Card><LoadingSkeleton width="100%" height="200px" /></Card>
+      </div>
+    )
+  }
+
+  if (errorEmpresa) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.header}>
+          <div className={styles.headerLeft}>
+            <button onClick={() => navigate('/empresas')} className={styles.backBtn}>
+              &larr;
+            </button>
+            <div>
+              <h1 className={styles.pageTitle}>Empresa no encontrada</h1>
+              <p className={styles.pageSubtitle}>No se pudo cargar la empresa o no tiene acceso a ella.</p>
+            </div>
+          </div>
+        </div>
+        <Card>
+          <div className={styles.notFound}>
+            <p>La empresa no existe o no está disponible en tu ámbito de acceso.</p>
+          </div>
+        </Card>
       </div>
     )
   }
