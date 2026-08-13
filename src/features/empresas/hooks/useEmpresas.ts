@@ -61,3 +61,11 @@ export function useToggleEmpresa() {
     onSuccess: () => qc.invalidateQueries({ queryKey: [queryKey] }),
   })
 }
+
+export function useRestaurarEmpresa() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.restaurarEmpresa(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [queryKey] }),
+  })
+}

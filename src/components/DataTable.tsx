@@ -24,6 +24,7 @@ interface DataTableProps<T> {
   rowKey: (row: T) => string | number
   onRowClick?: (row: T) => void
   actions?: (row: T) => React.ReactNode
+  rowClassName?: (row: T) => string | undefined
   pagination?: PaginationState
   onPageChange?: (page: number) => void
   onPageSizeChange?: (size: number) => void
@@ -101,6 +102,7 @@ export function DataTable<T>({
   rowKey,
   onRowClick,
   actions,
+  rowClassName,
   pagination,
   onPageChange,
   onPageSizeChange,
@@ -289,7 +291,11 @@ export function DataTable<T>({
                 {table.getRowModel().rows.map((row) => (
                   <tr
                     key={rowKey(row.original)}
-                    className={cn(styles.tableRow, onRowClick && styles.tableRowClickable)}
+                    className={cn(
+                      styles.tableRow,
+                      onRowClick && styles.tableRowClickable,
+                      rowClassName?.(row.original),
+                    )}
                     onClick={() => onRowClick?.(row.original)}
                   >
                     {row.getVisibleCells().map((cell) => (

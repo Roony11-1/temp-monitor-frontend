@@ -45,3 +45,8 @@ export async function activarEmpresa(id: number) {
 export async function desactivarEmpresa(id: number) {
   await api.post(ApiConfig.empresas.desactivar(id))
 }
+
+export async function restaurarEmpresa(id: number) {
+  const res = await api.post<Empresa>(ApiConfig.empresas.restaurar(id))
+  return res.data
+}

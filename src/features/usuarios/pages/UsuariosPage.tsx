@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useUsuariosByEmpresa, useUsuariosBySucursal, useDeleteUsuario, useUsuariosPage, useUsuario } from '../hooks/useUsuarios'
+import { useUsuariosByEmpresa, useUsuariosBySucursal, useDeleteUsuario, useUsuariosPage, useUsuario, useRestaurarUsuario } from '../hooks/useUsuarios'
 import { useEmpresas, useEmpresa } from '../../empresas/hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
@@ -8,8 +8,9 @@ import { DataTable } from '../../../components/DataTable'
 import { useUrlFilters } from '../../../shared/hooks/useUrlFilters'
 import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
-import { Badge } from '../../../shared/components/ui/Badge'
+import { EstadoBadge } from '../../../shared/components/ui/EstadoBadge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
+import { RestoreButton } from '../../../shared/components/ui/RestoreButton'
 import { UsuarioForm } from '../components/UsuarioForm'
 import type { UsuarioSummaryResponse } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
@@ -51,6 +52,7 @@ export function Usuarios() {
         : []
 
   const deleteMutation = useDeleteUsuario()
+  const restoreMutation = useRestaurarUsuario()
 
   const openCreate = () => {
     setEditing(null)
@@ -119,7 +121,7 @@ export function Usuarios() {
       sortable: true,
       filterable: true,
       filterType: 'boolean',
-      render: (v) => <Badge variant={v ? 'success' : 'danger'}>{v ? 'Activo' : 'Inactivo'}</Badge>,
+      render: (v, row) => <EstadoBadge eliminado={row.eliminado} activo={v} />,
     },
   ]
 
@@ -159,23 +161,34 @@ export function Usuarios() {
         onFilterChange={setFilters}
         initialFilters={filters}
         emptyMessage="No hay usuarios registrados"
+        rowClassName={(usr) => (usr.eliminado ? 'opacity-60' : undefined)}
         actions={(usr) => (
           <>
-            {canManage && (
-              <button
-                onClick={() => openEdit(usr)}
-                className={styles.editBtn}
-              >
-                Editar
-              </button>
-            )}
-            {canManage && (
-              <button
-                onClick={() => handleDelete(usr.id)}
-                className={styles.deleteBtn}
-              >
-                Eliminar
-              </button>
+            {usr.eliminado ? (
+              isSuperAdmin && (
+                <RestoreButton
+                  onRestore={() => restoreMutation.mutateAsync(usr.id)}
+                  confirmMessage="¿Restaurar este usuario?"
+                  successMessage="Usuario restaurado"
+                />
+              )
+            ) : (
+              canManage && (
+                <>
+                  <button
+                    onClick={() => openEdit(usr)}
+                    className={styles.editBtn}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => handleDelete(usr.id)}
+                    className={styles.deleteBtn}
+                  >
+                    Eliminar
+                  </button>
+                </>
+              )
             )}
           </>
         )}

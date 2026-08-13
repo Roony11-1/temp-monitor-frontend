@@ -53,3 +53,12 @@ export async function renewApiKeySensor(uuid: string) {
   const res = await api.post<RegistroSensorResponse>(ApiConfig.sensores.renewApiKey(uuid))
   return res.data
 }
+
+export async function eliminarSensor(uuid: string) {
+  await api.delete(ApiConfig.sensores.byUuid(uuid))
+}
+
+export async function restaurarSensor(uuid: string) {
+  const res = await api.post<Sensor>(ApiConfig.sensores.restaurar(uuid))
+  return res.data
+}

@@ -7,6 +7,7 @@ export const ApiConfig = {
     byId: (id: number) => `/api/empresas/${id}`,
     activar: (id: number) => `/api/empresas/${id}/activar`,
     desactivar: (id: number) => `/api/empresas/${id}/desactivar`,
+    restaurar: (id: number) => `/api/empresas/${id}/restaurar`,
   },
   sucursales: {
     list: '/api/sucursales',
@@ -14,6 +15,7 @@ export const ApiConfig = {
     byEmpresa: (empresaId: number) => `/api/sucursales/empresa/${empresaId}`,
     activar: (id: number) => `/api/sucursales/${id}/activar`,
     desactivar: (id: number) => `/api/sucursales/${id}/desactivar`,
+    restaurar: (id: number) => `/api/sucursales/${id}/restaurar`,
   },
   camaras: {
     list: '/api/camaras',
@@ -21,6 +23,7 @@ export const ApiConfig = {
     bySucursal: (sucursalId: number) => `/api/camaras/sucursal/${sucursalId}`,
     activar: (id: number) => `/api/camaras/${id}/activar`,
     desactivar: (id: number) => `/api/camaras/${id}/desactivar`,
+    restaurar: (id: number) => `/api/camaras/${id}/restaurar`,
     temperatura: (id: number) => `/api/camaras/${id}/temperatura`,
     ultimasLecturas: (id: number) => `/api/camaras/${id}/ultimas-lecturas`,
     lecturas: (id: number) => `/api/camaras/${id}/lecturas`,
@@ -33,6 +36,7 @@ export const ApiConfig = {
     byUuid: (uuid: string) => `/api/sensores/${uuid}`,
     estado: (uuid: string) => `/api/sensores/${uuid}/estado`,
     renewApiKey: (uuid: string) => `/api/sensores/${uuid}/renew-api-key`,
+    restaurar: (uuid: string) => `/api/sensores/${uuid}/restaurar`,
   },
   lecturas: {
     porSensor: (uuid: string) => `/api/lecturas/sensor/${uuid}`,
@@ -45,5 +49,6 @@ export const ApiConfig = {
     password: (id: number) => `/api/usuarios/${id}/password`,
     activar: (id: number) => `/api/usuarios/${id}/activar`,
     desactivar: (id: number) => `/api/usuarios/${id}/desactivar`,
+    restaurar: (id: number) => `/api/usuarios/${id}/restaurar`,
   },
 }

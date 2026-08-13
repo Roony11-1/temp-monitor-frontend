@@ -50,3 +50,8 @@ export async function activarSucursal(id: number) {
 export async function desactivarSucursal(id: number) {
   await api.post(ApiConfig.sucursales.desactivar(id))
 }
+
+export async function restaurarSucursal(id: number) {
+  const res = await api.post<Sucursal>(ApiConfig.sucursales.restaurar(id))
+  return res.data
+}

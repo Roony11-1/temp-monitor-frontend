@@ -67,3 +67,8 @@ export async function activarCamara(id: number) {
 export async function desactivarCamara(id: number) {
   await api.post(ApiConfig.camaras.desactivar(id))
 }
+
+export async function restaurarCamara(id: number) {
+  const res = await api.post<Camara>(ApiConfig.camaras.restaurar(id))
+  return res.data
+}

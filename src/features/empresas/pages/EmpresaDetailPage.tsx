@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useEmpresa } from '../hooks/useEmpresas'
+import { useEmpresa, useRestaurarEmpresa } from '../hooks/useEmpresas'
 import { useSucursalesByEmpresa } from '../../sucursales/hooks/useSucursales'
 import { useUsuariosByEmpresa } from '../../usuarios/hooks/useUsuarios'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Card } from '../../../shared/components/ui/Card'
-import { Badge } from '../../../shared/components/ui/Badge'
+import { EstadoBadge } from '../../../shared/components/ui/EstadoBadge'
+import { RestoreButton } from '../../../shared/components/ui/RestoreButton'
 import { DataTable } from '../../../components/DataTable'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import type { SucursalSummaryResponse, UsuarioSummaryResponse } from '../../../types'
@@ -26,6 +27,7 @@ export function EmpresaDetail() {
 
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
   const canEdit = isSuperAdmin || user?.roles?.includes('ADMIN_EMPRESA')
+  const restoreMutation = useRestaurarEmpresa()
 
   const sucursalColumns: ColumnDef<SucursalSummaryResponse>[] = [
     {
@@ -59,9 +61,9 @@ export function EmpresaDetail() {
       sortable: true,
       filterable: true,
       filterType: 'boolean',
-      render: (v) => (
+      render: (v, row) => (
         <div className={styles.badgeCenter}>
-          <Badge variant={v ? 'success' : 'danger'}>{v ? 'Activo' : 'Inactivo'}</Badge>
+          <EstadoBadge eliminado={row.eliminado} activo={v} />
         </div>
       ),
     },
@@ -113,9 +115,9 @@ export function EmpresaDetail() {
       sortable: true,
       filterable: true,
       filterType: 'boolean',
-      render: (v) => (
+      render: (v, row) => (
         <div className={styles.badgeCenter}>
-          <Badge variant={v ? 'success' : 'danger'}>{v ? 'Activo' : 'Inactivo'}</Badge>
+          <EstadoBadge eliminado={row.eliminado} activo={v} />
         </div>
       ),
     },
@@ -171,13 +173,21 @@ export function EmpresaDetail() {
             <p className={styles.pageSubtitle}>Detalle de empresa</p>
           </div>
         </div>
-        {canEdit && (
+        {!empresa.eliminado && canEdit && (
           <button
             onClick={() => navigate(`/empresas/${id}/editar`)}
             className={styles.editBtn}
           >
             Editar
           </button>
+        )}
+        {empresa.eliminado && isSuperAdmin && (
+          <RestoreButton
+            variant="solid"
+            onRestore={() => restoreMutation.mutateAsync(empresa.id)}
+            confirmMessage="¿Restaurar esta empresa?"
+            successMessage="Empresa restaurada"
+          />
         )}
       </div>
 
@@ -198,9 +208,7 @@ export function EmpresaDetail() {
           <div>
             <p className={styles.fieldLabel}>Estado</p>
             <div className={styles.badgeWrapper}>
-              <Badge variant={empresa.activo ? 'success' : 'danger'}>
-                {empresa.activo ? 'Activo' : 'Inactivo'}
-              </Badge>
+              <EstadoBadge eliminado={empresa.eliminado} activo={empresa.activo} />
             </div>
           </div>
         </div>

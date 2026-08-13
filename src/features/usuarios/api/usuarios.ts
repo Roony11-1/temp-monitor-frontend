@@ -59,3 +59,8 @@ export async function desactivarUsuario(id: number) {
 export async function cambiarPassword(id: number, nuevaPassword: string) {
   await api.post(ApiConfig.usuarios.password(id), { nuevaPassword })
 }
+
+export async function restaurarUsuario(id: number) {
+  const res = await api.post<Usuario>(ApiConfig.usuarios.restaurar(id))
+  return res.data
+}

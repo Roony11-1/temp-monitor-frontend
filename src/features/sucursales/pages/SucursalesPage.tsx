@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useSucursalesPage, useSucursalesByEmpresa, useSucursal, useDeleteSucursal } from '../hooks/useSucursales'
+import { useSucursalesPage, useSucursalesByEmpresa, useSucursal, useDeleteSucursal, useRestaurarSucursal } from '../hooks/useSucursales'
 import { useEmpresas, useEmpresa } from '../../empresas/hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
@@ -8,8 +8,9 @@ import { DataTable } from '../../../components/DataTable'
 import { useUrlFilters } from '../../../shared/hooks/useUrlFilters'
 import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
-import { Badge } from '../../../shared/components/ui/Badge'
+import { EstadoBadge } from '../../../shared/components/ui/EstadoBadge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
+import { RestoreButton } from '../../../shared/components/ui/RestoreButton'
 import { SucursalForm } from '../components/SucursalForm'
 import type { Sucursal, SucursalSummaryResponse } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
@@ -49,7 +50,7 @@ export function Sucursales() {
   }
 
   const filteredEmpresas = isSuperAdmin
-    ? empresas
+    ? empresas.filter((e) => !e.eliminado)
     : isAdminEmpresa
       ? empresas.filter((e) => e.id === user?.empresaId)
       : singleEmpresa
@@ -110,17 +111,16 @@ export function Sucursales() {
       sortable: true,
       filterable: true,
       filterType: 'boolean',
-      render: (v) => (
+      render: (v, row) => (
         <div className={styles.badgeCenter}>
-          <Badge variant={v ? 'success' : 'danger'}>
-            {v ? 'Activo' : 'Inactivo'}
-          </Badge>
+          <EstadoBadge eliminado={row.eliminado} activo={v} />
         </div>
       ),
     },
   ]
 
   const deleteMutation = useDeleteSucursal()
+  const restoreMutation = useRestaurarSucursal()
 
   const openCreate = () => {
     setEditing(null)
@@ -176,21 +176,34 @@ export function Sucursales() {
         onFilterChange={setFilters}
         initialFilters={filters}
         emptyMessage="No hay sucursales registradas"
+        rowClassName={(suc) => (suc.eliminado ? 'opacity-60' : undefined)}
         actions={(suc) => (
           <>
-            <button
-              onClick={() => openEdit(suc)}
-              className={styles.editBtn}
-            >
-              Editar
-            </button>
-            {(isSuperAdmin || isAdminEmpresa) && (
-              <button
-                onClick={() => handleDelete(suc.id)}
-                className={styles.deleteBtn}
-              >
-                Eliminar
-              </button>
+            {suc.eliminado ? (
+              isSuperAdmin && (
+                <RestoreButton
+                  onRestore={() => restoreMutation.mutateAsync(suc.id)}
+                  confirmMessage="¿Restaurar esta sucursal?"
+                  successMessage="Sucursal restaurada"
+                />
+              )
+            ) : (
+              <>
+                <button
+                  onClick={() => openEdit(suc)}
+                  className={styles.editBtn}
+                >
+                  Editar
+                </button>
+                {(isSuperAdmin || isAdminEmpresa) && (
+                  <button
+                    onClick={() => handleDelete(suc.id)}
+                    className={styles.deleteBtn}
+                  >
+                    Eliminar
+                  </button>
+                )}
+              </>
             )}
           </>
         )}

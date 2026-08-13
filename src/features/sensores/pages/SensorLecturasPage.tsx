@@ -9,8 +9,11 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts'
-import { useSensor, useLecturasSensor, useLecturasSensorPage } from '../hooks/useSensores'
+import { useSensor, useLecturasSensor, useLecturasSensorPage, useRestaurarSensor } from '../hooks/useSensores'
+import { useAuth } from '../../../contexts/AuthContext'
 import { Card } from '../../../shared/components/ui/Card'
+import { Badge } from '../../../shared/components/ui/Badge'
+import { RestoreButton } from '../../../shared/components/ui/RestoreButton'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import { DataTable } from '../../../components/DataTable'
 import { timeAgo } from '../../../shared/utils/timeAgo'
@@ -26,6 +29,7 @@ interface ChartPoint {
 export function SensorLecturas() {
   const { uuid } = useParams<{ uuid: string }>()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const [chartRange, setChartRange] = useState<'24h' | '7d' | '30d' | 'all'>('7d')
@@ -34,6 +38,9 @@ export function SensorLecturas() {
   const { data: sensor, isLoading: loadingSensor, isError: errorSensor } = useSensor(uuid ?? '')
   const { data: allLecturas = [], isLoading: loadingAllLect } = useLecturasSensor(uuid ?? '', since)
   const { data: pageData, isLoading: loadingPage } = useLecturasSensorPage(uuid ?? '', page, pageSize, since)
+  const restoreMutation = useRestaurarSensor()
+
+  const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
 
   const loading = loadingSensor || loadingAllLect || loadingPage
   const lecturas = pageData?.content ?? []
@@ -125,8 +132,21 @@ export function SensorLecturas() {
         </div>
         <div className={styles.field}>
           <span className={styles.fieldLabel}>Estado</span>
-          <span>{sensor!.estado}</span>
+          {sensor!.eliminado ? (
+            <Badge variant="warning">Eliminado</Badge>
+          ) : (
+            <span>{sensor!.estado}</span>
+          )}
         </div>
+        {sensor!.eliminado && isSuperAdmin && (
+          <div className={styles.field}>
+            <RestoreButton
+              onRestore={() => restoreMutation.mutateAsync(sensor!.uuid)}
+              confirmMessage="¿Restaurar este sensor?"
+              successMessage="Sensor restaurado"
+            />
+          </div>
+        )}
         <div className={styles.field}>
           <span className={styles.fieldLabel}>Total lecturas</span>
           <span>{pageData?.total ?? allLecturas.length}</span>

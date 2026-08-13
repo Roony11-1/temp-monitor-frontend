@@ -60,3 +60,11 @@ export function useDeleteSucursal() {
     onSuccess: () => qc.invalidateQueries({ queryKey: [queryKey] }),
   })
 }
+
+export function useRestaurarSucursal() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.restaurarSucursal(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [queryKey] }),
+  })
+}

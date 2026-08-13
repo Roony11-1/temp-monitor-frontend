@@ -73,3 +73,11 @@ export function useCambiarPassword() {
     onSuccess: () => qc.invalidateQueries({ queryKey: [queryKey] }),
   })
 }
+
+export function useRestaurarUsuario() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.restaurarUsuario(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [queryKey] }),
+  })
+}

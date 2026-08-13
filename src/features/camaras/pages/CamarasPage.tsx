@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useCamaras, useCamarasBySucursal, useCamarasPage, useDeleteCamara } from '../hooks/useCamaras'
+import { useCamaras, useCamarasBySucursal, useCamarasPage, useDeleteCamara, useRestaurarCamara } from '../hooks/useCamaras'
 import { useSucursales, useSucursalesByEmpresa, useSucursal } from '../../sucursales/hooks/useSucursales'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
@@ -8,8 +8,9 @@ import { DataTable } from '../../../components/DataTable'
 import { useUrlFilters } from '../../../shared/hooks/useUrlFilters'
 import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
-import { Badge } from '../../../shared/components/ui/Badge'
+import { EstadoBadge } from '../../../shared/components/ui/EstadoBadge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
+import { RestoreButton } from '../../../shared/components/ui/RestoreButton'
 import { CamaraForm } from '../components/CamaraForm'
 import type { CamaraSummaryResponse, Sucursal, SucursalSummaryResponse } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
@@ -66,6 +67,7 @@ export function Camaras() {
       temperaturaMax: c.temperaturaMax,
       temperaturaActual: null,
       estado: c.activo,
+      eliminado: c.eliminado,
     }))
     loading = loadingBySuc
   }
@@ -140,17 +142,16 @@ export function Camaras() {
       sortable: true,
       filterable: true,
       filterType: 'boolean',
-      render: (v) => (
+      render: (v, row) => (
         <div className={styles.badgeCenter}>
-          <Badge variant={v ? 'success' : 'danger'}>
-            {v ? 'Activo' : 'Inactivo'}
-          </Badge>
+          <EstadoBadge eliminado={row.eliminado} activo={v} />
         </div>
       ),
     },
   ]
 
   const deleteMutation = useDeleteCamara()
+  const restoreMutation = useRestaurarCamara()
 
   const openCreate = () => {
     setEditing(null)
@@ -210,20 +211,33 @@ export function Camaras() {
         onFilterChange={setFilters}
         initialFilters={filters}
         emptyMessage="No hay cámaras registradas"
+        rowClassName={(cam) => (cam.eliminado ? 'opacity-60' : undefined)}
         actions={(cam) => (
           <>
-            <button
-              onClick={() => openEdit(cam)}
-              className={styles.editBtn}
-            >
-              Editar
-            </button>
-            <button
-              onClick={() => handleDelete(cam.id)}
-              className={styles.deleteBtn}
-            >
-              Eliminar
-            </button>
+            {cam.eliminado ? (
+              isSuperAdmin && (
+                <RestoreButton
+                  onRestore={() => restoreMutation.mutateAsync(cam.id)}
+                  confirmMessage="¿Restaurar esta cámara?"
+                  successMessage="Cámara restaurada"
+                />
+              )
+            ) : (
+              <>
+                <button
+                  onClick={() => openEdit(cam)}
+                  className={styles.editBtn}
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => handleDelete(cam.id)}
+                  className={styles.deleteBtn}
+                >
+                  Eliminar
+                </button>
+              </>
+            )}
           </>
         )}
       />

@@ -9,10 +9,13 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts'
-import { useCamara, useUltimasLecturas, useCamaraLecturas } from '../hooks/useCamaras'
+import { useCamara, useUltimasLecturas, useCamaraLecturas, useRestaurarCamara } from '../hooks/useCamaras'
 import { useSensoresByCamara } from '../../sensores/hooks/useSensores'
+import { useAuth } from '../../../contexts/AuthContext'
 import { Card } from '../../../shared/components/ui/Card'
 import { Badge } from '../../../shared/components/ui/Badge'
+import { EstadoBadge } from '../../../shared/components/ui/EstadoBadge'
+import { RestoreButton } from '../../../shared/components/ui/RestoreButton'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import { timeAgo } from '../../../shared/utils/timeAgo'
 import styles from './CamaraDetailPage.module.css'
@@ -22,10 +25,12 @@ const CADENCIA_MUESTRA_MS = 165_000
 export function CamaraDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const camaraId = Number(id)
   const { data: camara, isLoading, isError } = useCamara(camaraId)
   const { data: ultimasLecturas = [] } = useUltimasLecturas(camaraId)
   const { data: sensores = [] } = useSensoresByCamara(camaraId)
+  const restoreMutation = useRestaurarCamara()
   const [chartRange, setChartRange] = useState<'24h' | '7d' | '30d' | 'all'>('7d')
   const [since, setSince] = useState<number | undefined>(() => Date.now() - 604800000)
   const { data: lecturas = [] } = useCamaraLecturas(camaraId, since)
@@ -102,6 +107,9 @@ export function CamaraDetail() {
     }
   }
 
+  const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
+  const canEdit = isSuperAdmin || user?.roles?.includes('ADMIN_EMPRESA') || user?.roles?.includes('ADMIN_SUCURSAL')
+
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -117,12 +125,22 @@ export function CamaraDetail() {
             <p className={styles.pageSubtitle}>Detalle de cámara</p>
           </div>
         </div>
-        <button
-          onClick={() => navigate(`/camaras/${id}/editar`)}
-          className={styles.editBtn}
-        >
-          Editar
-        </button>
+        {!camara.eliminado && canEdit && (
+          <button
+            onClick={() => navigate(`/camaras/${id}/editar`)}
+            className={styles.editBtn}
+          >
+            Editar
+          </button>
+        )}
+        {camara.eliminado && isSuperAdmin && (
+          <RestoreButton
+            variant="solid"
+            onRestore={() => restoreMutation.mutateAsync(camara.id)}
+            confirmMessage="¿Restaurar esta cámara?"
+            successMessage="Cámara restaurada"
+          />
+        )}
       </div>
 
       <Card>
@@ -168,9 +186,7 @@ export function CamaraDetail() {
           <div>
             <p className={styles.fieldLabel}>Estado</p>
             <div className={styles.badgeWrapper}>
-              <Badge variant={camara.activo ? 'success' : 'danger'}>
-                {camara.activo ? 'Activo' : 'Inactivo'}
-              </Badge>
+              <EstadoBadge eliminado={camara.eliminado} activo={camara.activo} />
             </div>
           </div>
         </div>

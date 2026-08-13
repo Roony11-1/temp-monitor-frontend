@@ -1,8 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useSucursal } from '../hooks/useSucursales'
+import { useSucursal, useRestaurarSucursal } from '../hooks/useSucursales'
 import { useCamarasBySucursal } from '../../camaras/hooks/useCamaras'
+import { useAuth } from '../../../contexts/AuthContext'
 import { Card } from '../../../shared/components/ui/Card'
-import { Badge } from '../../../shared/components/ui/Badge'
+import { EstadoBadge } from '../../../shared/components/ui/EstadoBadge'
+import { RestoreButton } from '../../../shared/components/ui/RestoreButton'
 import { DataTable } from '../../../components/DataTable'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import type { Camara } from '../../../types'
@@ -12,9 +14,15 @@ import styles from './SucursalDetailPage.module.css'
 export function SucursalDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const sucursalId = Number(id)
   const { data: sucursal, isLoading: loadingSuc, isError: errorSuc } = useSucursal(sucursalId)
   const { data: camaras = [], isLoading: loadingCam } = useCamarasBySucursal(sucursalId)
+  const restoreMutation = useRestaurarSucursal()
+
+  const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
+  const isAdminEmpresa = user?.roles?.includes('ADMIN_EMPRESA')
+  const canEdit = isSuperAdmin || isAdminEmpresa
 
   const columns: ColumnDef<Camara>[] = [
     {
@@ -37,9 +45,9 @@ export function SucursalDetail() {
       sortable: true,
       filterable: true,
       filterType: 'boolean',
-      render: (v) => (
+      render: (v, row) => (
         <div className={styles.badgeCenter}>
-          <Badge variant={v ? 'success' : 'danger'}>{v ? 'Activo' : 'Inactivo'}</Badge>
+          <EstadoBadge eliminado={row.eliminado} activo={v} />
         </div>
       ),
     },
@@ -93,12 +101,22 @@ export function SucursalDetail() {
             <p className={styles.pageSubtitle}>Detalle de sucursal</p>
           </div>
         </div>
-        <button
-          onClick={() => navigate(`/sucursales/${id}/editar`)}
-          className={styles.editBtn}
-        >
-          Editar
-        </button>
+        {!sucursal.eliminado && canEdit && (
+          <button
+            onClick={() => navigate(`/sucursales/${id}/editar`)}
+            className={styles.editBtn}
+          >
+            Editar
+          </button>
+        )}
+        {sucursal.eliminado && isSuperAdmin && (
+          <RestoreButton
+            variant="solid"
+            onRestore={() => restoreMutation.mutateAsync(sucursal.id)}
+            confirmMessage="¿Restaurar esta sucursal?"
+            successMessage="Sucursal restaurada"
+          />
+        )}
       </div>
 
       <Card>
@@ -114,9 +132,7 @@ export function SucursalDetail() {
           <div>
             <p className={styles.fieldLabel}>Estado</p>
             <div className={styles.badgeWrapper}>
-              <Badge variant={sucursal.activo ? 'success' : 'danger'}>
-                {sucursal.activo ? 'Activo' : 'Inactivo'}
-              </Badge>
+              <EstadoBadge eliminado={sucursal.eliminado} activo={sucursal.activo} />
             </div>
           </div>
         </div>

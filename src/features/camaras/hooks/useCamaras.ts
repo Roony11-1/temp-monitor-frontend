@@ -95,3 +95,11 @@ export function useDeleteCamara() {
     onSuccess: () => qc.invalidateQueries({ queryKey: [queryKey] }),
   })
 }
+
+export function useRestaurarCamara() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.restaurarCamara(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [queryKey] }),
+  })
+}

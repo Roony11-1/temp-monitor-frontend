@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useSensoresPage, useRenewApiKey, useSensor } from '../hooks/useSensores'
+import { useSensoresPage, useRenewApiKey, useSensor, useEliminarSensor, useRestaurarSensor } from '../hooks/useSensores'
 import { useCamaras } from '../../camaras/hooks/useCamaras'
 import { useEmpresas } from '../../empresas/hooks/useEmpresas'
 import { useSucursales } from '../../sucursales/hooks/useSucursales'
@@ -10,7 +10,10 @@ import { DataTable } from '../../../components/DataTable'
 import { useUrlFilters } from '../../../shared/hooks/useUrlFilters'
 import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
+import { RestoreButton } from '../../../shared/components/ui/RestoreButton'
 import { SensorForm } from '../components/SensorForm'
+import toast from 'react-hot-toast'
+import { getApiErrorMessage } from '../../../shared/utils/error'
 import type { SensorSummaryResponse, RegistroSensorResponse } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './SensoresPage.module.css'
@@ -31,6 +34,8 @@ export function Sensores() {
   const { data: empresas = [] } = useEmpresas()
   const { data: sucursales = [] } = useSucursales()
   const renewMutation = useRenewApiKey()
+  const deleteMutation = useEliminarSensor()
+  const restoreMutation = useRestaurarSensor()
 
   const sensores = pageData?.content ?? []
 
@@ -55,6 +60,16 @@ export function Sensores() {
       setShowKeyModal(true)
     } catch {
       alert('Error al renovar la API key')
+    }
+  }
+
+  const handleDelete = async (uuid: string) => {
+    if (!confirm('¿Eliminar este sensor?')) return
+    try {
+      await deleteMutation.mutateAsync(uuid)
+      toast.success('Sensor eliminado')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Error al eliminar'))
     }
   }
 
@@ -84,11 +99,15 @@ export function Sensores() {
       filterable: true,
       filterType: 'select',
       filterOptions: estadoOptions,
-      render: (v) => (
+      render: (v, row) => (
         <div className={styles.badgeCenter}>
-          <Badge variant={v === 'ACTIVO' ? 'success' : v === 'DESHABILITADO' ? 'danger' : 'warning'}>
-            {v}
-          </Badge>
+          {row.eliminado ? (
+            <Badge variant="warning">Eliminado</Badge>
+          ) : (
+            <Badge variant={v === 'ACTIVO' ? 'success' : v === 'DESHABILITADO' ? 'danger' : 'warning'}>
+              {v}
+            </Badge>
+          )}
         </div>
       ),
     },
@@ -179,22 +198,43 @@ export function Sensores() {
         onFilterChange={setFilters}
         initialFilters={filters}
         emptyMessage="No hay sensores registrados"
+        rowClassName={(sensor) => (sensor.eliminado ? 'opacity-60' : undefined)}
         actions={(sensor) => (
           <div className={styles.actions}>
-            <button
-              onClick={() => openEdit(sensor)}
-              className={styles.editBtn}
-            >
-              Editar
-            </button>
-            {isSuperAdmin && (
-              <button
-                onClick={() => handleRenew(sensor)}
-                className={styles.saveBtn}
-                disabled={renewMutation.isPending}
-              >
-                {renewMutation.isPending ? '...' : 'Renovar API Key'}
-              </button>
+            {sensor.eliminado ? (
+              isSuperAdmin && (
+                <RestoreButton
+                  onRestore={() => restoreMutation.mutateAsync(sensor.uuid)}
+                  confirmMessage="¿Restaurar este sensor?"
+                  successMessage="Sensor restaurado"
+                />
+              )
+            ) : (
+              <>
+                <button
+                  onClick={() => openEdit(sensor)}
+                  className={styles.editBtn}
+                >
+                  Editar
+                </button>
+                {isSuperAdmin && (
+                  <>
+                    <button
+                      onClick={() => handleRenew(sensor)}
+                      className={styles.saveBtn}
+                      disabled={renewMutation.isPending}
+                    >
+                      {renewMutation.isPending ? '...' : 'Renovar API Key'}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(sensor.uuid)}
+                      className={styles.deleteBtn}
+                    >
+                      Eliminar
+                    </button>
+                  </>
+                )}
+              </>
             )}
           </div>
         )}

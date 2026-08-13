@@ -91,6 +91,22 @@ export function useRenewApiKey() {
   })
 }
 
+export function useEliminarSensor() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (uuid: string) => api.eliminarSensor(uuid),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [queryKey] }),
+  })
+}
+
+export function useRestaurarSensor() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (uuid: string) => api.restaurarSensor(uuid),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [queryKey] }),
+  })
+}
+
 export function useRegistrarLecturaSensor() {
   const qc = useQueryClient()
   return useMutation({

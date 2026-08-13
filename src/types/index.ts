@@ -17,6 +17,7 @@ export interface Empresa {
   telefono: string | null
   email: string | null
   activo: boolean
+  eliminado: boolean
   createdAt: string
   updatedAt: string | null
 }
@@ -35,6 +36,7 @@ export interface Sucursal {
   telefono: string | null
   empresaId: number
   activo: boolean
+  eliminado: boolean
   createdAt: string
   updatedAt: string | null
 }
@@ -47,6 +49,7 @@ export interface SucursalSummaryResponse {
   empresa: string
   empresaId: number
   activo: boolean
+  eliminado: boolean
 }
 
 export interface SucursalRequest {
@@ -67,6 +70,7 @@ export interface Usuario {
   sucursal: string | null
   sucursalId: number | null
   activo: boolean
+  eliminado: boolean
   createdAt: string
   lastLogin: string | null
 }
@@ -92,6 +96,7 @@ export interface UsuarioSummaryResponse {
   sucursalId: number | null
   roles: Rol[]
   activo: boolean
+  eliminado: boolean
 }
 
 export interface Camara {
@@ -102,6 +107,7 @@ export interface Camara {
   temperaturaMin: number | null
   temperaturaMax: number | null
   activo: boolean
+  eliminado: boolean
   createdAt: string
   updatedAt: string | null
 }
@@ -117,6 +123,7 @@ export interface CamaraSummaryResponse
   temperaturaMax: number | null
   temperaturaActual: number | null
   estado: boolean
+  eliminado: boolean
 }
 
 export interface CamaraRequest {
@@ -167,6 +174,7 @@ export interface Sensor {
   empresaNombre: string | null
   ultimoContacto: string | null
   estado: string
+  eliminado: boolean
   createdAt: string
   updatedAt: string | null
 }
@@ -182,6 +190,7 @@ export interface SensorSummaryResponse {
   empresaId: number | null
   empresaNombre: string | null
   estado: string
+  eliminado: boolean
 }
 
 export interface ActualizarSensorRequest {

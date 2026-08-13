@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useEmpresa, useDeleteEmpresa, useEmpresasPage } from '../hooks/useEmpresas'
+import { useEmpresa, useDeleteEmpresa, useEmpresasPage, useRestaurarEmpresa } from '../hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
 import { DataTable } from '../../../components/DataTable'
 import { useUrlFilters } from '../../../shared/hooks/useUrlFilters'
 import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
-import { Badge } from '../../../shared/components/ui/Badge'
+import { EstadoBadge } from '../../../shared/components/ui/EstadoBadge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
+import { RestoreButton } from '../../../shared/components/ui/RestoreButton'
 import { EmpresaForm } from '../components/EmpresaForm'
 import type { Empresa } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
@@ -30,6 +31,7 @@ export function Empresas() {
   const { data: pageData, isLoading: loadingAll } = useEmpresasPage(page, pageSize, filters)
   const { data: singleEmpresa, isLoading: loadingSingle } = useEmpresa(user?.empresaId ?? 0)
   const deleteMutation = useDeleteEmpresa()
+  const restoreMutation = useRestaurarEmpresa()
 
   const empresas = isSuperAdmin ? (pageData?.content ?? []) : singleEmpresa ? [singleEmpresa] : []
   const loading = isSuperAdmin ? loadingAll : loadingSingle
@@ -73,11 +75,9 @@ export function Empresas() {
       sortable: true,
       filterable: true,
       filterType: 'boolean',
-      render: (v) => (
+      render: (v, row) => (
         <div className={styles.badgeCenter}>
-          <Badge variant={v ? 'success' : 'danger'}>
-            {v ? 'Activo' : 'Inactivo'}
-          </Badge>
+          <EstadoBadge eliminado={row.eliminado} activo={v} />
         </div>
       ),
     },
@@ -131,24 +131,37 @@ export function Empresas() {
         onFilterChange={setFilters}
         initialFilters={filters}
         emptyMessage="No hay empresas registradas"
+        rowClassName={(emp) => (emp.eliminado ? 'opacity-60' : undefined)}
         actions={(emp) =>
           canEdit || canDelete ? (
             <>
-              {canEdit && (
-                <button
-                  onClick={() => openEdit(emp)}
-                  className={styles.editBtn}
-                >
-                  Editar
-                </button>
-              )}
-              {canDelete && (
-                <button
-                  onClick={() => handleDelete(emp.id)}
-                  className={styles.deleteBtn}
-                >
-                  Eliminar
-                </button>
+              {emp.eliminado ? (
+                isSuperAdmin && (
+                  <RestoreButton
+                    onRestore={() => restoreMutation.mutateAsync(emp.id)}
+                    confirmMessage="¿Restaurar esta empresa?"
+                    successMessage="Empresa restaurada"
+                  />
+                )
+              ) : (
+                <>
+                  {canEdit && (
+                    <button
+                      onClick={() => openEdit(emp)}
+                      className={styles.editBtn}
+                    >
+                      Editar
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      onClick={() => handleDelete(emp.id)}
+                      className={styles.deleteBtn}
+                    >
+                      Eliminar
+                    </button>
+                  )}
+                </>
               )}
             </>
           ) : undefined

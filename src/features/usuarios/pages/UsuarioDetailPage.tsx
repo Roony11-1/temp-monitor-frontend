@@ -1,8 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useUsuario } from '../hooks/useUsuarios'
+import { useUsuario, useRestaurarUsuario } from '../hooks/useUsuarios'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Card } from '../../../shared/components/ui/Card'
 import { Badge } from '../../../shared/components/ui/Badge'
+import { EstadoBadge } from '../../../shared/components/ui/EstadoBadge'
+import { RestoreButton } from '../../../shared/components/ui/RestoreButton'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import type { Rol } from '../../../types'
 import styles from './UsuarioDetailPage.module.css'
@@ -12,6 +14,7 @@ export function UsuarioDetail() {
   const navigate = useNavigate()
   const { user: currentUser } = useAuth()
   const { data: usuario, isLoading, isError } = useUsuario(Number(id))
+  const restoreMutation = useRestaurarUsuario()
 
   const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN')
   const isAdminEmpresa = currentUser?.roles?.includes('ADMIN_EMPRESA')
@@ -64,13 +67,21 @@ export function UsuarioDetail() {
             <p className={styles.pageSubtitle}>Detalle de usuario</p>
           </div>
         </div>
-        {canEdit && (
+        {!usuario.eliminado && canEdit && (
           <button
             onClick={() => navigate(`/usuarios/${id}/editar`)}
             className={styles.editBtn}
           >
             Editar
           </button>
+        )}
+        {usuario.eliminado && isSuperAdmin && (
+          <RestoreButton
+            variant="solid"
+            onRestore={() => restoreMutation.mutateAsync(usuario.id)}
+            confirmMessage="¿Restaurar este usuario?"
+            successMessage="Usuario restaurado"
+          />
         )}
       </div>
 
@@ -109,9 +120,7 @@ export function UsuarioDetail() {
           <div>
             <p className={styles.fieldLabel}>Estado</p>
             <div className={styles.badgeWrapper}>
-              <Badge variant={usuario.activo ? 'success' : 'danger'}>
-                {usuario.activo ? 'Activo' : 'Inactivo'}
-              </Badge>
+              <EstadoBadge eliminado={usuario.eliminado} activo={usuario.activo} />
             </div>
           </div>
           {usuario.lastLogin && (
