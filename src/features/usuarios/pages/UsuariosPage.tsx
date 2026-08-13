@@ -9,12 +9,20 @@ import { useUrlFilters } from '../../../shared/hooks/useUrlFilters'
 import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { EstadoBadge } from '../../../shared/components/ui/EstadoBadge'
+import { RolBadge } from '../../../shared/components/ui/RolBadge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
 import { RestoreButton } from '../../../shared/components/ui/RestoreButton'
 import { UsuarioForm } from '../components/UsuarioForm'
 import type { UsuarioSummaryResponse } from '../../../types'
 import type { ColumnDef } from '../../../types/table'
 import styles from './UsuariosPage.module.css'
+
+const ROL_FILTER_OPTIONS = [
+  { label: 'Admin Global', value: 'SUPER_ADMIN' },
+  { label: 'Admin Empresa', value: 'ADMIN_EMPRESA' },
+  { label: 'Admin Sucursal', value: 'ADMIN_SUCURSAL' },
+  { label: 'Usuario', value: 'USUARIO' },
+]
 
 export function Usuarios() {
   const { user: currentUser } = useAuth()
@@ -29,6 +37,10 @@ export function Usuarios() {
   const isAdminEmpresa = currentUser?.roles?.includes('ADMIN_EMPRESA')
   const canManage = isSuperAdmin || isAdminEmpresa
   const isReadOnly = !isSuperAdmin && !isAdminEmpresa
+
+  const rolFilterOptions = isSuperAdmin
+    ? ROL_FILTER_OPTIONS
+    : ROL_FILTER_OPTIONS.filter((o) => o.value !== 'SUPER_ADMIN')
 
   const empresaId = currentUser?.empresaId
   const sucursalId = currentUser?.sucursalId
@@ -86,7 +98,6 @@ export function Usuarios() {
         </span>
       ),
     },
-    { key: 'nombre', label: 'Nombre', sortable: true, filterable: true, render: (v) => <span className={styles.cellMuted}>{v || '-'}</span> },
     {
       key: 'empresa',
       label: 'Empresa',
@@ -114,6 +125,20 @@ export function Usuarios() {
         ) : (
           <span className={styles.cellMuted}>{v || '-'}</span>
         ),
+    },
+    {
+      key: 'roles',
+      label: 'Rol',
+      filterable: true,
+      filterType: 'select',
+      filterOptions: rolFilterOptions,
+      render: (_, row) => (
+        <div className={styles.roleList}>
+          {row.roles.map((rol) => (
+            <RolBadge key={rol} rol={rol} />
+          ))}
+        </div>
+      ),
     },
     {
       key: 'activo',

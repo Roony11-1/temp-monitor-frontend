@@ -1,4 +1,4 @@
-export type Rol = 'SUPER_ADMIN' | 'ADMIN_EMPRESA' | 'ADMIN_SUCURSAL' | 'TECNICO' | 'USUARIO'
+export type Rol = 'SUPER_ADMIN' | 'ADMIN_EMPRESA' | 'ADMIN_SUCURSAL' | 'USUARIO'
 
 export interface LoginRequest {
   email: string

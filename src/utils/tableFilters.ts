@@ -37,6 +37,7 @@ function matchBoolean(value: any, filter: string): boolean {
 
 function matchSelect(value: any, filter: string): boolean {
   if (filter === '' || filter === 'all') return true
+  if (Array.isArray(value)) return value.some((v) => String(v) === filter)
   return String(value) === filter
 }
 

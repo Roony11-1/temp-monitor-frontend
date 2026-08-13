@@ -61,7 +61,7 @@
 }
 
 .userRole {
-  @apply text-xs text-gray-400;
+  @apply flex flex-wrap items-center gap-1 mt-0.5;
 }
 
 .userDetails {

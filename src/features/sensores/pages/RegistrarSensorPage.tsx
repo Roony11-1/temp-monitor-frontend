@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { RegistrarSensorForm } from '../components/RegistrarSensorForm'
 import { AsignarSensorForm } from '../components/AsignarSensorForm'
 import { useConsultarEstadoSensor } from '../hooks/useSensores'
+import { SensorEstadoBadge } from '../../../shared/components/ui/SensorEstadoBadge'
 import type { Sensor, RegistroSensorResponse } from '../../../types'
 import toast from 'react-hot-toast'
 import styles from './RegistrarSensorPage.module.css'
@@ -81,9 +82,7 @@ export function RegistrarSensor() {
             </div>
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Estado:</span>
-              <span className={sensor.estado === 'ACTIVO' ? styles.badgeActivo : styles.badgePendiente}>
-                {sensor.estado}
-              </span>
+              <SensorEstadoBadge estado={sensor.estado} />
             </div>
           </div>
           <div className={styles.actions}>

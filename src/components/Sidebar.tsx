@@ -1,6 +1,8 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { cn } from '../shared/utils/cn'
+import { RolBadge } from '../shared/components/ui/RolBadge'
+import type { Rol } from '../types'
 import styles from './Sidebar.module.css'
 
 const navItems = [
@@ -79,9 +81,11 @@ export function Sidebar() {
           </div>
           <div className={styles.userDetails}>
             <p className={styles.userEmail}>{user?.email}</p>
-            <p className={styles.userRole}>
-              {user?.roles?.join(', ') || 'Sin rol'}
-            </p>
+            <div className={styles.userRole}>
+              {user?.roles?.map((rol: Rol) => (
+                <RolBadge key={rol} rol={rol} />
+              ))}
+            </div>
           </div>
         </div>
         <button

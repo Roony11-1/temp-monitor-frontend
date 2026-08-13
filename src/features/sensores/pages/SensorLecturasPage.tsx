@@ -12,7 +12,7 @@ import {
 import { useSensor, useLecturasSensor, useLecturasSensorPage, useRestaurarSensor } from '../hooks/useSensores'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Card } from '../../../shared/components/ui/Card'
-import { Badge } from '../../../shared/components/ui/Badge'
+import { SensorEstadoBadge } from '../../../shared/components/ui/SensorEstadoBadge'
 import { RestoreButton } from '../../../shared/components/ui/RestoreButton'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import { DataTable } from '../../../components/DataTable'
@@ -132,11 +132,7 @@ export function SensorLecturas() {
         </div>
         <div className={styles.field}>
           <span className={styles.fieldLabel}>Estado</span>
-          {sensor!.eliminado ? (
-            <Badge variant="warning">Eliminado</Badge>
-          ) : (
-            <span>{sensor!.estado}</span>
-          )}
+          <SensorEstadoBadge estado={sensor!.estado} eliminado={sensor!.eliminado} />
         </div>
         {sensor!.eliminado && isSuperAdmin && (
           <div className={styles.field}>

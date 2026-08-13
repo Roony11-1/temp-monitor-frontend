@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useUsuario, useRestaurarUsuario } from '../hooks/useUsuarios'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Card } from '../../../shared/components/ui/Card'
-import { Badge } from '../../../shared/components/ui/Badge'
+import { RolBadge } from '../../../shared/components/ui/RolBadge'
 import { EstadoBadge } from '../../../shared/components/ui/EstadoBadge'
 import { RestoreButton } from '../../../shared/components/ui/RestoreButton'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
@@ -103,9 +103,7 @@ export function UsuarioDetail() {
             <p className={styles.fieldLabel}>Roles</p>
             <div className={styles.roleList}>
               {usuario.roles.map((rol: Rol) => (
-                <Badge key={rol} variant="info" size="sm">
-                  {rol}
-                </Badge>
+                <RolBadge key={rol} rol={rol} />
               ))}
             </div>
           </div>

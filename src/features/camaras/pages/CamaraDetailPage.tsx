@@ -13,8 +13,8 @@ import { useCamara, useUltimasLecturas, useCamaraLecturas, useRestaurarCamara } 
 import { useSensoresByCamara } from '../../sensores/hooks/useSensores'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Card } from '../../../shared/components/ui/Card'
-import { Badge } from '../../../shared/components/ui/Badge'
 import { EstadoBadge } from '../../../shared/components/ui/EstadoBadge'
+import { SensorEstadoBadge } from '../../../shared/components/ui/SensorEstadoBadge'
 import { RestoreButton } from '../../../shared/components/ui/RestoreButton'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import { timeAgo } from '../../../shared/utils/timeAgo'
@@ -98,14 +98,6 @@ export function CamaraDetail() {
   }
 
   if (!camara) return null
-
-  const estadoBadge = (estado: string) => {
-    switch (estado) {
-      case 'ACTIVO': return <Badge variant="success">Activo</Badge>
-      case 'DESHABILITADO': return <Badge variant="danger">Deshabilitado</Badge>
-      default: return <Badge variant="warning">Pendiente</Badge>
-    }
-  }
 
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
   const canEdit = isSuperAdmin || user?.roles?.includes('ADMIN_EMPRESA') || user?.roles?.includes('ADMIN_SUCURSAL')
@@ -284,7 +276,7 @@ export function CamaraDetail() {
                         ? <span className={styles.mono}>{ultima.temperatura}°C</span>
                         : '-'}
                     </td>
-                    <td className={styles.tableCell}>{estadoBadge(s.estado)}</td>
+                    <td className={styles.tableCell}><SensorEstadoBadge estado={s.estado} /></td>
                     <td className={styles.tableCell}>
                       {s.ultimoContacto
                         ? <span className={styles.cellMuted}>{timeAgo(s.ultimoContacto)}</span>

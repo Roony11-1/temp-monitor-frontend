@@ -8,8 +8,8 @@ import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
 import { DataTable } from '../../../components/DataTable'
 import { useUrlFilters } from '../../../shared/hooks/useUrlFilters'
-import { Badge } from '../../../shared/components/ui/Badge'
 import { PageHeader } from '../../../shared/components/ui/PageHeader'
+import { SensorEstadoBadge } from '../../../shared/components/ui/SensorEstadoBadge'
 import { RestoreButton } from '../../../shared/components/ui/RestoreButton'
 import { SensorForm } from '../components/SensorForm'
 import toast from 'react-hot-toast'
@@ -99,15 +99,9 @@ export function Sensores() {
       filterable: true,
       filterType: 'select',
       filterOptions: estadoOptions,
-      render: (v, row) => (
+      render: (_, row) => (
         <div className={styles.badgeCenter}>
-          {row.eliminado ? (
-            <Badge variant="warning">Eliminado</Badge>
-          ) : (
-            <Badge variant={v === 'ACTIVO' ? 'success' : v === 'DESHABILITADO' ? 'danger' : 'warning'}>
-              {v}
-            </Badge>
-          )}
+          <SensorEstadoBadge estado={row.estado} eliminado={row.eliminado} />
         </div>
       ),
     },

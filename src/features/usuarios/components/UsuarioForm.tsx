@@ -4,9 +4,10 @@ import { useCreateUsuario, useUpdateUsuario } from '../../usuarios/hooks/useUsua
 import toast from 'react-hot-toast'
 import { getApiErrorMessage } from '../../../shared/utils/error'
 import { Form, FormInput, FormSelect, FormButton } from '../../../shared/components/form'
+import { RolBadge } from '../../../shared/components/ui/RolBadge'
 import type { UsuarioRequest, Empresa, Rol } from '../../../types'
 
-const ROLES: Rol[] = ['SUPER_ADMIN', 'ADMIN_EMPRESA', 'ADMIN_SUCURSAL', 'TECNICO', 'USUARIO']
+const ROLES: Rol[] = ['SUPER_ADMIN', 'ADMIN_EMPRESA', 'ADMIN_SUCURSAL', 'USUARIO']
 
 interface Props {
   usuario?: { id: number } & Omit<UsuarioRequest, 'password'>
@@ -130,7 +131,7 @@ export function UsuarioForm({ usuario, empresas, canManage, isReadOnly, defaultE
                   onChange={() => toggleRole(rol as Rol)}
                   className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                 />
-                <span className="text-sm text-gray-700">{rol}</span>
+                <RolBadge rol={rol} />
               </label>
             ))}
           </div>
