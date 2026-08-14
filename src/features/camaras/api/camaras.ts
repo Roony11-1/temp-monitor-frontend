@@ -1,7 +1,8 @@
 import { api } from '../../../api/axios'
 import { ApiConfig } from '../../../api/ApiConfig'
-import type { Camara, CamaraRequest, CamaraSummaryResponse, CamaraTemperatura, UltimaLecturaSensor, CamaraLectura } from '../../../types'
+import type { Camara, CamaraRequest, CamaraSummaryResponse, CamaraTemperatura, UltimaLecturaSensor, CamaraLectura, CamaraLecturaResumen } from '../../../types'
 import type { PaginatedResponse } from '../../../types/table'
+import type { GranularidadLectura } from '../../../types'
 
 export async function getCamaras() {
   const res = await api.get<PaginatedResponse<CamaraSummaryResponse>>(ApiConfig.camaras.list)
@@ -42,6 +43,13 @@ export async function getUltimasLecturas(id: number) {
 export async function getCamaraLecturas(id: number, since?: number) {
   const res = await api.get<CamaraLectura[]>(ApiConfig.camaras.lecturas(id), {
     params: { ...(since ? { desde: since } : {}) },
+  })
+  return res.data
+}
+
+export async function getCamaraLecturasResumen(id: number, granularidad: GranularidadLectura) {
+  const res = await api.get<CamaraLecturaResumen[]>(ApiConfig.camaras.lecturas(id), {
+    params: { granularidad },
   })
   return res.data
 }

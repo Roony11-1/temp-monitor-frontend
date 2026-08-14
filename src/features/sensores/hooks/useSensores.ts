@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/sensores'
 import * as lecturasApi from '../api/lecturas'
-import type { SensorSummaryResponse, Sensor, Lectura, ActualizarSensorRequest } from '../../../types'
+import type { GranularidadLectura, SensorSummaryResponse, Sensor, Lectura, ActualizarSensorRequest } from '../../../types'
 import type { PaginatedResponse } from '../../../types/table'
 
 const queryKey = 'sensores'
@@ -55,6 +55,14 @@ export function useLecturasSensor(uuid: string, since?: number) {
     queryKey: ['lecturas', uuid, ...(since ? ['since', since] : [])],
     queryFn: () => lecturasApi.getLecturasSensor(uuid, since),
     enabled: !!uuid,
+  })
+}
+
+export function useLecturasResumenSensor(uuid: string, granularidad: GranularidadLectura, enabled = true) {
+  return useQuery({
+    queryKey: ['lecturas', uuid, 'resumen', granularidad],
+    queryFn: () => lecturasApi.getLecturasResumenSensor(uuid, granularidad),
+    enabled: !!uuid && !!granularidad && enabled,
   })
 }
 

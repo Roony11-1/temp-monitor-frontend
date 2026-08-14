@@ -9,7 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts'
-import { useCamara, useUltimasLecturas, useCamaraLecturas, useRestaurarCamara } from '../hooks/useCamaras'
+import { useCamara, useUltimasLecturas, useCamaraLecturas, useCamaraLecturasResumen, useRestaurarCamara } from '../hooks/useCamaras'
 import { useSensoresByCamara } from '../../sensores/hooks/useSensores'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Card } from '../../../shared/components/ui/Card'
@@ -18,9 +18,8 @@ import { SensorEstadoBadge } from '../../../shared/components/ui/SensorEstadoBad
 import { RestoreButton } from '../../../shared/components/ui/RestoreButton'
 import { LoadingSkeleton } from '../../../shared/components/ui/LoadingSkeleton'
 import { timeAgo } from '../../../shared/utils/timeAgo'
+import { CADENCIA_MUESTRA_MS } from '../../../shared/config/camaraMuestreo'
 import styles from './CamaraDetailPage.module.css'
-
-const CADENCIA_MUESTRA_MS = 165_000
 
 export function CamaraDetail() {
   const { id } = useParams<{ id: string }>()
@@ -34,6 +33,9 @@ export function CamaraDetail() {
   const [chartRange, setChartRange] = useState<'24h' | '7d' | '30d' | 'all'>('7d')
   const [since, setSince] = useState<number | undefined>(() => Date.now() - 604800000)
   const { data: lecturas = [] } = useCamaraLecturas(camaraId, since)
+  const esTodo = chartRange === 'all'
+  const { data: resumenDiario = [] } = useCamaraLecturasResumen(camaraId, 'DAILY', esTodo)
+  const { data: resumenMensual = [] } = useCamaraLecturasResumen(camaraId, 'MONTHLY', esTodo)
   const [ahora, setAhora] = useState(() => Date.now())
   const [siguienteAt, setSiguienteAt] = useState<number | null>(null)
   const ultimaMuestreadoRef = useRef<string | null>(null)
@@ -62,10 +64,18 @@ export function CamaraDetail() {
   const fmtHora = (ts: string) =>
     new Date(ts).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 
-  const chartData = lecturas.map((l) => ({
-    hora: fmtHora(l.timestamp),
-    temperatura: Math.round(l.promedio * 10) / 10,
-  }))
+  const chartData = esTodo
+    ? [
+        ...lecturas.map((l) => ({ ts: l.timestamp, temp: l.promedio })),
+        ...resumenDiario.map((l) => ({ ts: l.timestamp, temp: l.promedio ?? 0 })),
+        ...resumenMensual.map((l) => ({ ts: l.timestamp, temp: l.promedio ?? 0 })),
+      ]
+      .sort((a, b) => a.ts.localeCompare(b.ts))
+      .map((p) => ({ hora: fmtHora(p.ts), temperatura: Math.round(p.temp * 10) / 10 }))
+    : lecturas.map((l) => ({
+        hora: fmtHora(l.timestamp),
+        temperatura: Math.round(l.promedio * 10) / 10,
+      }))
 
   if (isLoading) {
     return (

@@ -9,7 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts'
-import { useSensor, useLecturasSensor, useLecturasSensorPage, useRestaurarSensor } from '../hooks/useSensores'
+import { useSensor, useLecturasSensor, useLecturasResumenSensor, useLecturasSensorPage, useRestaurarSensor } from '../hooks/useSensores'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Card } from '../../../shared/components/ui/Card'
 import { SensorEstadoBadge } from '../../../shared/components/ui/SensorEstadoBadge'
@@ -35,15 +35,25 @@ export function SensorLecturas() {
   const [chartRange, setChartRange] = useState<'24h' | '7d' | '30d' | 'all'>('7d')
   const [since, setSince] = useState<number | undefined>(() => Date.now() - 604800000)
 
+  const esTodo = chartRange === 'all'
+
   const { data: sensor, isLoading: loadingSensor, isError: errorSensor } = useSensor(uuid ?? '')
   const { data: allLecturas = [], isLoading: loadingAllLect } = useLecturasSensor(uuid ?? '', since)
+  const { data: resumenDiario = [], isLoading: loadingDiario } = useLecturasResumenSensor(uuid ?? '', 'DAILY', esTodo)
+  const { data: resumenMensual = [], isLoading: loadingMensual } = useLecturasResumenSensor(uuid ?? '', 'MONTHLY', esTodo)
   const { data: pageData, isLoading: loadingPage } = useLecturasSensorPage(uuid ?? '', page, pageSize, since)
   const restoreMutation = useRestaurarSensor()
 
   const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN')
 
-  const loading = loadingSensor || loadingAllLect || loadingPage
+  const loading = loadingSensor || loadingAllLect || loadingPage || (esTodo ? loadingDiario || loadingMensual : false)
   const lecturas = pageData?.content ?? []
+
+  const totalLecturas = esTodo
+    ? allLecturas.length
+      + resumenDiario.reduce((acc, l) => acc + l.conteo, 0)
+      + resumenMensual.reduce((acc, l) => acc + l.conteo, 0)
+    : pageData?.total ?? allLecturas.length
 
   if (errorSensor) {
     return (
@@ -79,12 +89,17 @@ export function SensorLecturas() {
   const fmtHora = (ts: string) =>
     new Date(ts).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 
-  const chartData: ChartPoint[] = [...allLecturas]
-    .reverse()
-    .map((l) => ({
-      hora: fmtHora(l.timestamp),
-      temperatura: l.temperatura,
-    }))
+  const chartData: ChartPoint[] = esTodo
+    ? [
+        ...allLecturas.map((l) => ({ ts: l.timestamp, temp: l.temperatura })),
+        ...resumenDiario.map((l) => ({ ts: l.bucketStart, temp: l.promedio ?? 0 })),
+        ...resumenMensual.map((l) => ({ ts: l.bucketStart, temp: l.promedio ?? 0 })),
+      ]
+      .sort((a, b) => a.ts.localeCompare(b.ts))
+      .map((p) => ({ hora: fmtHora(p.ts), temperatura: p.temp }))
+    : [...allLecturas]
+      .reverse()
+      .map((l) => ({ hora: fmtHora(l.timestamp), temperatura: l.temperatura }))
 
   const columns: ColumnDef<Lectura>[] = [
     {
@@ -145,7 +160,7 @@ export function SensorLecturas() {
         )}
         <div className={styles.field}>
           <span className={styles.fieldLabel}>Total lecturas</span>
-          <span>{pageData?.total ?? allLecturas.length}</span>
+          <span>{totalLecturas}</span>
         </div>
       </div>
 

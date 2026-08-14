@@ -206,11 +206,33 @@ export interface Lectura {
   timestamp: string
 }
 
+export type GranularidadLectura = 'DAILY' | 'MONTHLY'
+
+export interface LecturaResumen {
+  id: number
+  sensorUuid: string
+  granularidad: GranularidadLectura
+  bucketStart: string
+  promedio: number | null
+  minimo: number | null
+  maximo: number | null
+  conteo: number
+  actualizadoEn: string
+}
+
 export interface CamaraLectura {
   timestamp: string
   muestreadoEn: string
   promedio: number
   sensores: number
+}
+
+export interface CamaraLecturaResumen {
+  timestamp: string
+  promedio: number | null
+  minimo: number | null
+  maximo: number | null
+  conteo: number
 }
 
 export interface AuthUser {
