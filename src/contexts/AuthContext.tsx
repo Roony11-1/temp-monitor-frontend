@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { parseJwt } from '../utils/jwt'
+import { api } from '../api/axios'
+import { ApiConfig } from '../api/ApiConfig'
 import type { AuthUser } from '../types'
 
 interface AuthContextType 
@@ -19,8 +21,14 @@ function readAuthFromStorage() {
   if (!savedToken) return { token: null, user: null, isAuthenticated: false }
 
   const claims = parseJwt(savedToken)
-  if (!claims || claims.exp * 1000 <= Date.now()) {
+  const refreshToken = localStorage.getItem('refreshToken')
+  const expired = !claims || claims.exp * 1000 <= Date.now()
+
+  // Si hay refresh token vigente, un access expirado se renueva en el primer
+  // request (interceptor de axios); no forzamos logout al recargar la página.
+  if (!claims || (expired && !refreshToken)) {
     localStorage.removeItem('token')
+    localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
     return { token: null, user: null, isAuthenticated: false }
   }
@@ -48,8 +56,17 @@ export function AuthProvider({ children }: { children: ReactNode })
     return () => window.removeEventListener('auth-changed', sync)
   }, [])
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    const refreshToken = localStorage.getItem('refreshToken')
+    if (refreshToken) {
+      try {
+        await api.post(ApiConfig.auth.logout, { refreshToken })
+      } catch {
+        // best-effort: el refresh se invalida igual al rotar o expirar
+      }
+    }
     localStorage.removeItem('token')
+    localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
     queryClient.clear()
     setState({ token: null, user: null, isAuthenticated: false })

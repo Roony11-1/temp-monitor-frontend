@@ -13,6 +13,7 @@ export function useLogin() {
     mutationFn: (data: LoginRequest) => login(data),
     onSuccess: (res) => {
       localStorage.setItem('token', res.token)
+      localStorage.setItem('refreshToken', res.refreshToken)
       const claims = parseJwt(res.token)
       const userData: AuthUser = {
         id: Number(claims.sub),
