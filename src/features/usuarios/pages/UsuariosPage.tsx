@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useUsuariosByEmpresa, useUsuariosBySucursal, useDeleteUsuario, useUsuariosPage, useUsuario, useRestaurarUsuario } from '../hooks/useUsuarios'
-import { useEmpresas, useEmpresa } from '../../empresas/hooks/useEmpresas'
+import { useDeleteUsuario, useUsuariosPage, useUsuario, useRestaurarUsuario } from '../hooks/useUsuarios'
+import { useEmpresas } from '../../empresas/hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
 import { DataTable } from '../../../components/DataTable'
@@ -42,26 +42,14 @@ export function Usuarios() {
     ? ROL_FILTER_OPTIONS
     : ROL_FILTER_OPTIONS.filter((o) => o.value !== 'SUPER_ADMIN')
 
-  const empresaId = currentUser?.empresaId
-  const sucursalId = currentUser?.sucursalId
-
   const { data: empresas = [] } = useEmpresas()
-  const { data: empresaData } = useEmpresa(!isSuperAdmin && !isAdminEmpresa ? empresaId! : 0)
   const { data: pageData, isLoading: loadingPage } = useUsuariosPage(page, pageSize, filters)
-  const { data: usuariosEmpresa = [], isLoading: loadingEmpresa } = useUsuariosByEmpresa(isAdminEmpresa ? empresaId! : 0)
-  const { data: usuariosSucursal = [], isLoading: loadingSucursal } = useUsuariosBySucursal(!isSuperAdmin && !isAdminEmpresa ? sucursalId! : 0)
   const { data: editingDetail } = useUsuario(editing?.id ?? 0)
 
-  const usuarios: UsuarioSummaryResponse[] = isSuperAdmin ? (pageData?.content ?? []) : isAdminEmpresa ? usuariosEmpresa : usuariosSucursal
-  const loading = isSuperAdmin ? loadingPage : isAdminEmpresa ? loadingEmpresa : loadingSucursal
+  const usuarios: UsuarioSummaryResponse[] = pageData?.content ?? []
+  const loading = loadingPage
 
-  const filteredEmpresas = isSuperAdmin
-    ? empresas
-    : isAdminEmpresa
-      ? empresas.filter((e) => e.id === currentUser?.empresaId)
-      : empresaData
-        ? [empresaData]
-        : []
+  const filteredEmpresas = empresas.filter((e) => !e.eliminado)
 
   const deleteMutation = useDeleteUsuario()
   const restoreMutation = useRestaurarUsuario()
@@ -180,7 +168,7 @@ export function Usuarios() {
         columns={columns as ColumnDef<UsuarioSummaryResponse>[]}
         loading={loading}
         rowKey={(u) => u.id}
-        pagination={isSuperAdmin && pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
+        pagination={pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
         onPageChange={setPage}
         onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
         onFilterChange={setFilters}

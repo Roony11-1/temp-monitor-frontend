@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useCamaras, useCamarasBySucursal, useCamarasPage, useDeleteCamara, useRestaurarCamara } from '../hooks/useCamaras'
-import { useSucursales, useSucursalesByEmpresa, useSucursal } from '../../sucursales/hooks/useSucursales'
+import { useCamarasPage, useDeleteCamara, useRestaurarCamara } from '../hooks/useCamaras'
+import { useSucursales } from '../../sucursales/hooks/useSucursales'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
 import { DataTable } from '../../../components/DataTable'
@@ -31,46 +31,11 @@ export function Camaras() {
   const canManage = isSuperAdmin || isAdminEmpresa || isAdminSucursal
 
   const { data: pageData, isLoading: loadingPage } = useCamarasPage(page, pageSize, filters)
-  const { data: allCamaras = [] } = useCamaras()
-  const { data: camarasBySuc = [], isLoading: loadingBySuc } = useCamarasBySucursal(user?.sucursalId ?? 0)
   const { data: allSucursales = [] } = useSucursales()
-  const { data: sucursalesByEmp = [] } = useSucursalesByEmpresa(isAdminEmpresa ? user!.empresaId! : 0)
-  const { data: singleSucursal } = useSucursal(isAdminSucursal ? user!.sucursalId! : 0)
 
-  let camaras: CamaraSummaryResponse[] = []
-  let loading = false
-  let sucursales: Array<Sucursal | SucursalSummaryResponse> = []
-
-  const sucursalNombre = (id: number) => sucursales.find((s) => s.id === id)?.nombre || '-'
-
-  if (isSuperAdmin) {
-    camaras = pageData?.content ?? []
-    loading = loadingPage
-    sucursales = allSucursales
-  } else if (isAdminEmpresa) {
-    camaras = allCamaras
-    sucursales = sucursalesByEmp
-    loading = loadingBySuc
-    if (sucursales.length) {
-      const sucursalNombres = new Set(sucursales.map((s) => s.nombre))
-      camaras = allCamaras.filter((c) => sucursalNombres.has(c.sucursal))
-    }
-  } else if (isAdminSucursal) {
-    sucursales = singleSucursal ? [singleSucursal] : []
-    camaras = camarasBySuc.map((c) => ({
-      id: c.id,
-      nombre: c.nombre,
-      descripcion: c.descripcion,
-      sucursalId: c.sucursalId,
-      sucursal: sucursalNombre(c.sucursalId),
-      temperaturaMin: c.temperaturaMin,
-      temperaturaMax: c.temperaturaMax,
-      temperaturaActual: null,
-      estado: c.activo,
-      eliminado: c.eliminado,
-    }))
-    loading = loadingBySuc
-  }
+  const camaras: CamaraSummaryResponse[] = pageData?.content ?? []
+  const loading = loadingPage
+  const sucursales: Array<Sucursal | SucursalSummaryResponse> = allSucursales
 
   const columns: ColumnDef<CamaraSummaryResponse>[] = [
     {
@@ -164,7 +129,7 @@ export function Camaras() {
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('¿Eliminar esta cámara?')) return
+    if (!confirm('¿Eliminar esta cámara? También se eliminarán sus sensores.')) return
     try {
       await deleteMutation.mutateAsync(id)
       toast.success('Cámara eliminada')
@@ -205,7 +170,7 @@ export function Camaras() {
         columns={columns}
         loading={loading}
         rowKey={(c) => c.id}
-        pagination={isSuperAdmin && pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
+        pagination={pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
         onPageChange={setPage}
         onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
         onFilterChange={setFilters}

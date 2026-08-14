@@ -5,10 +5,6 @@ import type { PaginatedResponse } from '../../../types/table'
 
 const queryKey = 'usuarios'
 
-export function useUsuarios() {
-  return useQuery<UsuarioSummaryResponse[]>({ queryKey: [queryKey], queryFn: api.getUsuarios })
-}
-
 export function useUsuariosPage(page: number, pageSize: number, filters?: Record<string, string>) {
   return useQuery<PaginatedResponse<UsuarioSummaryResponse>>({
     queryKey: [queryKey, 'page', page, pageSize, JSON.stringify(filters ?? {})],
@@ -61,15 +57,6 @@ export function useDeleteUsuario() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => api.deleteUsuario(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: [queryKey] }),
-  })
-}
-
-export function useCambiarPassword() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, nuevaPassword }: { id: number; nuevaPassword: string }) =>
-      api.cambiarPassword(id, nuevaPassword),
     onSuccess: () => qc.invalidateQueries({ queryKey: [queryKey] }),
   })
 }

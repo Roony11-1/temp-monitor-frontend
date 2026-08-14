@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useSucursalesPage, useSucursalesByEmpresa, useSucursal, useDeleteSucursal, useRestaurarSucursal } from '../hooks/useSucursales'
-import { useEmpresas, useEmpresa } from '../../empresas/hooks/useEmpresas'
+import { useSucursalesPage, useDeleteSucursal, useRestaurarSucursal } from '../hooks/useSucursales'
+import { useEmpresas } from '../../empresas/hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
 import { DataTable } from '../../../components/DataTable'
@@ -31,31 +31,12 @@ export function Sucursales() {
   const canManage = isSuperAdmin || isAdminEmpresa || isAdminSucursal
 
   const { data: pageData, isLoading: loadingAll } = useSucursalesPage(page, pageSize, filters)
-  const { data: sucursalesByEmpresa = [], isLoading: loadingByEmp } = useSucursalesByEmpresa(isAdminEmpresa ? user!.empresaId! : 0)
-  const { data: singleSucursal, isLoading: loadingSingle } = useSucursal(isAdminSucursal ? user!.sucursalId! : 0)
   const { data: empresas = [] } = useEmpresas()
-  const { data: singleEmpresa } = useEmpresa(!isSuperAdmin && !isAdminEmpresa && user?.empresaId ? user.empresaId : 0)
 
-  let sucursales: Array<Sucursal | SucursalSummaryResponse> = []
-  let loading = false
-  if (isSuperAdmin) {
-    sucursales = pageData?.content ?? []
-    loading = loadingAll
-  } else if (isAdminEmpresa) {
-    sucursales = sucursalesByEmpresa
-    loading = loadingByEmp
-  } else if (isAdminSucursal && singleSucursal) {
-    sucursales = [singleSucursal]
-    loading = loadingSingle
-  }
+  const sucursales: Array<Sucursal | SucursalSummaryResponse> = pageData?.content ?? []
+  const loading = loadingAll
 
-  const filteredEmpresas = isSuperAdmin
-    ? empresas.filter((e) => !e.eliminado)
-    : isAdminEmpresa
-      ? empresas.filter((e) => e.id === user?.empresaId)
-      : singleEmpresa
-        ? [singleEmpresa]
-        : []
+  const filteredEmpresas = empresas.filter((e) => !e.eliminado)
 
   const empresaNombre = (id: number) => filteredEmpresas.find((e) => e.id === id)?.nombre || '-'
 
@@ -133,7 +114,7 @@ export function Sucursales() {
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('¿Eliminar esta sucursal?')) return
+    if (!confirm('¿Eliminar esta sucursal? También se eliminarán sus cámaras, sensores y usuarios.')) return
     try {
       await deleteMutation.mutateAsync(id)
       toast.success('Sucursal eliminada')
@@ -170,7 +151,7 @@ export function Sucursales() {
         columns={columns}
         loading={loading}
         rowKey={(s) => s.id}
-        pagination={isSuperAdmin && pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
+        pagination={pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
         onPageChange={setPage}
         onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
         onFilterChange={setFilters}

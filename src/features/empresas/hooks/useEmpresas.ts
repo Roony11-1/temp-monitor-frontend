@@ -53,15 +53,6 @@ export function useDeleteEmpresa() {
   })
 }
 
-export function useToggleEmpresa() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, activar }: { id: number; activar: boolean }) =>
-      activar ? api.activarEmpresa(id) : api.desactivarEmpresa(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: [queryKey] }),
-  })
-}
-
 export function useRestaurarEmpresa() {
   const qc = useQueryClient()
   return useMutation({

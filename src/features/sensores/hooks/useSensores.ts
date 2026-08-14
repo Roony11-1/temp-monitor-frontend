@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/sensores'
 import * as lecturasApi from '../api/lecturas'
-import type { SensorSummaryResponse, Sensor, Lectura, RegistroSensorRequest, AsignarSensorRequest, ActualizarSensorRequest } from '../../../types'
+import type { SensorSummaryResponse, Sensor, Lectura, ActualizarSensorRequest } from '../../../types'
 import type { PaginatedResponse } from '../../../types/table'
 
 const queryKey = 'sensores'
@@ -39,22 +39,6 @@ export function useConsultarEstadoSensor(uuid: string) {
     queryKey: [queryKey, 'estado', uuid],
     queryFn: () => api.consultarEstadoSensor(uuid),
     enabled: !!uuid,
-  })
-}
-
-export function useRegistrarSensor() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: RegistroSensorRequest) => api.registrarSensor(data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: [queryKey] }),
-  })
-}
-
-export function useAsignarSensor() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: AsignarSensorRequest) => api.asignarSensor(data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: [queryKey] }),
   })
 }
 

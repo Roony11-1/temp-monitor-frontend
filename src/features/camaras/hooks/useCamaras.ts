@@ -39,15 +39,6 @@ export function useCamara(id: number) {
   })
 }
 
-export function useCamaraTemperatura(id: number) {
-  return useQuery({
-    queryKey: [queryKey, id, 'temperatura'],
-    queryFn: () => api.getCamaraTemperatura(id),
-    enabled: !!id,
-    refetchInterval: 60_000,
-  })
-}
-
 export function useUltimasLecturas(id: number) {
   return useQuery({
     queryKey: [queryKey, id, 'ultimas-lecturas'],

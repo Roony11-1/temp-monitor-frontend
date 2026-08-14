@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useEmpresa, useDeleteEmpresa, useEmpresasPage, useRestaurarEmpresa } from '../hooks/useEmpresas'
+import { useDeleteEmpresa, useEmpresasPage, useRestaurarEmpresa } from '../hooks/useEmpresas'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Modal } from '../../../components/Modal'
 import { DataTable } from '../../../components/DataTable'
@@ -29,12 +29,11 @@ export function Empresas() {
   const canDelete = isSuperAdmin
 
   const { data: pageData, isLoading: loadingAll } = useEmpresasPage(page, pageSize, filters)
-  const { data: singleEmpresa, isLoading: loadingSingle } = useEmpresa(user?.empresaId ?? 0)
   const deleteMutation = useDeleteEmpresa()
   const restoreMutation = useRestaurarEmpresa()
 
-  const empresas = isSuperAdmin ? (pageData?.content ?? []) : singleEmpresa ? [singleEmpresa] : []
-  const loading = isSuperAdmin ? loadingAll : loadingSingle
+  const empresas = pageData?.content ?? []
+  const loading = loadingAll
 
   const columns: ColumnDef<Empresa>[] = [
     {
@@ -94,7 +93,7 @@ export function Empresas() {
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('¿Eliminar esta empresa?')) return
+    if (!confirm('¿Eliminar esta empresa? También se eliminarán sus sucursales, cámaras, sensores y usuarios.')) return
     try {
       await deleteMutation.mutateAsync(id)
       toast.success('Empresa eliminada')
@@ -125,7 +124,7 @@ export function Empresas() {
         columns={columns}
         loading={loading}
         rowKey={(e) => e.id}
-        pagination={isSuperAdmin && pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
+        pagination={pageData ? { page: pageData.page, pageSize: pageData.pageSize, total: pageData.total } : undefined}
         onPageChange={setPage}
         onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
         onFilterChange={setFilters}

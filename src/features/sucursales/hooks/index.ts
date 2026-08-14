@@ -1,1 +1,0 @@
-export { useSucursales, useSucursalesByEmpresa, useSucursal, useCreateSucursal, useUpdateSucursal, useDeleteSucursal } from './useSucursales'
