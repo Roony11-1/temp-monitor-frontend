@@ -19,6 +19,7 @@ import { SensorLecturas } from '../../features/sensores/pages/SensorLecturasPage
 import { Usuarios } from '../../features/usuarios/pages/UsuariosPage'
 import { UsuarioDetail } from '../../features/usuarios/pages/UsuarioDetailPage'
 import { UsuarioEdit } from '../../features/usuarios/pages/UsuarioEditPage'
+import { AdminPage } from '../../features/admin/pages/AdminPage'
 import { NotFound } from '../../features/not-found/pages/NotFoundPage'
 
 export function AppRouter() {
@@ -52,6 +53,7 @@ export function AppRouter() {
           <Route path="usuarios" element={<Usuarios />} />
           <Route path="usuarios/:id" element={<UsuarioDetail />} />
           <Route path="usuarios/:id/editar" element={<UsuarioEdit />} />
+          <Route path="admin" element={<AdminPage />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

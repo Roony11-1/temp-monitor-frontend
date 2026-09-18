@@ -53,4 +53,9 @@ export const ApiConfig = {
     desactivar: (id: number) => `/api/usuarios/${id}/desactivar`,
     restaurar: (id: number) => `/api/usuarios/${id}/restaurar`,
   },
+  compactacion: {
+    ejecutar: '/api/admin/compactacion/ejecutar',
+    estado: (id: string) => `/api/admin/compactacion/${id}`,
+    listar: '/api/admin/compactacion',
+  },
 }

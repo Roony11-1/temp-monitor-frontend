@@ -29,6 +29,12 @@ const navItems = [
       { to: '/sensores/simular', label: 'Simular Lectura', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
     ],
   },
+  {
+    section: 'Admin',
+    items: [
+      { to: '/admin', label: 'Administración', icon: 'M10 2a2 2 0 012 2v2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2H6a2 2 0 01-2-2V8a2 2 0 012-2h2V4a2 2 0 012-2h2z' },
+    ],
+  },
 ]
 
 export function Sidebar() {
@@ -42,7 +48,7 @@ export function Sidebar() {
   }
 
   const visibleSections = navItems.filter(
-    (s) => s.section !== 'Configuración' || isSuperAdmin,
+    (s) => (s.section !== 'Configuración' && s.section !== 'Admin') || isSuperAdmin,
   )
 
   return (

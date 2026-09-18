@@ -1,0 +1,18 @@
+.page { display:flex; flex-direction:column; gap:24px; padding:24px; max-width:900px; }
+.title { font-size:24px; font-weight:700; }
+.subtitle { color:#6b7280; margin-top:4px; }
+.card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:12px; }
+.cardTitle { font-size:16px; font-weight:600; }
+.cardDesc { color:#4b5563; font-size:14px; line-height:1.5; }
+.meta { display:flex; gap:16px; font-size:12px; color:#6b7280; flex-wrap:wrap; }
+.primaryBtn { align-self:flex-start; background:#111827; color:#fff; padding:10px 18px; border-radius:8px; font-weight:600; border:none; cursor:pointer; }
+.primaryBtn:disabled { opacity:0.5; cursor:not-allowed; }
+.jobStatus { background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:12px; font-size:14px; display:flex; flex-direction:column; gap:6px; }
+.table { width:100%; border-collapse:collapse; font-size:14px; }
+.table th, .table td { text-align:left; padding:8px; border-bottom:1px solid #e5e7eb; }
+.running { color:#d97706; font-weight:600; }
+.completed { color:#059669; font-weight:600; }
+.failed { color:#dc2626; font-weight:600; }
+.error { color:#dc2626; }
+.linkBtn { background:none; border:none; color:#2563eb; cursor:pointer; font-weight:600; }
+.activeRow { background:#f3f4f6; }
